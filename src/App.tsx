@@ -31,7 +31,8 @@ import {
   ArrowRight,
   AlertOctagon,
   FileWarning,
-  Target
+  Target,
+  BookOpen
 } from 'lucide-react';
 import { User, UserRole } from './types';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -80,6 +81,7 @@ const LeadManagement = lazy(() => import('./components/LeadManagement'));
 const DealerManagement = lazy(() => import('./components/DealerManagement'));
 const DynamicPricing = lazy(() => import('./components/DynamicPricing'));
 const Payroll = lazy(() => import('./components/Payroll'));
+const UserGuide = lazy(() => import('./components/UserGuide'));
 
 export default function App() {
   const { t } = useI18n();
@@ -185,6 +187,7 @@ export default function App() {
         { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'Sotuv menejeri', 'Kuryer'] },
         { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['Bosh Admin'] },
         { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['Bosh Admin'] },
+        { id: 'guide', name: t('Rukavodstvo'), icon: BookOpen, roles: ['Bosh Admin', 'Admin', 'Sotuv menejeri', 'Omborchi', 'Ishlab chiqarish ustasi'] },
       ]
     }
   ];
@@ -409,6 +412,8 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
         return <Compliance />;
       case 'alerts':
         return <Alerts />;
+      case 'guide':
+        return <UserGuide />;
       case 'exec-dashboard':
         return <ExecutiveDashboard onAction={setActiveTab} />;
       case 'profit-analytics':
