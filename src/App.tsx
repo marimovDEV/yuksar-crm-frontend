@@ -30,7 +30,8 @@ import {
   Box,
   ArrowRight,
   AlertOctagon,
-  FileWarning
+  FileWarning,
+  Target
 } from 'lucide-react';
 import { User, UserRole } from './types';
 import LanguageSwitcher from './components/LanguageSwitcher';
