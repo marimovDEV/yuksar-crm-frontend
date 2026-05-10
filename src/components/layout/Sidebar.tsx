@@ -86,7 +86,7 @@ export default function Sidebar({
           if (visibleItems.length === 0) return null;
 
           const isGroupOpen = activeGroup === group.id;
-          const isMain = group.id === 'main';
+          const isMain = group.id === 'main' || group.id === 'user-guide';
 
           return (
             <div key={group.id} className="space-y-0.5">
