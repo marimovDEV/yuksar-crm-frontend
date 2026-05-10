@@ -173,22 +173,28 @@ export default function Reports({ user }: { user: User }) {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* KPI Cards - Reimagined */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
-          { name: t('Umumiy Savdo'), value: `${(analytics?.kpis?.total_sales || 0).toLocaleString(locale)} UZS`, trend: '+12%', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { name: t('Ishlab Chiqarish'), value: `${(analytics?.kpis?.total_production || 0).toLocaleString(locale)} dona`, trend: '+8%', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { name: t('Chiqindi Miqdori'), value: `${(analytics?.kpis?.waste_percent || 0).toLocaleString(locale)}%`, trend: '-2%', icon: TrendingDown, color: 'text-rose-600', bg: 'bg-rose-50' },
-          { name: t('Ombor Qiymati'), value: `${(analytics?.kpis?.stock_value || 0).toLocaleString(locale)} UZS`, trend: '0%', icon: PieChart, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { name: t('Umumiy Savdo'), value: `${(analytics?.kpis?.total_sales || 0).toLocaleString(locale)} UZS`, trend: '+12%', icon: TrendingUp, color: 'emerald' },
+          { name: t('Ishlab Chiqarish'), value: `${(analytics?.kpis?.total_production || 0).toLocaleString(locale)} dona`, trend: '+8%', icon: Activity, color: 'blue' },
+          { name: t('Chiqindi Miqdori'), value: `${(analytics?.kpis?.waste_percent || 0).toLocaleString(locale)}%`, trend: '-2%', icon: TrendingDown, color: 'rose' },
+          { name: t('Ombor Qiymati'), value: `${(analytics?.kpis?.stock_value || 0).toLocaleString(locale)} UZS`, trend: '0%', icon: PieChart, color: 'amber' },
         ].map((kpi, i) => (
-          <div key={i} className="bg-white p-7 rounded-[36px] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 ${kpi.bg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
+          <div key={i} className="bg-white p-8 rounded-[48px] border border-slate-100 shadow-premium hover:shadow-2xl hover:-translate-y-2 transition-all duration-700 group relative overflow-hidden">
+            <div className={`absolute -bottom-6 -right-6 w-32 h-32 bg-${kpi.color}-500/5 rounded-full group-hover:scale-150 transition-transform duration-700`} />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-8">
+                <div className={`w-14 h-14 bg-${kpi.color}-500/10 rounded-2xl flex items-center justify-center text-${kpi.color}-600 border border-${kpi.color}-500/5 group-hover:scale-110 transition-transform`}>
+                  <kpi.icon className="w-7 h-7" />
+                </div>
+                <div className={`flex items-center gap-1 text-[11px] font-black ${kpi.trend.startsWith('+') ? 'text-emerald-500 bg-emerald-50' : kpi.trend.startsWith('-') ? 'text-rose-500 bg-rose-50' : 'text-slate-500 bg-slate-50'} px-3 py-1.5 rounded-xl border border-current opacity-20`}>
+                   {kpi.trend}
+                </div>
               </div>
-              <span className={`text-[10px] font-black ${kpi.color} ${kpi.bg} px-3 py-1.5 rounded-full uppercase tracking-widest`}>{kpi.trend}</span>
+              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{kpi.name}</h4>
+              <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none truncate">{kpi.value}</p>
             </div>
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{kpi.name}</h4>
-            <p className="text-xl font-black text-slate-900 tracking-tight">{kpi.value}</p>
           </div>
         ))}
       </div>
@@ -196,61 +202,69 @@ export default function Reports({ user }: { user: User }) {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Trend Line Chart */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                 <h3 className="text-lg font-black text-slate-900 tracking-tight">{t('Sotuvlar Dinamikasi')}</h3>
-                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{t('Oxirgi 30 kunlik trend')}</p>
-              </div>
-              <div className="flex gap-2">
-                 {['Kunlik', 'Haftalik', 'Oylik'].map(period => (
-                    <button key={period} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'Kunlik' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>{t(period)}</button>
-                 ))}
-              </div>
+        <div className="lg:col-span-2 bg-white p-10 md:p-12 rounded-[56px] border border-slate-100 shadow-premium overflow-hidden relative">
+           <div className="absolute top-0 right-0 p-12 text-blue-500/5">
+              <BarChart3 className="w-64 h-64 opacity-5 rotate-6" />
            </div>
-           
-           <div className="w-full">
-              <ResponsiveContainer width="99%" height={300} debounce={50}>
-                 <AreaChart data={analytics?.charts?.sales_trend || []}>
-                    <defs>
-                       <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                       </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#64748b'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#64748b'}} />
-                    <Tooltip 
-                       contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '15px' }}
-                       labelStyle={{ fontWeight: 900, marginBottom: '5px' }}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorSales)" />
-                 </AreaChart>
-              </ResponsiveContainer>
+           <div className="relative z-10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+                 <div>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('Sotuvlar Dinamikasi')}</h3>
+                    <p className="text-slate-400 text-sm font-medium">{t('Real vaqtdagi bozor tahlili')}</p>
+                 </div>
+                 <div className="flex bg-slate-50 p-1.5 rounded-[22px] border border-slate-100">
+                    {['Kunlik', 'Haftalik', 'Oylik'].map(period => (
+                       <button key={period} className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'Kunlik' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>{t(period)}</button>
+                    ))}
+                 </div>
+              </div>
+              
+              <div className="w-full">
+                 <ResponsiveContainer width="99%" height={320} debounce={50}>
+                    <AreaChart data={analytics?.charts?.sales_trend || []}>
+                       <defs>
+                          <linearGradient id="colorSalesLarge" x1="0" y1="0" x2="0" y2="1">
+                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          </linearGradient>
+                       </defs>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#94a3b8'}} />
+                       <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#94a3b8'}} />
+                       <Tooltip 
+                          contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 60px rgba(0,0,0,0.1)', padding: '20px', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
+                          itemStyle={{ fontWeight: 900, color: '#1e293b' }}
+                          labelStyle={{ fontWeight: 900, color: '#64748b', marginBottom: '8px', fontSize: '10px', textTransform: 'uppercase' }}
+                       />
+                       <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={5} fillOpacity={1} fill="url(#colorSalesLarge)" />
+                    </AreaChart>
+                 </ResponsiveContainer>
+              </div>
            </div>
         </div>
 
         {/* Pie Chart Distribution */}
-        <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-           <h3 className="text-lg font-black text-slate-900 tracking-tight mb-2">{t('Chiqindi Manbalari')}</h3>
-           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">{t('Bo\'limlar kesimida')}</p>
+        <div className="bg-white p-10 rounded-[56px] border border-slate-100 shadow-premium flex flex-col">
+           <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">{t('Chiqindi Manbalari')}</h3>
+           <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-10">{t('Bo\'limlar tahlili')}</p>
            
-           <div className="w-full">
-              <ResponsiveContainer width="99%" height={250} debounce={50}>
+           <div className="flex-1 min-h-[250px]">
+              <ResponsiveContainer width="99%" height="100%" debounce={50}>
                  <RePieChart>
                     <Pie
                        data={analytics?.charts?.waste_distribution || []}
-                       innerRadius={60}
-                       outerRadius={80}
-                       paddingAngle={8}
+                       innerRadius={70}
+                       outerRadius={95}
+                       paddingAngle={10}
                        dataKey="value"
                     >
                        {(analytics?.charts?.waste_distribution || []).map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                        ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                       contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '15px' }}
+                    />
                  </RePieChart>
               </ResponsiveContainer>
            </div>

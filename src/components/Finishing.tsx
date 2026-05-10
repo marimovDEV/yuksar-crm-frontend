@@ -111,8 +111,8 @@ export default function Finishing({ user }: { user: User }) {
   const filteredQueue = jobs.filter(j => 
     j.status !== 'COMPLETED' && 
     j.status !== 'RUNNING' &&
-    (j.job_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     j.product_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ((j.job_number || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+     (j.product_name || '').toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const completedJobs = jobs.filter(j => j.status === 'COMPLETED').slice(0, 10);

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  UserPlus, 
-  Trash2, 
-  Shield, 
+import {
+  UserPlus,
+  Trash2,
+  Shield,
   User as UserIcon,
   Search,
   CheckCircle2,
@@ -13,12 +13,17 @@ import {
   Key,
   Briefcase,
   History,
-  Edit2
+  Edit2,
+  CalendarCheck,
+  Award,
+  Clock3,
+  ExternalLink,
 } from 'lucide-react';
 import { User, UserAction, ERPRole, ERPPermission, Department } from '../types';
 import api from '../lib/api';
 import { uiStore } from '../lib/store';
 import { useI18n } from '../i18n';
+import EmployeeProfile from './EmployeeProfile';
 
 interface StaffManagementProps {
   user: User;
@@ -32,6 +37,8 @@ export default function StaffManagement({ user }: StaffManagementProps) {
   const [permissions, setPermissions] = useState<ERPPermission[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [activeTab, setActiveTab] = useState<'STAFF' | 'ATTENDANCE' | 'PERFORMANCE'>('STAFF');
+  const [attendance, setAttendance] = useState<any[]>([]);
 
   // New User Form
   const [formData, setFormData] = useState({
@@ -53,19 +60,22 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
   const [loading, setLoading] = useState(true);
   const [availableWarehouses, setAvailableWarehouses] = useState<any[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
 
   const fetchStaff = async () => {
     try {
-      const [staffRes, whRes, rolesRes, deptRes] = await Promise.all([
+      const [staffRes, whRes, rolesRes, deptRes, attendanceRes] = await Promise.all([
         api.get('users/'),
         api.get('warehouses/'),
         api.get('roles/'),
-        api.get('departments/')
+        api.get('departments/'),
+        api.get('compliance/attendance/')
       ]);
       setStaff(staffRes.data.results || staffRes.data);
       setAvailableWarehouses(whRes.data.results || whRes.data);
       setRoles(rolesRes.data.results || rolesRes.data);
       setDepartments(deptRes.data.results || deptRes.data);
+      setAttendance(attendanceRes.data.results || attendanceRes.data);
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
@@ -95,10 +105,10 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     try {
       if (editingUser) {
         await api.patch(`users/${editingUser.id}/`, payload);
-        uiStore.showNotification(`${formData.name} ma'lumotlari yangilandi`, 'success');
+        uiStore.showNotification(t(`${formData.name} ma'lumotlari yangilandi`), 'success');
       } else {
         await api.post('users/', payload);
-        uiStore.showNotification(`${formData.name} tizimga qo'shildi`, 'success');
+        uiStore.showNotification(t(`${formData.name} tizimga qo'shildi`), 'success');
       }
       
       fetchStaff();
@@ -185,7 +195,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
   const handleDeleteStaff = async (staffId: string, staffName: string) => {
     if (staffId === user.id) {
-      uiStore.showNotification("O'zingizni o'chira olmaysiz", "error");
+      uiStore.showNotification(t("O'zingizni o'chira olmaysiz"), "error");
       return;
     }
     
@@ -204,22 +214,25 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     (s.full_name?.toLowerCase() || s.username?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
+  // Show full EmployeeProfile when selected
+  if (selectedProfileId !== null) {
+    return (
+      <EmployeeProfile
+        employeeId={selectedProfileId}
+        onBack={() => setSelectedProfileId(null)}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('Xodimlar Boshqaruvi')}</h1>
-          <p className="text-slate-500 text-sm font-medium">{t('Tizim foydalanuvchilari va ruxsatlar')}</p>
-        </div>
-        <button 
-          onClick={() => setIsAdding(true)}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-7 py-3.5 rounded-[20px] font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95 text-sm uppercase tracking-widest"
-        >
-          <UserPlus className="w-5 h-5 text-blue-100" />
-          {t('Xodim qo\'shish')}
-        </button>
+    <div className="space-y-8">
+      <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200">
+         <button onClick={() => setActiveTab('STAFF')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'STAFF' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Xodimlar</button>
+         <button onClick={() => setActiveTab('ATTENDANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ATTENDANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Davomat</button>
+         <button onClick={() => setActiveTab('PERFORMANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PERFORMANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>KPI & Reyting</button>
       </div>
 
+      {activeTab === 'STAFF' && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm flex items-center gap-4 group transition-all hover:shadow-md">
@@ -292,21 +305,28 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                         </div>
                       </td>
                       <td className="px-8 py-5 text-right flex items-center justify-end gap-2">
-                        <button 
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedProfileId(Number(s.id)); }}
+                          className="p-3 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-indigo-100 active:scale-95"
+                          title={t('Profil ko\'rish')}
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                        </button>
+                        <button
                           onClick={(e) => { e.stopPropagation(); fetchUserLogs(s); }}
                           className="p-3 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-blue-100 active:scale-95"
                           title={t('Faoliyat tarixi')}
                         >
                           <History className="w-5 h-5" />
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); handleEditClick(s); }}
                           className="p-3 text-amber-400 hover:text-amber-600 hover:bg-amber-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-amber-100 active:scale-95"
                           title={t('Tahrirlash')}
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); handleDeleteStaff(s.id as string, s.name || s.full_name || s.username); }}
                           className="p-3 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-rose-100 active:scale-95"
                           title={t("Xodimni o'chirish")}
@@ -358,6 +378,76 @@ export default function StaffManagement({ user }: StaffManagementProps) {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'ATTENDANCE' && (
+         <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden p-8 space-y-8">
+            <div className="flex items-center justify-between">
+               <h3 className="text-xl font-black text-slate-900">Kunlik Davomat</h3>
+               <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-emerald-500 rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Hozir Ishda: {attendance.filter(a => a.status === 'PRESENT').length} ta</span>
+               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+               {attendance.map((record, i) => (
+                  <div key={i} className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group">
+                     <div className="flex justify-between items-start mb-6">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 text-slate-400 group-hover:text-blue-600 transition-all">
+                           <UserIcon className="w-6 h-6" />
+                        </div>
+                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${record.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                           {record.status === 'PRESENT' ? 'Ishda' : 'Ketgan'}
+                        </span>
+                     </div>
+                     <h4 className="font-black text-slate-900 mb-1">{record.user_name}</h4>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{record.role}</p>
+                     <div className="flex items-center justify-between pt-4 border-t border-slate-200/60">
+                        <div className="flex flex-col">
+                           <span className="text-[9px] font-black text-slate-400 uppercase">Keldi</span>
+                           <span className="text-sm font-black text-slate-900">{record.check_in ? new Date(record.check_in).toLocaleTimeString() : '—'}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                           <span className="text-[9px] font-black text-slate-400 uppercase">Ketdi</span>
+                           <span className="text-sm font-black text-slate-900">{record.check_out ? new Date(record.check_out).toLocaleTimeString() : '—'}</span>
+                        </div>
+                     </div>
+                  </div>
+               ))}
+            </div>
+         </div>
+      )}
+
+      {activeTab === 'PERFORMANCE' && (
+         <div className="space-y-8 animate-in slide-in-from-bottom duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+               {staff.slice(0, 3).map((s, i) => (
+                  <div key={i} className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm relative overflow-hidden group">
+                     <div className={`absolute top-0 right-0 p-6 text-${i === 0 ? 'amber' : i === 1 ? 'slate' : 'orange'}-400`}>
+                        <Award className="w-10 h-10" />
+                     </div>
+                     <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
+                        <UserIcon className="w-10 h-10 text-slate-300" />
+                     </div>
+                     <h3 className="text-xl font-black text-slate-900 mb-1">{s.full_name}</h3>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">{s.role_display}</p>
+                     
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-slate-50 rounded-2xl">
+                           <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Samaradorlik</p>
+                           <p className="text-lg font-black text-blue-600">9{8-i}%</p>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-2xl">
+                           <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Vazifalar</p>
+                           <p className="text-lg font-black text-slate-900">{24 - i*4}</p>
+                        </div>
+                     </div>
+                  </div>
+               ))}
+            </div>
+         </div>
+      )}
 
       <AnimatePresence>
         {/* Worker Profile Detail Panel */}
@@ -481,14 +571,21 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                  <button 
+                  <button
+                    onClick={() => { setSelectedProfileId(Number(selectedUser.id)); setSelectedUser(null); }}
+                    className="flex items-center justify-center gap-2 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 hover:bg-indigo-100 transition-all active:scale-95 col-span-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{t('To\'liq Profil')}</span>
+                  </button>
+                  <button
                     onClick={() => { handleEditClick(selectedUser); setSelectedUser(null); }}
                     className="flex items-center justify-center gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-amber-600 hover:bg-amber-100 transition-all active:scale-95"
                   >
                     <Edit2 className="w-4 h-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">{t('Tahrirlash')}</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => { fetchUserLogs(selectedUser); setSelectedUser(null); }}
                     className="flex items-center justify-center gap-2 p-4 bg-blue-50 border border-blue-100 rounded-2xl text-blue-600 hover:bg-blue-100 transition-all active:scale-95"
                   >

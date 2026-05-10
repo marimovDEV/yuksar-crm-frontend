@@ -60,7 +60,7 @@ export default function Suppliers() {
     }
   };
 
-  const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredSuppliers = suppliers.filter(s => (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-10">
@@ -125,7 +125,7 @@ export default function Suppliers() {
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-blue-600 font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
-                          {s.name.charAt(0)}
+                          {s.name?.charAt(0)}
                        </div>
                        <span className="text-sm font-black text-slate-900">{s.name}</span>
                     </div>

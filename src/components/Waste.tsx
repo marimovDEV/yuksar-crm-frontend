@@ -117,8 +117,8 @@ export default function Waste({ user }: { user: User }) {
 
   const filteredQueue = tasks.filter(t => 
     t.status === 'PENDING' &&
-    (t.task_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     t.batch_number?.toLowerCase().includes(searchTerm.toLowerCase()))
+    ((t.task_number || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+     (t.batch_number || '').toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const completedTasks = tasks.filter(t => t.status === 'COMPLETED').slice(0, 10);

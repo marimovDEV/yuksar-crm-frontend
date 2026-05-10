@@ -27,8 +27,10 @@ import {
   QrCode,
   Wallet,
   Calculator as CalculatorIcon,
-  Target,
-  Box
+  Box,
+  ArrowRight,
+  AlertOctagon,
+  FileWarning
 } from 'lucide-react';
 import { User, UserRole } from './types';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -72,6 +74,11 @@ const InternalTransfers = lazy(() => import('./components/InternalTransfers'));
 const Suppliers = lazy(() => import('./components/Suppliers'));
 const PurchaseOrders = lazy(() => import('./components/PurchaseOrders'));
 const DebtorsManagement = lazy(() => import('./components/Debtors'));
+const FleetManagement = lazy(() => import('./components/FleetManagement'));
+const LeadManagement = lazy(() => import('./components/LeadManagement'));
+const DealerManagement = lazy(() => import('./components/DealerManagement'));
+const DynamicPricing = lazy(() => import('./components/DynamicPricing'));
+const Payroll = lazy(() => import('./components/Payroll'));
 
 export default function App() {
   const { t } = useI18n();
@@ -87,6 +94,99 @@ export default function App() {
   const [activeGroup, setActiveGroup] = useState<string | null>(null); // Accordion state
   const currentRole = user?.effective_role || user?.role_display || user?.role || '';
   const isPrivilegedUser = !!(user?.is_superuser || ['Bosh Admin', 'SuperAdmin', 'Admin', 'SUPERADMIN', 'ADMIN'].includes(currentRole));
+
+  const navigationGroups = [
+    {
+      id: 'main',
+      title: null,
+      items: [
+        { id: 'dashboard', name: t('Boshqaruv Paneli'), icon: LayoutDashboard, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori', 'Sotuv menejeri', 'Kuryer'] },
+        { id: 'exec-dashboard', name: t('Direktor Paneli'), icon: Target, roles: ['Bosh Admin'] },
+      ]
+    },
+    {
+      id: 'warehouse-unified',
+      title: t('1. Ombor Tizimi'),
+      icon: Database,
+      items: [
+        { id: 'warehouse', name: t('Ombor Boshqaruvi'), icon: Database, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Sotuv menejeri'] },
+        { id: 'transfers', name: t('Ichki O\'tkazmalar'), icon: Truck, roles: ['Bosh Admin', 'Omborchi'] },
+      ]
+    },
+    {
+      id: 'production-main',
+      title: t('2. Ishlab Chiqarish'),
+      icon: Factory,
+      items: [
+        { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
+        { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori'] },
+        { id: 'qc', name: t('Sifat Nazorati (QC)'), icon: CheckCircle2, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
+      ]
+    },
+    {
+      id: 'procurement',
+      title: t('3. Ta\'minot & Xarid'),
+      icon: ShoppingCart,
+      items: [
+        { id: 'suppliers', name: t('Ta\'minotchilar'), icon: UserIcon, roles: ['Bosh Admin', 'Omborchi'] },
+        { id: 'purchase-orders', name: t('Xarid Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Omborchi'] },
+      ]
+    },
+    {
+      id: 'sales-main',
+      title: t('4. Sotuv & CRM'),
+      icon: ShoppingCart,
+      items: [
+        { id: 'sales', name: t('Sotuvlar'), icon: ShoppingCart, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'clients', name: t('Mijozlar & CRM'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'debtors', name: t('Qarzdorlar Nazorati'), icon: Wallet, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'leads', name: t('Leadlar & CRM'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'dealers', name: t('Dilerlar'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'pricing', name: t('Narx Siyosati'), icon: Target, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+      ]
+    },
+    {
+      id: 'finance-accounting',
+      title: t('5. Moliya & Buxgalteriya'),
+      icon: Wallet,
+      items: [
+        { id: 'finance', name: t('Moliya & Kassa'), icon: Wallet, roles: ['Bosh Admin', 'Moliya boshqaruvchi'] },
+        { id: 'accounting', name: t('Buxgalteriya'), icon: CalculatorIcon, roles: ['Bosh Admin', 'Buxgalter'] },
+        { id: 'profit-analytics', name: t('Foyda Analitikasi'), icon: BarChart3, roles: ['Bosh Admin', 'Buxgalter'] },
+        { id: 'payroll', name: t('Ish Haqi'), icon: Wallet, roles: ['Bosh Admin', 'Moliya boshqaruvchi', 'Buxgalter'] },
+      ]
+    },
+    {
+      id: 'master-data',
+      title: t('6. Master Data'),
+      icon: Database,
+      items: [
+        { id: 'recipes', name: t('Retseptlar & Normalar'), icon: Layers, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
+        { id: 'products', name: t('Mahsulot Katalogi'), icon: Box, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+      ]
+    },
+    {
+      id: 'logistics-group',
+      title: t('7. Logistika'),
+      icon: Truck,
+      items: [
+        { id: 'logistics', name: t('Yetkazish'), icon: Truck, roles: ['Bosh Admin', 'Kuryer', 'Sotuv menejeri'] },
+        { id: 'fleet', name: t('Transport Parki'), icon: Truck, roles: ['Bosh Admin'] },
+      ]
+    },
+    {
+      id: 'system-admin',
+      title: t('8. Tizim Boshqaruvi'),
+      icon: Settings,
+      items: [
+        { id: 'staff', name: t('Xodimlar'), icon: UserIcon, roles: ['Bosh Admin'] },
+        { id: 'compliance', name: t('Hujjatlar & Soliq'), icon: FileText, roles: ['Bosh Admin'] },
+        { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'Sotuv menejeri', 'Kuryer'] },
+        { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['Bosh Admin'] },
+        { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['Bosh Admin'] },
+      ]
+    }
+  ];
   
   // Security Guard: Reset tab if not authorized
   useEffect(() => {
@@ -104,6 +204,18 @@ export default function App() {
     const unsub = uiStore.subscribe(() => {
       setGlobalLoading(uiStore.isLoading);
     });
+
+    // Safety Timeout: Auto-clear loading after 8s to prevent UI freeze
+    let timeout: any;
+    if (globalLoading) {
+      timeout = setTimeout(() => {
+        setGlobalLoading(false);
+        if (uiStore.isLoading) {
+          uiStore.setLoading(false);
+          uiStore.showNotification("Tizim javobi kechikmoqda...", "warning");
+        }
+      }, 8000);
+    }
 
     const initAuth = async () => {
       try {
@@ -152,8 +264,11 @@ export default function App() {
     };
     initAuth();
 
-    return unsub;
-  }, []);
+    return () => {
+      unsub();
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [globalLoading]);
 
   // Auth Form State
   const [username, setUsername] = useState('');
@@ -177,6 +292,13 @@ export default function App() {
     
     console.log("🔑 Attempting login for:", cleanUsername);
     
+    // In demo mode, any password 'admin' works for known users
+    if (password !== 'admin' && cleanUsername !== 'admin') {
+      setAuthError('Xato login yoki parol');
+      setGlobalLoading(false);
+      return;
+    }
+
     try {
       const { user } = await authService.login(cleanUsername, password);
       setUser(user);
@@ -194,94 +316,45 @@ export default function App() {
     setUser(null);
   };
 
-  const navigationGroups = [
-    {
-      id: 'main',
-      title: null,
-      items: [
-        { id: 'dashboard', name: 'Boshqaruv Paneli', icon: LayoutDashboard, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori', 'Sotuv menejeri', 'Kuryer'] },
-        { id: 'exec-dashboard', name: 'Direktor Paneli', icon: Target, roles: ['Bosh Admin'] },
-      ]
-    },
-    {
-      id: 'warehouse-unified',
-      title: '1. Ombor Tizimi',
-      icon: Database,
-      items: [
-        { id: 'warehouse', name: 'Ombor Boshqaruvi', icon: Database, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Sotuv menejeri'] },
-        { id: 'transfers', name: 'Ichki O\'tkazmalar', icon: Truck, roles: ['Bosh Admin', 'Omborchi'] },
-      ]
-    },
-    {
-      id: 'production-main',
-      title: '2. Ishlab Chiqarish',
-      icon: Factory,
-      items: [
-        { id: 'production-orders', name: 'Ishlab Chiqarish Buyurtmalari', icon: FileText, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-        { id: 'production', name: 'Ishlab Chiqarish Poligoni', icon: Factory, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori'] },
-        { id: 'qc', name: 'Sifat Nazorati (QC)', icon: CheckCircle2, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-      ]
-    },
-    {
-      id: 'procurement',
-      title: '3. Ta\'minot & Xarid',
-      icon: ShoppingCart,
-      items: [
-        { id: 'suppliers', name: 'Ta\'minotchilar', icon: UserIcon, roles: ['Bosh Admin', 'Omborchi'] },
-        { id: 'purchase-orders', name: 'Xarid Buyurtmalari', icon: FileText, roles: ['Bosh Admin', 'Omborchi'] },
-      ]
-    },
-    {
-      id: 'sales-main',
-      title: '4. Sotuv & CRM',
-      icon: ShoppingCart,
-      items: [
-        { id: 'sales', name: 'Sotuvlar', icon: ShoppingCart, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'clients', name: 'Mijozlar & CRM', icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'debtors', name: 'Qarzdorlar Nazorati', icon: Wallet, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-      ]
-    },
-    {
-      id: 'finance-accounting',
-      title: '5. Moliya & Buxgalteriya',
-      icon: Wallet,
-      items: [
-        { id: 'finance', name: 'Moliya & Kassa', icon: Wallet, roles: ['Bosh Admin', 'Moliya boshqaruvchi'] },
-        { id: 'accounting', name: 'Buxgalteriya', icon: CalculatorIcon, roles: ['Bosh Admin', 'Buxgalter'] },
-        { id: 'profit-analytics', name: 'Foyda Analitikasi', icon: BarChart3, roles: ['Bosh Admin', 'Buxgalter'] },
-      ]
-    },
-    {
-      id: 'master-data',
-      title: '6. Master Data',
-      icon: Database,
-      items: [
-        { id: 'recipes', name: 'Retseptlar & Normalar', icon: Layers, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-        { id: 'products', name: 'Mahsulot Katalogi', icon: Box, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-      ]
-    },
-    {
-      id: 'system-admin',
-      title: '7. Tizim Boshqaruvi',
-      icon: Settings,
-      items: [
-        { id: 'staff', name: 'Xodimlar', icon: UserIcon, roles: ['Bosh Admin'] },
-        { id: 'compliance', name: 'Hujjatlar & Soliq', icon: FileText, roles: ['Bosh Admin'] },
-        { id: 'documents', name: 'Hujjatlar Jurnali', icon: FileText, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'Sotuv menejeri', 'Kuryer'] },
-        { id: 'activity', name: 'Tizim Faolligi', icon: Activity, roles: ['Bosh Admin'] },
-        { id: 'alerts', name: 'Xabarnomalar', icon: Bell, roles: ['Bosh Admin'] },
-      ]
-    }
-  ];
-
   const pageLoader = (
     <div className="flex min-h-[280px] items-center justify-center">
       <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-        <span className="text-sm font-semibold text-slate-600">Sahifa yuklanmoqda...</span>
+        <span className="text-sm font-semibold text-slate-600">{t('Sahifa yuklanmoqda...')}</span>
       </div>
     </div>
   );
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-20 text-center gap-6 bg-rose-50 rounded-[40px] border-2 border-rose-100 m-8 shadow-2xl">
+          <div className="w-24 h-24 bg-rose-500 rounded-[32px] flex items-center justify-center shadow-xl shadow-rose-200">
+            <FileWarning className="w-12 h-12 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Tizimda xatolik yuz berdi</h2>
+            <p className="text-slate-500 font-medium max-w-md">Kechirasiz, ushbu sahifani yuklashda muammo paydo bo'ldi. Iltimos, boshqa bo'limga o'ting yoki sahifani yangilang.</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-10 py-4 bg-slate-900 text-white rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
+          >
+            Sahifani yangilash
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -342,6 +415,11 @@ export default function App() {
       case 'recipes':
       case 'products':
         return <MasterData />;
+      case 'fleet': return user ? <FleetManagement user={user} /> : null;
+      case 'leads': return user ? <LeadManagement user={user} /> : null;
+      case 'dealers': return user ? <DealerManagement user={user} /> : null;
+      case 'pricing': return <DynamicPricing />;
+      case 'payroll': return user ? <Payroll user={user} /> : null;
       default:
         return <Dashboard user={user} onAction={setActiveTab} />;
     }
@@ -384,51 +462,63 @@ export default function App() {
           <div className="mb-6 flex justify-end">
             <LanguageSwitcher />
           </div>
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
-              <Factory className="text-white w-8 h-8" />
+          <div className="text-center mb-10">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-blue-800 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/30 group hover:rotate-12 transition-transform duration-500">
+              <Factory className="text-white w-10 h-10" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Yuksar ERP</h1>
-            <p className="text-slate-500 text-sm mt-1">{t('Tizimga kirish')}</p>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">Yuksar ERP</h1>
+            <p className="text-[11px] font-black text-indigo-500 uppercase tracking-[0.3em]">{t('Industrial Management')}</p>
           </div>
           
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">{t('Login')}</label>
-              <input 
-                type="text" 
-                autoComplete="off"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all bg-slate-50/50"
-                placeholder={t('Masalan: admin')}
-                required
-              />
+          <form onSubmit={handleAuth} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 ml-1">{t('Tizim Logini')}</label>
+              <div className="relative group">
+                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <input 
+                  type="text" 
+                  autoComplete="off"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-14 pr-6 py-4.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all bg-slate-50/50 font-bold text-slate-900"
+                  placeholder={t('Loginni kiriting')}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">{t('Parol')}</label>
-              <input 
-                type="password" 
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all bg-slate-50/50"
-                placeholder="••••••••"
-                required
-              />
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 ml-1">{t('Maxfiy Parol')}</label>
+              <div className="relative group">
+                <X className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <input 
+                  type="password" 
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-14 pr-6 py-4.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all bg-slate-50/50 font-bold text-slate-900"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
 
             {authError && (
-              <p className="text-rose-500 text-xs font-bold bg-rose-50 p-3 rounded-lg border border-rose-100">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-2xl border border-rose-100 flex items-center gap-3"
+              >
+                <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
                 {authError}
-              </p>
+              </motion.div>
             )}
 
             <button 
               type="submit"
-              className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-lg shadow-indigo-200 mt-2"
+              className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-black active:scale-[0.98] transition-all shadow-2xl shadow-slate-200 mt-4 flex items-center justify-center gap-3 group"
             >
-              {t('Kirish')}
+              {t('Tizimga Kirish')}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
 
@@ -559,9 +649,11 @@ export default function App() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
             >
-              <Suspense fallback={pageLoader}>
-                {renderActiveTab()}
-              </Suspense>
+              <ErrorBoundary>
+                <Suspense fallback={pageLoader}>
+                  {renderActiveTab()}
+                </Suspense>
+              </ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -648,8 +740,7 @@ export default function App() {
                 {navigationGroups.map((group) => {
                   const visibleItems = group.items.filter(item => {
                     const isPrivileged = isPrivilegedUser;
-                    if (isPrivileged) return true;
-                    return item.roles?.includes(currentRole);
+                    return isPrivileged || item.roles?.includes(currentRole);
                   });
                   if (visibleItems.length === 0) return null;
 

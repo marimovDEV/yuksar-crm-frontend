@@ -56,8 +56,8 @@ export default function MasterData() {
     fetchData();
   }, [activeTab]);
 
-  const filteredRecipes = recipes.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredRecipes = recipes.filter(r => (r.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredProducts = products.filter(p => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-10">

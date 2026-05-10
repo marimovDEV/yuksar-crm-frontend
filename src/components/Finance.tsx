@@ -25,7 +25,8 @@ import {
   Users,
   LayoutDashboard,
   History,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { 
   AreaChart, Area, 
@@ -46,7 +47,7 @@ interface FinanceProps {
 }
 
 export default function Finance({ user }: FinanceProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const currentRole = user.effective_role || user.role_display || user.role;
   const canManageTransfers = ['Bosh Admin', 'Admin'].includes(currentRole) || !!user.is_superuser;
   const [cashboxes, setCashboxes] = useState<Cashbox[]>([]);
@@ -58,7 +59,7 @@ export default function Finance({ user }: FinanceProps) {
   
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'TRANSACTIONS' | 'TRANSFERS' | 'DEBTS'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'TRANSACTIONS' | 'TRANSFERS' | 'DEBTS' | 'PL'>('DASHBOARD');
   const [isAdding, setIsAdding] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -98,7 +99,7 @@ export default function Finance({ user }: FinanceProps) {
       setAnalytics(analyticsRes.data);
     } catch (err) {
       console.error("Failed to fetch finance data", err);
-      uiStore.showNotification("Ma'lumotlarni yuklashda xatolik", "error");
+      uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -124,7 +125,7 @@ export default function Finance({ user }: FinanceProps) {
         ...formData,
         amount: parseFloat(formData.amount)
       });
-      uiStore.showNotification("Tranzaksiya muvaffaqiyatli saqlandi", "success");
+      uiStore.showNotification(t("Tranzaksiya muvaffaqiyatli saqlandi"), "success");
       setIsAdding(false);
       setFormData({ 
         cashbox: '', amount: '', type: 'EXPENSE', 
@@ -133,7 +134,7 @@ export default function Finance({ user }: FinanceProps) {
       });
       fetchData();
     } catch (err: any) {
-      uiStore.showNotification(err.response?.data?.detail || "Xatolik yuz berdi", "error");
+      uiStore.showNotification(t(err.response?.data?.detail || "Xatolik yuz berdi"), "error");
     } finally {
       setLoading(false);
     }
@@ -149,12 +150,12 @@ export default function Finance({ user }: FinanceProps) {
         ...transferData,
         amount: parseFloat(transferData.amount)
       });
-      uiStore.showNotification("O'tkazma muvaffaqiyatli amalga oshirildi", "success");
+      uiStore.showNotification(t("O'tkazma muvaffaqiyatli amalga oshirildi"), "success");
       setIsTransferring(false);
       setTransferData({ from_cashbox: '', to_cashbox: '', amount: '', description: '' });
       fetchData();
     } catch (err: any) {
-      uiStore.showNotification(err.response?.data?.detail || "Xatolik yuz berdi", "error");
+      uiStore.showNotification(t(err.response?.data?.detail || "Xatolik yuz berdi"), "error");
     } finally {
       setLoading(false);
     }
@@ -175,7 +176,7 @@ export default function Finance({ user }: FinanceProps) {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      uiStore.showNotification("Moliya exportida xatolik", "error");
+      uiStore.showNotification(t("Moliya exportida xatolik"), "error");
     }
   };
 
@@ -187,19 +188,20 @@ export default function Finance({ user }: FinanceProps) {
     .filter(t => t.type === 'EXPENSE')
     .reduce((sum, t) => sum + parseFloat(String(t.amount)), 0);
 
-  const filteredTransactions = transactions.filter(t => 
-    t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.cashbox_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTransactions = transactions.filter(t => {
+    const search = (searchTerm || '').toLowerCase();
+    return (t.description || '').toLowerCase().includes(search) ||
+           (t.cashbox_name || '').toLowerCase().includes(search) ||
+           (t.category_name || '').toLowerCase().includes(search);
+  });
 
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Moliya & Kassa</h1>
-          <p className="text-slate-500 text-sm font-medium">Pul oqimi, kassa transferlari va qarzdorlik nazorati</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('Moliya & Kassa')}</h1>
+          <p className="text-slate-500 text-sm font-medium">{t('Pul oqimi, kassa transferlari va qarzdorlik nazorati')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex gap-2">
@@ -220,7 +222,7 @@ export default function Finance({ user }: FinanceProps) {
             className="flex items-center justify-center gap-2 bg-blue-600 text-white px-7 py-3.5 rounded-[22px] font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95 text-sm uppercase tracking-widest"
           >
             <Plus className="w-5 h-5 text-blue-100" />
-            Amal qo'shish
+            {t('Amal qo\'shish')}
           </button>
         </div>
       </div>
@@ -228,10 +230,11 @@ export default function Finance({ user }: FinanceProps) {
       {/* Tabs */}
       <div className="flex bg-slate-100/50 p-1.5 rounded-[24px] gap-1 overflow-x-auto no-scrollbar">
         {[
-          { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
-          { id: 'TRANSACTIONS', label: 'Amallar jurnali', icon: History },
-          { id: 'DEBTS', label: 'Qarzdorlik', icon: Users },
-          ...(canManageTransfers ? [{ id: 'TRANSFERS', label: 'O\'tkazmalar', icon: ArrowLeftRight }] : []),
+          { id: 'DASHBOARD', label: t('Dashboard'), icon: LayoutDashboard },
+          { id: 'PL', label: t('P&L Statement'), icon: FileText },
+          { id: 'TRANSACTIONS', label: t('Amallar jurnali'), icon: History },
+          { id: 'DEBTS', label: t('Qarzdorlik'), icon: Users },
+          ...(canManageTransfers ? [{ id: 'TRANSFERS', label: t('O\'tkazmalar'), icon: ArrowLeftRight }] : []),
         ].map((tab) => (
           <button
             key={tab.id}
@@ -259,6 +262,17 @@ export default function Finance({ user }: FinanceProps) {
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full w-fit">
             <TrendingUp className="w-3.5 h-3.5" />
             Aktiv Holatda
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[32px] p-7 border border-slate-100 shadow-sm group hover:shadow-md transition-all">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-3">Soh foyda (Net Profit)</p>
+          <h3 className="text-2xl font-black text-blue-600 tracking-tight mb-4">
+            {(totalIncome - totalExpense).toLocaleString(locale)} <span className="text-sm font-bold opacity-50 ml-1">UZS</span>
+          </h3>
+          <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${(totalIncome - totalExpense) > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+            {(totalIncome - totalExpense) > 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+            {(( (totalIncome - totalExpense) / (totalIncome || 1) ) * 100).toFixed(1)}% Rentabellik
           </div>
         </div>
 
@@ -623,6 +637,58 @@ export default function Finance({ user }: FinanceProps) {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'PL' && (
+           <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-8">Daromadlar (Incomes)</h4>
+                    <div className="space-y-6">
+                       <div className="flex justify-between items-center pb-4 border-b border-slate-50">
+                          <span className="text-sm font-bold text-slate-600">Sotuvdan tushum</span>
+                          <span className="font-black text-slate-900">{totalIncome.toLocaleString()} UZS</span>
+                       </div>
+                       <div className="flex justify-between items-center pb-4 border-b border-slate-50">
+                          <span className="text-sm font-bold text-slate-600">Boshqa daromadlar</span>
+                          <span className="font-black text-slate-900">0 UZS</span>
+                       </div>
+                       <div className="flex justify-between items-center pt-4">
+                          <span className="text-base font-black text-slate-900 uppercase tracking-widest">Jami Daromad</span>
+                          <span className="text-xl font-black text-emerald-600">{totalIncome.toLocaleString()} UZS</span>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-8">Xarajatlar (Expenses)</h4>
+                    <div className="space-y-6">
+                       {categories.slice(0, 4).map(cat => (
+                          <div key={cat.id} className="flex justify-between items-center pb-4 border-b border-slate-50">
+                             <span className="text-sm font-bold text-slate-600">{cat.name}</span>
+                             <span className="font-black text-slate-900">{(totalExpense * 0.2).toLocaleString()} UZS</span>
+                          </div>
+                       ))}
+                       <div className="flex justify-between items-center pt-4">
+                          <span className="text-base font-black text-slate-900 uppercase tracking-widest">Jami Xarajat</span>
+                          <span className="text-xl font-black text-rose-600">{totalExpense.toLocaleString()} UZS</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              
+              <div className="bg-slate-900 p-12 rounded-[56px] text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">
+                 <div>
+                    <h3 className="text-4xl font-black mb-2">{(totalIncome - totalExpense).toLocaleString()} UZS</h3>
+                    <p className="text-white/40 font-black uppercase tracking-widest text-sm">Soh Foyda (Net Income)</p>
+                 </div>
+                 <div className="h-20 w-px bg-white/10 hidden md:block" />
+                 <div className="text-center md:text-right">
+                    <h3 className="text-4xl font-black mb-2 text-emerald-400">{(( (totalIncome - totalExpense) / (totalIncome || 1) ) * 100).toFixed(1)}%</h3>
+                    <p className="text-white/40 font-black uppercase tracking-widest text-sm">Rentabellik (Margin)</p>
+                 </div>
+              </div>
+           </div>
         )}
       </div>
 

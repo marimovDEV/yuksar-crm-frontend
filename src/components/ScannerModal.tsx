@@ -12,7 +12,7 @@ interface ScannerModalProps {
 }
 
 export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: ScannerModalProps) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const [scannedData, setScannedData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
           scanner.pause();
         }
       } catch (err: any) {
-        setError(err.response?.data?.error || "Ma'lumot topilmadi");
+        setError(err.response?.data?.error || t("Ma'lumot topilmadi"));
       } finally {
         setLoading(false);
       }
@@ -68,9 +68,9 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                <Camera className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">{scannedData ? 'Ma\'lumot topildi' : 'QR Skayner'}</h3>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{scannedData ? 'Ma\'lumot topildi' : t('QR Skayner')}</h3>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-0.5">
-                {scannedData ? scannedData.batch_number || scannedData.number : 'Partiya yoki Hujjatni aniqlash'}
+                {scannedData ? scannedData.batch_number || scannedData.number : t('Partiya yoki Hujjatni aniqlash')}
               </p>
             </div>
           </div>

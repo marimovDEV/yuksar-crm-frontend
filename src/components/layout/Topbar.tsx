@@ -30,11 +30,11 @@ export default function Topbar({
   unreadCount,
   onUnreadChange
 }: TopbarProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
-    <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-40 px-6 flex items-center justify-between">
+    <header className="h-20 bg-white/60 backdrop-blur-xl border-b border-slate-200/40 sticky top-0 z-40 px-8 flex items-center justify-between">
       {/* Page Title / Mobile Menu */}
       <div className="flex items-center gap-4">
         {isMobile && (
@@ -53,7 +53,7 @@ export default function Topbar({
             <div className="flex items-center gap-2 mt-1">
                <Clock className="w-3 h-3 text-slate-400" />
                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                 {new Date().toLocaleDateString('uz-UZ', { weekday: 'long', day: 'numeric', month: 'long' })}
+                 {new Date().toLocaleDateString(locale === 'uz' ? 'uz-UZ' : 'ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
                </span>
             </div>
           )}

@@ -222,8 +222,8 @@ export default function Accounting({ user }: Props) {
       const hasChildren = node.children && node.children.length > 0;
       const isExpanded = expandedAccounts.has(node.code);
       const matchSearch = !searchQuery || 
-        node.code.includes(searchQuery) || 
-        node.name.toLowerCase().includes(searchQuery.toLowerCase());
+        (node.code || '').includes(searchQuery) || 
+        (node.name || '').toLowerCase().includes(searchQuery.toLowerCase());
       
       if (!matchSearch && !hasChildren) return null;
 

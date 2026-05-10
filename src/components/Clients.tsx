@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  User as UserIcon, Phone, DollarSign, ChevronRight, 
-  Trash2, Edit2, X, Clock, Calendar, Plus, Search, 
+import {
+  User as UserIcon, Phone, DollarSign, ChevronRight,
+  Trash2, Edit2, X, Clock, Calendar, Plus, Search,
   Building2, History, FileText, Filter,
   Briefcase, UserCheck, ShieldAlert, BadgeCheck,
-  MessageSquare, Star, UserPlus, Info, CheckCircle,
-  AlertCircle, XCircle
+  AlertCircle, XCircle, LayoutGrid, Trello, MapPin, ShieldCheck,
+  UserPlus, MessageSquare, Info, CheckCircle
 } from 'lucide-react';
 import api from '../lib/api';
 import { uiStore } from '../lib/store';
@@ -26,6 +26,7 @@ export default function Clients({ user }: { user: User }) {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'GRID' | 'KANBAN'>('GRID');
   
   // CRM / History state
   const [clientOrders, setClientOrders] = useState<Invoice[]>([]);
@@ -164,9 +165,9 @@ export default function Clients({ user }: { user: User }) {
   };
 
   const filteredClients = clients.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          c.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          c.phone.includes(searchTerm);
+    const matchesSearch = (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (c.company_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (c.phone || '').includes(searchTerm);
     
     if (filterType === 'ALL') return matchesSearch;
     if (filterType === 'DEBT') return matchesSearch && c.balance < 0;
@@ -214,17 +215,67 @@ export default function Clients({ user }: { user: User }) {
           <p className="text-slate-500 text-sm font-medium">{t('Barcha hamkorlar, leadlar va aloqa tarixi')}</p>
         </div>
         
-        <button 
-          onClick={() => { setModalType('ADD'); resetForm(); setIsModalOpen(true); }}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 active:scale-95 transition-all"
-        >
-          <Plus className="w-5 h-5" />
-          <span>{t('Mijoz Qo\'shish')}</span>
-        </button>
+        <div className="flex items-center gap-4">
+           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+              <button 
+                onClick={() => setViewMode('GRID')}
+                className={`p-2.5 rounded-xl transition-all ${viewMode === 'GRID' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                 <LayoutGrid className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setViewMode('KANBAN')}
+                className={`p-2.5 rounded-xl transition-all ${viewMode === 'KANBAN' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                 <Trello className="w-5 h-5" />
+              </button>
+           </div>
+           <button 
+             onClick={() => { setModalType('ADD'); resetForm(); setIsModalOpen(true); }}
+             className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 active:scale-95 transition-all"
+           >
+             <Plus className="w-5 h-5" />
+             <span>{t('Mijoz Qo\'shish')}</span>
+           </button>
+        </div>
       </div>
 
-      {/* Grid of Clients */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      {/* Kanban View Implementation */}
+      {viewMode === 'KANBAN' ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 h-[calc(100vh-350px)] overflow-x-auto pb-10">
+           {(['LEAD', 'NEGOTIATION', 'WON', 'LOST'] as const).map(statusKey => {
+             const statusInfo = getStatusBadge(statusKey);
+             const columnClients = filteredClients.filter(c => c.lead_status === statusKey);
+             
+             return (
+               <div key={statusKey} className="flex flex-col gap-6 min-w-[300px]">
+                  <div className="flex items-center justify-between px-4">
+                     <div className="flex items-center gap-3">
+                        <statusInfo.icon className={`w-5 h-5 text-${statusInfo.color}-500`} />
+                        <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{statusInfo.label}</h4>
+                     </div>
+                     <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{columnClients.length}</span>
+                  </div>
+
+                  <div className="flex-1 bg-slate-100/40 rounded-[48px] p-4 space-y-4 overflow-y-auto border border-slate-100 shadow-inner">
+                     {columnClients.map(client => (
+                        <div key={client.id} onClick={() => openCRMModal(client)} className="bg-white p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer group">
+                           <h5 className="font-black text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">{client.name}</h5>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">{client.company_name || 'Individual'}</p>
+                           <div className="flex items-center justify-between mt-auto">
+                              <span className="text-[10px] font-black text-slate-400">{client.phone}</span>
+                              <div className={`w-2 h-2 rounded-full bg-${statusInfo.color}-500`} />
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+             )
+           })}
+        </div>
+      ) : (
+        /* Grid View (Original) */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
           {filteredClients.map((client) => {
             const status = getStatusBadge(client.lead_status);
@@ -261,6 +312,12 @@ export default function Clients({ user }: { user: User }) {
                      <Phone className="w-4 h-4 text-blue-500" />
                      {client.phone}
                   </div>
+                  {client.address && (
+                     <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest p-3 bg-slate-50 rounded-2xl">
+                        <MapPin className="w-4 h-4 text-slate-300" />
+                        {client.address}
+                     </div>
+                  )}
                   <div className={`flex items-center gap-3 text-[10px] font-black uppercase tracking-widest p-3 rounded-2xl border bg-${status.color}-50 text-${status.color}-600 border-${status.color}-100`}>
                      <status.icon className="w-4 h-4" />
                      {status.label}
@@ -294,6 +351,7 @@ export default function Clients({ user }: { user: User }) {
           })}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Advanced CRM Modal */}
       <AnimatePresence>

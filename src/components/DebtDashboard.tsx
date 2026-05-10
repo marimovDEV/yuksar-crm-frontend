@@ -50,8 +50,8 @@ export default function DebtDashboard() {
   if (loading || !stats) return <div className="p-12 text-center text-slate-500 font-bold">Qarzdorlik ma'lumotlari yuklanmoqda...</div>;
 
   const filteredDebtors = (stats.debtors || []).filter((d: Debtor) => 
-    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    d.company.toLowerCase().includes(searchTerm.toLowerCase())
+    (d.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (d.company || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -99,7 +99,7 @@ export default function DebtDashboard() {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4\">Debt Aging (Muddati bo'yicha)</p>
             <div className="flex items-end gap-2 h-20">
                {Object.entries(stats.aging_summary).map(([label, value]) => {
-                 const pct = (value / stats.total_debt) * 100;
+                 const pct = (Number(value) / Number(stats.total_debt)) * 100;
                  return (
                    <div key={label} className="flex-1 flex flex-col items-center gap-2 group">
                       <div className="w-full relative rounded-lg overflow-hidden flex flex-col justify-end bg-slate-50 mt-auto" style={{ height: '60px' }}>

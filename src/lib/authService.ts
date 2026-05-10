@@ -8,6 +8,7 @@ export const authService = {
     localStorage.removeItem('refresh_token');
     
     const response = await api.post('token/', { username, password });
+    localStorage.setItem('demo_last_username', username);
     const { access, refresh } = response.data;
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);

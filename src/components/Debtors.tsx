@@ -85,8 +85,8 @@ export default function Debtors({ user }: { user: User }) {
   if (!data) return null;
 
   const filtered = data.debtors.filter(d => {
-    const matchSearch = d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       d.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (d.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       (d.company || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchAging = filterAging === 'ALL' || d.aging === filterAging;
     return matchSearch && matchAging;
   });

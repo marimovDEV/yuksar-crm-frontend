@@ -90,8 +90,17 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
     return () => clearInterval(interval);
   }, [period]);
 
-  const chartData = dynamicChartData.length > 0 ? dynamicChartData : [];
+  const DAY_RU: Record<string, string> = { Dush: 'Пн', Sesh: 'Вт', Chor: 'Ср', Pay: 'Чт', Jum: 'Пт', Shan: 'Сб', Yak: 'Вс' };
+  const chartData = dynamicChartData.length > 0
+    ? dynamicChartData.map((d: any) => ({ ...d, name: locale === 'ru' ? (DAY_RU[d.name] ?? d.name) : d.name }))
+    : [];
   const chartFallback = <div className="h-[300px] animate-pulse rounded-[40px] bg-slate-100" />;
+
+  const fmtMoney = (v: number | string) => {
+    const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.]/g, ''));
+    if (isNaN(n)) return String(v);
+    return n.toLocaleString('ru-RU') + ' UZS';
+  };
 
   if (loading) return chartFallback;
 
@@ -101,18 +110,22 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
       {/* SECTION 1: Strategic Decisions (Top management specific) */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {strategicKpis.map((kpi, i) => (
-          <div key={kpi.name} className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-card hover:shadow-premium transition-all duration-500 group relative overflow-hidden">
-             <div className="flex justify-between items-start mb-6">
-                <div className={`w-12 h-12 rounded-2xl bg-${kpi.color}-50 flex items-center justify-center text-${kpi.color}-600`}>
-                  {kpi.name === 'Sof Foyda' ? <DollarSign className="w-6 h-6" /> : kpi.name === 'Tushum' ? <TrendingUp className="w-6 h-6" /> : kpi.name === 'Xarajatlar' ? <BarChart3 className="w-6 h-6" /> : <Package className="w-6 h-6" />}
+          <div key={kpi.name} className="bg-white p-8 rounded-[48px] border border-slate-100 shadow-premium hover:shadow-2xl hover:-translate-y-2 transition-all duration-700 group relative overflow-hidden">
+             <div className={`absolute -bottom-6 -right-6 w-32 h-32 bg-${kpi.color}-500/5 rounded-full group-hover:scale-150 transition-transform duration-700`} />
+             <div className="relative z-10">
+                <div className="flex justify-between items-start mb-8">
+                   <div className={`w-14 h-14 rounded-2xl bg-${kpi.color}-500/10 flex items-center justify-center text-${kpi.color}-600 shadow-sm border border-${kpi.color}-500/5`}>
+                     {kpi.name === 'Sof Foyda' ? <DollarSign className="w-7 h-7" /> : kpi.name === 'Tushum' ? <TrendingUp className="w-7 h-7" /> : kpi.name === 'Xarajatlar' ? <BarChart3 className="w-7 h-7" /> : <Package className="w-7 h-7" />}
+                   </div>
+                   <div className={`flex items-center gap-1.5 text-[11px] font-black ${kpi.trend.startsWith('+') ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'} px-3 py-1.5 rounded-xl border ${kpi.trend.startsWith('+') ? 'border-emerald-100' : 'border-rose-100'}`}>
+                      {kpi.trend.startsWith('+') ? <ArrowUpRight className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                      {kpi.trend}
+                   </div>
                 </div>
-                <div className={`flex items-center gap-1 text-[10px] font-black ${kpi.trend.startsWith('+') ? 'text-emerald-500' : 'text-rose-500'} bg-slate-50 px-2 py-1 rounded-lg`}>
-                   {kpi.trend}
+                <div>
+                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t(kpi.name)}</p>
+                   <h4 className="text-lg font-black text-slate-900 tracking-tight leading-snug break-all">{fmtMoney(kpi.value)}</h4>
                 </div>
-             </div>
-             <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{t(kpi.name)}</p>
-                <h4 className="text-2xl font-black text-slate-900 tracking-tight leading-none truncate">{kpi.value}</h4>
              </div>
           </div>
         ))}
@@ -144,11 +157,11 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
                           <AlertTriangle className="w-7 h-7" />
                        </div>
                        <div>
-                          <p className="text-sm font-black text-slate-900 mb-1">{alert.message}</p>
+                          <p className="text-sm font-black text-slate-900 mb-1">{t(alert.message)}</p>
                           <div className="flex items-center gap-3">
                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{alert.warehouse}</span>
                              <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                             <span className={`text-[10px] font-black uppercase ${alert.status === 'CRITICAL' ? 'text-rose-500' : 'text-amber-500'}`}>{alert.days_left} kun qoldi</span>
+                             <span className={`text-[10px] font-black uppercase ${alert.status === 'CRITICAL' ? 'text-rose-500' : 'text-amber-500'}`}>{alert.days_left} {t('kun qoldi')}</span>
                           </div>
                        </div>
                     </div>
@@ -181,9 +194,9 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{t(metric.title)}</span>
                    </div>
-                   <h4 className="text-xl font-black mb-1 leading-tight">{metric.content}</h4>
+                   <h4 className="text-xl font-black mb-1 leading-tight">{t(metric.content)}</h4>
                    <p className={`text-2xl font-black mb-4 ${metric.type === 'RISK' ? 'text-rose-400' : 'text-emerald-500'}`}>{metric.value}</p>
-                   <p className={`text-xs font-medium mb-8 leading-relaxed ${metric.type === 'RISK' ? 'text-slate-400' : 'text-slate-500'}`}>{metric.description}</p>
+                   <p className={`text-xs font-medium mb-8 leading-relaxed ${metric.type === 'RISK' ? 'text-slate-400' : 'text-slate-500'}`}>{t(metric.description)}</p>
                    <button 
                      onClick={() => onAction?.(metric.tab_id)}
                      className={`w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/btn ${metric.type === 'RISK' ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-slate-900 text-white'}`}
@@ -199,56 +212,60 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
 
       {/* SECTION 3: ANALYTICS LAYER */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 bg-white p-8 md:p-10 rounded-[56px] border border-slate-100 shadow-card">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-4">
-                  <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6" />
+          <div className="lg:col-span-2 bg-white p-10 md:p-12 rounded-[64px] border border-slate-100 shadow-premium relative overflow-hidden">
+             <div className="absolute top-0 right-0 p-12 text-slate-50/50">
+                <Activity className="w-64 h-64 opacity-5 rotate-12" />
+             </div>
+             <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
+                  <div>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-5">
+                      <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-200">
+                        <BarChart3 className="w-7 h-7" />
+                      </div>
+                      {t('Dinamika & Oqim')}
+                    </h3>
                   </div>
-                  {t('Ishlab chiqarish & Sotuv')}
-                </h3>
-              </div>
-              <div className="flex items-center gap-6">
-                 <div className="flex items-center gap-2">
-                   <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                   <span className="text-[10px] font-black text-slate-500 uppercase">{t('Bloklar')}</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                   <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                   <span className="text-[10px] font-black text-slate-500 uppercase">{t('Sotuv')}</span>
-                 </div>
-              </div>
-            </div>
-            
-            <div className="mb-10">
-              <Suspense fallback={chartFallback}>
-                <AreaTrendChart
-                  data={chartData}
-                  height={320}
-                  gradientId="colorDecision"
-                  gradientColor="#2563eb"
-                  areas={[
-                    { dataKey: 'prod', stroke: '#2563eb', fill: 'url(#colorDecision)', name: t('Bloklar') },
-                    { dataKey: 'sales', stroke: '#10b981', fill: 'none', strokeDasharray: '4 4', name: t('Sotuv') },
-                  ]}
-                />
-              </Suspense>
-            </div>
-
-            {/* Narrative Insight Box */}
-            <div className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 flex items-start gap-5">
-              <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-primary flex-none">
-                <Activity className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Decision Insight')}</p>
-                <p className="text-sm font-medium text-slate-600 leading-relaxed">
-                  {t("Oxirgi 7 kunda ishlab chiqarish barqaror. Sotuvlar va ishlab chiqarish o'rtasidagi muvozanat saqlanmoqda. Tannarx nazorati ijobiy natija bermoqda.")}
-                </p>
-              </div>
-            </div>
-         </div>
+                  <div className="flex items-center gap-8 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                     <div className="flex items-center gap-3 px-4">
+                       <span className="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                       <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">{t('Bloklar')}</span>
+                     </div>
+                     <div className="flex items-center gap-3 px-4 border-l border-slate-200">
+                       <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                       <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">{t('Sotuv')}</span>
+                     </div>
+                  </div>
+                </div>
+                
+                <div className="mb-12">
+                  <Suspense fallback={chartFallback}>
+                    <AreaTrendChart
+                      data={chartData}
+                      height={380}
+                      gradientId="colorDecision"
+                      gradientColor="#4f46e5"
+                      areas={[
+                        { dataKey: 'prod', stroke: '#4f46e5', fill: 'url(#colorDecision)', name: t('Bloklar') },
+                        { dataKey: 'sales', stroke: '#10b981', fill: 'none', strokeDasharray: '6 6', name: t('Sotuv') },
+                      ]}
+                    />
+                  </Suspense>
+                </div>
+    
+                <div className="p-8 bg-gradient-to-br from-indigo-50/50 to-white rounded-[40px] border border-indigo-100/50 flex items-start gap-6 group hover:shadow-lg transition-all">
+                  <div className="w-14 h-14 bg-white rounded-2xl shadow-xl border border-indigo-50 flex items-center justify-center text-indigo-600 flex-none group-hover:scale-110 transition-transform">
+                    <Zap className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2">{t('Sun\'iy Intellekt Tahlili')}</p>
+                    <p className="text-base font-bold text-slate-700 leading-relaxed">
+                      {t("Ishlab chiqarish quvvati 94% ga yetdi. Xom-ashyo ta'minoti barqaror. Sotuvlar hajmi prognozdan 12% yuqori.")}
+                    </p>
+                  </div>
+                </div>
+             </div>
+          </div>
 
          {/* TODAY HIGHLIGHTS */}
          <div className="space-y-8">
@@ -288,8 +305,8 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
                           <Activity className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 pr-2">
-                           <p className="text-xs font-bold text-slate-100 truncate">@{action.user_name || 'tizim'}</p>
-                           <p className="text-[11px] text-slate-500 line-clamp-1 italic">"{action.description}"</p>
+                           <p className="text-xs font-bold text-slate-100 truncate">@{action.userName || t('System')}</p>
+                           <p className="text-[11px] text-slate-500 line-clamp-1 italic">"{t(action.action || '')}"</p>
                         </div>
                      </div>
                    ))}

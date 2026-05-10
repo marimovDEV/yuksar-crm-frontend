@@ -43,6 +43,7 @@ export default function ProductionOrderManagement() {
   const [selectedStage, setSelectedStage] = useState<ProductionStage | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaster, setIsMaster] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Manual Form State
   const [manualTask, setManualTask] = useState({
@@ -77,7 +78,7 @@ export default function ProductionOrderManagement() {
       fetchKPIs();
     } catch (err) {
       console.error("Failed to fetch production data", err);
-      uiStore.showNotification("Ma'lumotlarni yuklashda xatolik", "error");
+      uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -99,11 +100,11 @@ export default function ProductionOrderManagement() {
         priority: manualTask.priority,
         deadline: manualTask.deadline
       });
-      uiStore.showNotification("Yangi naryad yaratildi", "success");
+      uiStore.showNotification(t("Yangi naryad yaratildi"), "success");
       fetchData();
       setIsManualModalOpen(false);
     } catch (err) {
-      uiStore.showNotification("Naryad yaratishda xatolik", "error");
+      uiStore.showNotification(t("Naryad yaratishda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -116,11 +117,11 @@ export default function ProductionOrderManagement() {
         stage_id: selectedStage.id,
         user_id: userId
       });
-      uiStore.showNotification("Operator biriktirildi", "success");
+      uiStore.showNotification(t("Operator biriktirildi"), "success");
       fetchData();
       setIsAssignModalOpen(false);
     } catch (err) {
-      uiStore.showNotification("Biriktirishda xatolik", "error");
+      uiStore.showNotification(t("Biriktirishda xatolik"), "error");
     }
   };
 
@@ -146,10 +147,10 @@ export default function ProductionOrderManagement() {
         actual_quantity,
         waste_amount
       });
-      uiStore.showNotification("Bosqich yangilandi", "success");
+      uiStore.showNotification(t("Bosqich yangilandi"), "success");
       fetchData();
     } catch (err) {
-      uiStore.showNotification("O'tishda xatolik", "error");
+      uiStore.showNotification(t("O'tishda xatolik"), "error");
     }
   };
 
@@ -178,8 +179,8 @@ export default function ProductionOrderManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Ishlab Chiqarish Naryadlari</h1>
-          <p className="text-slate-500 font-medium">Barcha aktiv va kutilayotgan ish topshiriqlari nazorati</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">{t('Ishlab Chiqarish Naryadlari')}</h1>
+          <p className="text-slate-500 font-medium">{t('Barcha aktiv va kutilayotgan ish topshiriqlari nazorati')}</p>
         </div>
         {isMaster && (
           <div className="flex items-center gap-3">
@@ -188,7 +189,7 @@ export default function ProductionOrderManagement() {
               className="flex items-center justify-center gap-2 bg-blue-600 text-white px-7 py-3.5 rounded-[22px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 hover:shadow-2xl hover:shadow-blue-200 active:scale-95 transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>Yangi Naryad</span>
+              <span>{t('Yangi Naryad')}</span>
             </button>
           </div>
         )}
@@ -197,10 +198,10 @@ export default function ProductionOrderManagement() {
       {/* KPI Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Jami Naryadlar', value: kpiSummary?.total_orders || 0, icon: ClipboardList, color: 'blue' },
-          { label: 'Yakunlangan', value: kpiSummary?.completed_orders || 0, icon: CheckCircle2, color: 'emerald' },
-          { label: 'Ishlab chiqarildi (kg)', value: kpiSummary?.waste_metrics?.total_produced?.toFixed(0) || 0, icon: TrendingUp, color: 'amber' },
-          { label: 'Umumiy Brak (kg)', value: kpiSummary?.waste_metrics?.total_waste?.toFixed(1) || 0, icon: AlertCircle, color: 'rose' },
+          { label: t('Jami Naryadlar'), value: kpiSummary?.total_orders || 0, icon: ClipboardList, color: 'blue' },
+          { label: t('Yakunlangan'), value: kpiSummary?.completed_orders || 0, icon: CheckCircle2, color: 'emerald' },
+          { label: t('Ishlab chiqarildi (kg)'), value: kpiSummary?.waste_metrics?.total_produced?.toFixed(0) || 0, icon: TrendingUp, color: 'amber' },
+          { label: t('Umumiy Brak (kg)'), value: kpiSummary?.waste_metrics?.total_waste?.toFixed(1) || 0, icon: AlertCircle, color: 'rose' },
         ].map((stat, i) => (
           <div key={i} className="p-6 bg-white rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
@@ -221,10 +222,10 @@ export default function ProductionOrderManagement() {
         <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/20">
           <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit border border-slate-200 shadow-inner">
             {[
-              { id: 'active', name: 'Aktiv', icon: ActivityIcon },
-              { id: 'pending', name: 'Kutilmoqda', icon: Clock },
-              { id: 'completed', name: 'Yakunlangan', icon: CheckCircle2 },
-              { id: 'all', name: 'Barchasi', icon: Layers },
+              { id: 'active', name: t('Active'), icon: ActivityIcon },
+              { id: 'pending', name: t('Pending'), icon: Clock },
+              { id: 'completed', name: t('Completed'), icon: CheckCircle2 },
+              { id: 'all', name: t('All'), icon: Layers },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -244,7 +245,9 @@ export default function ProductionOrderManagement() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-all" />
             <input 
               type="text" 
-              placeholder="Naryad raqami bo'yicha qidiruv..." 
+              placeholder={t("Naryad raqami bo'yicha qidiruv...")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-xs font-bold transition-all"
             />
           </div>
@@ -261,9 +264,18 @@ export default function ProductionOrderManagement() {
             >
               {productionOrders
                 .filter(po => {
-                  if (activeTab === 'active') return po.status === 'IN_PROGRESS';
-                  if (activeTab === 'pending') return po.status === 'PENDING';
-                  if (activeTab === 'completed') return po.status === 'COMPLETED';
+                  if (!po) return false;
+                  const searchStr = (searchTerm || '').toLowerCase();
+                  const orderNum = (po.order_number || '').toLowerCase();
+                  const prodName = (po.product_name || '').toLowerCase();
+                  
+                  const matchesSearch = orderNum.includes(searchStr) || prodName.includes(searchStr);
+                  
+                  if (!matchesSearch) return false;
+                  const status = po.status;
+                  if (activeTab === 'active') return status === 'IN_PROGRESS';
+                  if (activeTab === 'pending') return status === 'PENDING';
+                  if (activeTab === 'completed') return status === 'COMPLETED';
                   return true;
                 })
                 .map(po => (
@@ -278,17 +290,17 @@ export default function ProductionOrderManagement() {
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="text-xl font-black text-slate-900">{po.product_name}</h4>
                             <div className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase shadow-sm ${getPriorityColor(po.priority)}`}>
-                              {po.priority === 'URGENT' ? 'Shoshilinch' : po.priority === 'HIGH' ? 'Yuqori' : po.priority === 'MEDIUM' ? 'O\'rtacha' : 'Past'}
+                              {po.priority === 'URGENT' ? t('Shoshilinch') : po.priority === 'HIGH' ? t('Yuqori') : po.priority === 'MEDIUM' ? t('O\'rtacha') : t('Past')}
                             </div>
                           </div>
                           <div className="flex flex-wrap items-center gap-4">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                               <Target className="w-3 h-3 text-blue-500" />
-                              Naryad: {po.order_number}
+                              {t('Naryad')}: {po.order_number}
                             </p>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                               <UserIcon className="w-3 h-3 text-amber-500" />
-                              Mas'ul: {po.responsible_name || 'Tayinlanmagan'}
+                              {t('Mas\'ul')}: {po.responsible_name || t('Tayinlanmagan')}
                             </p>
                           </div>
                         </div>
@@ -297,7 +309,7 @@ export default function ProductionOrderManagement() {
                       {/* Progress Section */}
                       <div className="flex-1 w-full max-w-lg">
                         <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
-                          <span className="text-slate-400">Ish jarayoni</span>
+                          <span className="text-slate-400">{t('Ish jarayoni')}</span>
                           <span className="text-blue-600">{Math.round(po.progress)}%</span>
                         </div>
                         <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner mb-6 relative">
@@ -329,7 +341,7 @@ export default function ProductionOrderManagement() {
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${stage.status === 'COMPLETED' ? 'bg-emerald-500 text-white' : stage.status === 'ACTIVE' ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'bg-slate-100 text-slate-400'}`}>
                                 <Settings className={`w-4 h-4 ${stage.status === 'ACTIVE' ? 'animate-spin-slow' : ''}`} />
                               </div>
-                              <span className="text-[8px] font-black uppercase text-center leading-tight">{stage.stage_type}</span>
+                              <span className="text-[8px] font-black uppercase text-center leading-tight">{t(stage.stage_type)}</span>
                               
                               {/* Stage Responsible Icon */}
                               {stage.responsible && (
@@ -340,7 +352,7 @@ export default function ProductionOrderManagement() {
                               
                               {/* Tooltip for assignment */}
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[8px] rounded opacity-0 group-hover/stage:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10">
-                                {stage.responsible_name ? `Mas'ul: ${stage.responsible_name}` : (isMaster ? "Mas'ul biriktirish" : "Tayinlanmagan")}
+                                {stage.responsible_name ? `${t('Mas\'ul')}: ${stage.responsible_name}` : (isMaster ? t("Mas'ul biriktirish") : t("Tayinlanmagan"))}
                               </div>
                             </div>
                           ))}
@@ -350,10 +362,10 @@ export default function ProductionOrderManagement() {
                       {/* Actions Section */}
                       <div className="flex flex-col md:flex-row lg:flex-col items-center gap-4">
                         <div className="text-center md:text-left px-6 py-2 border-l border-slate-100">
-                          <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Muddat</div>
+                          <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Muddat')}</div>
                           <div className="text-xs font-black text-slate-700 flex items-center gap-2">
                             <Clock className="w-3 h-3 text-rose-500" />
-                            {po.deadline ? new Date(po.deadline).toLocaleDateString(locale) : 'Belgilanmagan'}
+                            {po.deadline ? new Date(po.deadline).toLocaleDateString(locale) : t('Belgilanmagan')}
                           </div>
                         </div>
 
@@ -363,7 +375,7 @@ export default function ProductionOrderManagement() {
                             className="w-full lg:w-48 group/btn relative px-6 py-4 bg-slate-900 text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
                           >
                             <span className="flex items-center justify-center gap-2">
-                              Keyingi Bosqich
+                              {t('Keyingi Bosqich')}
                               <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-all" />
                             </span>
                           </button>
@@ -389,8 +401,8 @@ export default function ProductionOrderManagement() {
                     <Factory className="text-white w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Yangi Ishlab Chiqarish Naryadi</h3>
-                    <p className="text-xs text-slate-500 font-medium">Barcha xom ashyo va bosqichlar avtomatik rejalashtiriladi</p>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">{t('Yangi Ishlab Chiqarish Naryadi')}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{t('Barcha xom ashyo va bosqichlar avtomatik rejalashtiriladi')}</p>
                   </div>
                 </div>
                 <button onClick={() => setIsManualModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600"><X className="w-6 h-6" /></button>
@@ -398,14 +410,14 @@ export default function ProductionOrderManagement() {
 
               <form onSubmit={handleCreateOrder} className="p-8 space-y-6">
                 <div className="space-y-2">
-                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Mahsulot nomi</label>
+                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">{t('Mahsulot nomi')}</label>
                    <select 
                      required
                      className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-sm"
                      value={manualTask.product}
                      onChange={e => setManualTask({...manualTask, product: e.target.value})}
                    >
-                     <option value="">Tanlang...</option>
+                     <option value="">{t('Tanlang...')}</option>
                      {products.map(p => (
                        <option key={p.id} value={p.id}>{p.name}</option>
                      ))}
@@ -414,7 +426,7 @@ export default function ProductionOrderManagement() {
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Miqdor</label>
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">{t('Miqdor')}</label>
                     <input 
                       type="number"
                       required
@@ -424,7 +436,7 @@ export default function ProductionOrderManagement() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Muddat (Deadline)</label>
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">{t('Muddat')}</label>
                     <input 
                       type="date"
                       required
@@ -436,7 +448,7 @@ export default function ProductionOrderManagement() {
                 </div>
 
                 <div className="space-y-2">
-                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">Muhimlik Darajasi</label>
+                   <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">{t('Muhimlik Darajasi')}</label>
                    <div className="flex gap-2">
                       {(['URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map(p => (
                         <button
@@ -447,15 +459,15 @@ export default function ProductionOrderManagement() {
                             manualTask.priority === p ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          {p === 'URGENT' ? 'Shoshilinch' : p === 'HIGH' ? 'Yuqori' : p === 'MEDIUM' ? 'O\'rtacha' : 'Past'}
+                          {p === 'URGENT' ? t('Shoshilinch') : p === 'HIGH' ? t('Yuqori') : p === 'MEDIUM' ? t('O\'rtacha') : t('Past')}
                         </button>
                       ))}
                    </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setIsManualModalOpen(false)} className="flex-1 px-8 py-4 border border-slate-200 text-slate-600 rounded-[22px] font-black text-[11px] uppercase tracking-widest hover:bg-slate-50">Bekor qilish</button>
-                  <button type="submit" disabled={loading} className="flex-1 px-8 py-4 bg-blue-600 text-white rounded-[22px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 shadow-xl active:scale-95 disabled:opacity-50">Naryadni ochish</button>
+                  <button type="button" onClick={() => setIsManualModalOpen(false)} className="flex-1 px-8 py-4 border border-slate-200 text-slate-600 rounded-[22px] font-black text-[11px] uppercase tracking-widest hover:bg-slate-50">{t('Bekor qilish')}</button>
+                  <button type="submit" disabled={loading} className="flex-1 px-8 py-4 bg-blue-600 text-white rounded-[22px] font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 shadow-xl active:scale-95 disabled:opacity-50">{t('Naryadni ochish')}</button>
                 </div>
               </form>
             </motion.div>
@@ -475,8 +487,8 @@ export default function ProductionOrderManagement() {
                     <Users className="text-white w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Mas'ul Biriktirish</h3>
-                    <p className="text-xs text-slate-500 font-medium">{selectedStage.stage_type_display} bosqichi uchun</p>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">{t('Mas\'ul Biriktirish')}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{t(selectedStage.stage_type_display)} {t('bosqichi uchun')}</p>
                   </div>
                 </div>
                 <button onClick={() => setIsAssignModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600"><X className="w-6 h-6" /></button>
@@ -484,7 +496,7 @@ export default function ProductionOrderManagement() {
 
               <div className="p-8 max-h-[400px] overflow-y-auto space-y-3">
                 {operators.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Sklad yoki ishlab chiqarish operatorlari topilmadi</div>
+                  <div className="text-center py-10 text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('Sklad yoki ishlab chiqarish operatorlari topilmadi')}</div>
                 ) : (
                   operators.map(op => (
                     <button
@@ -498,7 +510,7 @@ export default function ProductionOrderManagement() {
                         </div>
                         <div className="text-left">
                           <div className="text-sm font-black text-slate-900">{op.name}</div>
-                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{op.role}</div>
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t(op.role)}</div>
                         </div>
                       </div>
                       <Plus className="w-5 h-5 text-slate-300 group-hover:text-blue-600 transition-all" />
@@ -507,7 +519,7 @@ export default function ProductionOrderManagement() {
                 )}
               </div>
               <div className="p-8 border-t border-slate-50 bg-slate-50/50 flex justify-end">
-                <button onClick={() => setIsAssignModalOpen(false)} className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-all">Yopish</button>
+                <button onClick={() => setIsAssignModalOpen(false)} className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-all">{t('Yopish')}</button>
               </div>
             </motion.div>
           </div>

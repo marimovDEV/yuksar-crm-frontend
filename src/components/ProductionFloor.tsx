@@ -439,7 +439,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('Kiritilgan Vazn')}</p>
                                 <div className="flex items-center gap-3">
                                   <Weight className="w-6 h-6 text-slate-400" />
-                                  <span className="text-xl font-black text-slate-900">{z.input_weight} <span className="text-sm font-bold text-slate-400">kg</span></span>
+                                  <span className="text-xl font-black text-slate-900">{z.input_weight} <span className="text-sm font-bold text-slate-400">{t('kg')}</span></span>
                                 </div>
                               </div>
                               <div className="p-5 bg-blue-50/50 rounded-[32px] border border-blue-100/50">
@@ -447,7 +447,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                                 <div className="flex items-center gap-3">
                                   <Clock className="w-6 h-6 text-blue-500" />
                                   <span className="text-xl font-black text-blue-900">
-                                    {z.start_time ? Math.floor((new Date().getTime() - new Date(z.start_time).getTime()) / 1000 / 60) : 0} <span className="text-sm font-bold text-blue-400">min</span>
+                                    {z.start_time ? Math.floor((new Date().getTime() - new Date(z.start_time).getTime()) / 1000 / 60) : 0} <span className="text-sm font-bold text-blue-400">{t('min')}</span>
                                   </span>
                                 </div>
                               </div>
@@ -739,8 +739,8 @@ export default function ProductionFloor({ user }: { user: User }) {
                   {productionOrders
                     .filter(o => o.status !== 'COMPLETED')
                     .map(order => {
-                      const activeStage = order.stages.find(s => s.status === 'ACTIVE' || s.status === 'FAILED');
-                      const pendingStage = order.stages.find(s => s.status === 'PENDING');
+                      const activeStage = (order.stages || []).find(s => s.status === 'ACTIVE' || s.status === 'FAILED');
+                      const pendingStage = (order.stages || []).find(s => s.status === 'PENDING');
                       const focusStage = activeStage || pendingStage;
                       if (!focusStage) return null;
 
@@ -806,7 +806,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                             <h5 className="text-lg font-black text-slate-900 mb-1">{order.product_name}</h5>
                             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">{t('Hajm')}: {order.quantity} m³</p>
                             {order.status !== 'COMPLETED' && (() => {
-                               const currentStage = order.stages.find(s => s.status === 'PENDING' || s.status === 'ACTIVE' || s.status === 'FAILED');
+                               const currentStage = (order.stages || []).find(s => s.status === 'PENDING' || s.status === 'ACTIVE' || s.status === 'FAILED');
                                if (!currentStage) return null;
                                if (currentStage.status === 'PENDING') return (
                                  <button onClick={() => currentStage.stage_type === 'BUNKER' ? setIsStageBunkerModalOpen({ orderId: order.id, stageId: currentStage.id }) : handleStartStage(order.id, currentStage.id)} className="w-full py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">

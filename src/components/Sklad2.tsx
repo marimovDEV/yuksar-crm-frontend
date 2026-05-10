@@ -79,8 +79,8 @@ export default function Sklad2({ user }: { user: User }) {
   };
 
   const filteredBlocks = blocks.filter(b => {
-    const matchesSearch = b.zames_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         b.form_number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (b.zames_number || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (b.form_number || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = b.status === activeTab;
     return matchesSearch && matchesTab;
   });

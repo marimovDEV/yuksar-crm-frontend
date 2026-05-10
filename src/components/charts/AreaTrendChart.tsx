@@ -58,9 +58,24 @@ export default function AreaTrendChart({
         />
         <Tooltip
           contentStyle={{
-            borderRadius: '20px',
-            border: 'none',
-            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.4)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(10px)',
+          }}
+          itemStyle={{
+            fontWeight: 800,
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+          labelStyle={{
+            fontWeight: 900,
+            color: '#0f172a',
+            marginBottom: '8px',
+            fontSize: '12px',
           }}
         />
         {areas.map((area) => (

@@ -55,9 +55,9 @@ export default function Sidebar({
       className="fixed inset-y-0 left-0 z-50 bg-[#0F172A] text-white border-r border-white/5 flex flex-col transition-all duration-300 ease-in-out shadow-2xl"
     >
       {/* Header Logo */}
-      <div className="h-20 flex items-center px-6 gap-3 overflow-hidden whitespace-nowrap">
-        <div className="flex-none w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-          <Factory className="text-white w-6 h-6" />
+      <div className="h-24 flex items-center px-7 gap-4 overflow-hidden whitespace-nowrap border-b border-white/5 bg-white/2">
+        <div className="flex-none w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 cursor-pointer group active:scale-95 transition-all" onClick={() => setIsOpen(!isOpen)}>
+          <Factory className="text-white w-7 h-7 group-hover:rotate-12 transition-transform" />
         </div>
         <AnimatePresence>
           {isOpen && (
@@ -67,8 +67,8 @@ export default function Sidebar({
               exit={{ opacity: 0, x: -10 }}
               className="flex-1"
             >
-              <h1 className="font-black text-lg leading-none tracking-tight">Yuksar</h1>
-              <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-0.5">Enterprise ERP</p>
+              <h1 className="font-black text-xl leading-none tracking-tighter bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Yuksar</h1>
+              <p className="text-[10px] font-black text-indigo-400/80 uppercase tracking-[0.3em] mt-1">Industrial ERP</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -147,7 +147,10 @@ export default function Sidebar({
                             )}
 
                             {isActive && isOpen && (
-                              <motion.div layoutId="active-indicator" className="ml-auto w-1 h-1 bg-white rounded-full shadow-glow" />
+                              <motion.div 
+                                layoutId="active-indicator" 
+                                className="ml-auto w-1.5 h-1.5 bg-indigo-400 rounded-full shadow-[0_0_12px_rgba(129,140,248,1)]" 
+                              />
                             )}
                           </button>
                         );

@@ -11,16 +11,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import { useI18n } from '../i18n';
 
-
-const CATEGORIES = [
-  { id: 'ALL', label: 'Barchasi' },
-  { id: 'FINISHED', label: 'Tayyor' },
-  { id: 'SEMI', label: 'Yarim tayyor' },
-  { id: 'RAW', label: 'Xom-ashyo' },
-];
-
 export default function Sklad4({ user }: { user: User }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  
+  const CATEGORIES = useMemo(() => [
+    { id: 'ALL', label: t('Barchasi') },
+    { id: 'FINISHED', label: t('Tayyor') },
+    { id: 'SEMI', label: t('Yarim tayyor') },
+    { id: 'RAW', label: t('Xom-ashyo') },
+  ], [t]);
+
   const assignedWarehouses = (user.assignedWarehouses || user.assigned_warehouses || []).map(String);
   const [inventory, setInventory] = useState<Inventory[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -65,7 +65,7 @@ export default function Sklad4({ user }: { user: User }) {
           id: s.material,
           name: s.material_name,
           sku: '',
-          unit: s.material_unit || 'dona',
+          unit: s.material_unit || t('dona'),
           price: s.material_price || 0
         }
       }));
@@ -84,7 +84,7 @@ export default function Sklad4({ user }: { user: User }) {
 
     } catch (err) {
       console.error("Sklad 4 fetch error", err);
-      uiStore.showNotification("Ma'lumotlarni yuklashda xatolik", "error");
+      uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -113,6 +113,8 @@ export default function Sklad4({ user }: { user: User }) {
     return { totalQty, totalValue };
   }, [inventory]);
 
+  const fmt = (val: number) => new Intl.NumberFormat(locale === 'uz' ? 'uz-UZ' : 'ru-RU').format(val);
+
   const handleOpenSellModal = (item: Inventory) => {
     setSelectedItem(item);
     setSellQty(String(item.quantity));
@@ -127,7 +129,7 @@ export default function Sklad4({ user }: { user: User }) {
     const price = parseFloat(sellPrice);
 
     if (qty <= 0 || qty > selectedItem.quantity) {
-      uiStore.showNotification("Miqdor noto'g'ri", "error");
+      uiStore.showNotification(t("Miqdor noto'g'ri"), "error");
       return;
     }
 
@@ -144,11 +146,11 @@ export default function Sklad4({ user }: { user: User }) {
         }]
       });
 
-      uiStore.showNotification("Sotuv muvaffaqiyatli yakunlandi", "success");
+      uiStore.showNotification(t("Sotuv muvaffaqiyatli yakunlandi"), "success");
       setIsSellModalOpen(false);
       fetchData();
     } catch (err: any) {
-      const msg = err.response?.data?.error || "Sotuvni amalga oshirib bo'lmadi";
+      const msg = err.response?.data?.error || t("Sotuvni amalga oshirib bo'lmadi");
       uiStore.showNotification(msg, "error");
     } finally {
       setLoading(false);
@@ -159,8 +161,8 @@ export default function Sklad4({ user }: { user: User }) {
      return (
         <div className="flex flex-col items-center justify-center p-20 bg-white rounded-[40px] border border-dashed border-slate-200">
           <AlertCircle className="w-16 h-16 text-rose-500 mb-4" />
-          <h3 className="text-xl font-black text-slate-900 mb-1">Ruxsat yo'q</h3>
-          <p className="text-slate-400 text-sm font-medium text-center max-w-xs">Sizga 4-Ombor (Tayyor mahsulot) bo'limiga kirish ruxsati berilmagan.</p>
+          <h3 className="text-xl font-black text-slate-900 mb-1">{t('Ruxsat yo\'q')}</h3>
+          <p className="text-slate-400 text-sm font-medium text-center max-w-xs">{t('Sizga 4-Ombor (Tayyor mahsulot) bo\'limiga kirish ruxsati berilmagan.')}</p>
         </div>
      );
   }
@@ -171,12 +173,12 @@ export default function Sklad4({ user }: { user: User }) {
       <div className="flex flex-col xl:flex-row justify-between gap-10">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Tayyor Mahsulot Ombori</h1>
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">{t('Tayyor Mahsulot Ombori')}</h1>
             <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
-              4-Ombor
+              {t('4-Ombor')}
             </div>
           </div>
-          <p className="text-slate-500 font-medium">Sotuvga tayyor mahsulotlar va real-time zaxira nazorati</p>
+          <p className="text-slate-500 font-medium">{t('Sotuvga tayyor mahsulotlar va real-time zaxira nazorati')}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full xl:w-auto">
@@ -186,8 +188,8 @@ export default function Sklad4({ user }: { user: User }) {
               <Package className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Jami Zaxira</p>
-              <p className="text-2xl font-black text-slate-900 leading-none">{stats.totalQty.toLocaleString()} <span className="text-xs opacity-40">dona</span></p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Jami Zaxira')}</p>
+              <p className="text-2xl font-black text-slate-900 leading-none">{fmt(stats.totalQty)} <span className="text-xs opacity-40">{t('dona')}</span></p>
             </div>
           </div>
 
@@ -197,8 +199,8 @@ export default function Sklad4({ user }: { user: User }) {
               <DollarSign className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sklad Qiymati</p>
-              <p className="text-2xl font-black text-slate-900 leading-none">{stats.totalValue.toLocaleString()} <span className="text-xs opacity-40 text-emerald-600 font-bold">UZS</span></p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Sklad Qiymati')}</p>
+              <p className="text-2xl font-black text-slate-900 leading-none">{fmt(stats.totalValue)} <span className="text-xs opacity-40 text-emerald-600 font-bold">UZS</span></p>
             </div>
           </div>
 
@@ -208,8 +210,8 @@ export default function Sklad4({ user }: { user: User }) {
               <TrendingUp className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bugungi Sotuv</p>
-              <p className="text-2xl font-black text-slate-900 leading-none">{todaySales} <span className="text-xs opacity-40">faktura</span></p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Bugungi Sotuv')}</p>
+              <p className="text-2xl font-black text-slate-900 leading-none">{todaySales} <span className="text-xs opacity-40">{t('faktura')}</span></p>
             </div>
           </div>
         </div>
@@ -237,7 +239,7 @@ export default function Sklad4({ user }: { user: User }) {
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
           <input 
             type="text" 
-            placeholder="SKU, Partiya yoki nom..." 
+            placeholder={t('SKU, Partiya yoki nom...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-16 pr-6 py-4 bg-white border border-slate-200 rounded-[28px] outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-medium"
@@ -264,11 +266,11 @@ export default function Sklad4({ user }: { user: User }) {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-100">
-                      Omborda
+                      {t('Omborda')}
                     </div>
                     {item.product_details.category === 'FINISHED' && (
                       <div className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[8px] font-black uppercase tracking-widest">
-                        Tayyor
+                        {t('Tayyor')}
                       </div>
                     )}
                   </div>
@@ -286,12 +288,12 @@ export default function Sklad4({ user }: { user: User }) {
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Miqdor</p>
-                    <p className="text-lg font-black text-slate-900">{item.quantity} <span className="text-[10px] opacity-40">{item.product_details.unit}</span></p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Miqdor')}</p>
+                    <p className="text-lg font-black text-slate-900">{fmt(item.quantity)} <span className="text-[10px] opacity-40">{t(item.product_details.unit)}</span></p>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Narxi</p>
-                    <p className="text-lg font-black text-slate-900">{item.product_details.price?.toLocaleString()} <span className="text-[10px] opacity-40">UZS</span></p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Narxi')}</p>
+                    <p className="text-lg font-black text-slate-900">{fmt(item.product_details.price || 0)} <span className="text-[10px] opacity-40">UZS</span></p>
                   </div>
                 </div>
 
@@ -310,12 +312,12 @@ export default function Sklad4({ user }: { user: User }) {
                       className="w-full py-4 bg-slate-900 text-white rounded-[24px] font-black text-[11px] uppercase tracking-[2px] hover:bg-blue-600 shadow-xl shadow-slate-200 active:scale-95 transition-all flex items-center justify-center gap-3"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      <span>SOTUVGA CHIQARISH</span>
+                      <span>{t('SOTUVGA CHIQARISH')}</span>
                       <ArrowUpRight className="w-4 h-4 opacity-40" />
                     </button>
                  ) : (
                     <div className="w-full py-4 bg-slate-100 text-slate-400 rounded-[24px] font-black text-[11px] uppercase tracking-widest text-center italic border border-slate-200/50">
-                       Faqat ko'rish rejimi
+                       {t('Faqat ko\'rish rejimi')}
                     </div>
                  )}
               </div>
@@ -326,7 +328,7 @@ export default function Sklad4({ user }: { user: User }) {
         {filteredInventory.length === 0 && (
           <div className="col-span-full py-40 bg-white/50 rounded-[60px] border-4 border-dashed border-slate-100/50 flex flex-col items-center justify-center text-slate-300">
             <Package className="w-24 h-24 mb-6 opacity-10" />
-            <p className="text-[12px] font-black uppercase tracking-[0.4em] italic">Mahsulotlar topilmadi</p>
+            <p className="text-[12px] font-black uppercase tracking-[0.4em] italic">{t('Mahsulotlar topilmadi')}</p>
           </div>
         )}
       </div>
@@ -355,12 +357,12 @@ export default function Sklad4({ user }: { user: User }) {
                 </div>
                 <h3 className="text-xl font-black text-slate-900 leading-tight mb-2">{selectedItem.product_details.name}</h3>
                 <div className="px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-blue-200">
-                  {selectedItem.batch_number}
+                  {t(selectedItem.batch_number)}
                 </div>
                 <div className="space-y-4 w-full">
                   <div className="flex justify-between text-xs font-bold px-2">
-                    <span className="text-slate-400">MAVJUD</span>
-                    <span className="text-slate-900">{selectedItem.quantity} {selectedItem.product_details.unit}</span>
+                    <span className="text-slate-400 uppercase">{t('MAVJUD')}</span>
+                    <span className="text-slate-900">{fmt(selectedItem.quantity)} {t(selectedItem.product_details.unit)}</span>
                   </div>
                   <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div className="h-full bg-blue-600 w-full" />
@@ -371,22 +373,22 @@ export default function Sklad4({ user }: { user: User }) {
               {/* Modal Right - Form */}
               <div className="lg:w-2/3 p-10 lg:p-14 space-y-10">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Sotuvni Rasmiylashtirish</h2>
-                  <p className="text-slate-500 font-medium text-sm mt-1">Mijozni tanlang va ma'lumotlarni kiriting</p>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">{t('Sotuvni Rasmiylashtirish')}</h2>
+                  <p className="text-slate-500 font-medium text-sm mt-1">{t('Mijozni tanlang va ma\'lumotlarni kiriting')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mijozlar</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Mijozlar')}</label>
                     <div className="relative">
                       <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <select 
                         required
                         value={selectedClient}
                         onChange={(e) => setSelectedClient(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold appearance-none"
+                        className="w-full h-16 pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold appearance-none"
                       >
-                        <option value="">Tanlang...</option>
+                        <option value="">{t('Tanlang...')}</option>
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
@@ -395,7 +397,7 @@ export default function Sklad4({ user }: { user: User }) {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sotuv Miqdori</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Sotuv Miqdori')}</label>
                     <div className="relative">
                       <ClipboardList className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input 
@@ -404,14 +406,14 @@ export default function Sklad4({ user }: { user: User }) {
                         value={sellQty}
                         max={selectedItem.quantity}
                         onChange={(e) => setSellQty(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold"
+                        className="w-full h-16 pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Narxi (UZS)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Narxi')} (UZS)</label>
                     <div className="relative">
                       <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input 
@@ -419,16 +421,16 @@ export default function Sklad4({ user }: { user: User }) {
                         placeholder="0"
                         value={sellPrice}
                         onChange={(e) => setSellPrice(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold"
+                        className="w-full h-16 pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 font-bold"
                       />
                     </div>
                   </div>
 
                 <div className="p-6 bg-blue-50 rounded-[32px] border border-blue-100 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">Jami To'lov</p>
+                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">{t('Jami To\'lov')}</p>
                     <p className="text-2xl font-black text-blue-700">
-                      {(Number(sellQty) * Number(sellPrice)).toLocaleString()} <span className="text-xs">UZS</span>
+                      {fmt(Number(sellQty) * Number(sellPrice))} <span className="text-xs">UZS</span>
                     </p>
                   </div>
                   <ChevronRight className="w-8 h-8 text-blue-300" />
@@ -439,7 +441,7 @@ export default function Sklad4({ user }: { user: User }) {
                     onClick={() => setIsSellModalOpen(false)}
                     className="flex-1 py-5 bg-slate-100 text-slate-500 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
                   >
-                    Bekor qilish
+                    {t('Bekor qilish')}
                   </button>
                   <button 
                     onClick={handleSell}
@@ -447,7 +449,7 @@ export default function Sklad4({ user }: { user: User }) {
                     className="flex-[2] py-5 bg-slate-900 text-white rounded-[28px] font-black text-xs uppercase tracking-[3px] hover:bg-blue-600 shadow-2xl shadow-slate-200 disabled:opacity-50 transition-all flex items-center justify-center gap-3"
                   >
                     {loading ? <Filter className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-                    <span>SOTUVNI TASDIQLASH</span>
+                    <span>{t('SOTUVNI TASDIQLASH')}</span>
                   </button>
                 </div>
               </div>

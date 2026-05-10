@@ -1,23 +1,25 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { SentimentPoint } from '../services/gemini';
+import { useI18n } from '../i18n';
 
 interface SentimentGraphProps {
   data: SentimentPoint[];
 }
 
 export const SentimentGraph: React.FC<SentimentGraphProps> = ({ data }) => {
+  const { t } = useI18n();
   return (
     <div className="bg-surface-container-lowest p-8 rounded-lg shadow-ambient h-[400px]">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h3 className="text-xl font-bold uppercase tracking-tight">Engagement Sentiment</h3>
-          <p className="text-xs text-on-surface-variant font-medium mt-1">Call duration engagement levels</p>
+          <h3 className="text-xl font-bold uppercase tracking-tight">{t('Suhbat Dinamikasi')}</h3>
+          <p className="text-xs text-on-surface-variant font-medium mt-1">{t('Muloqot davomidagi faollik darajasi')}</p>
         </div>
         <div className="flex gap-4">
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
             <span className="w-3 h-3 bg-secondary rounded-full"></span>
-            Engagement
+            {t('Faollik')}
           </div>
         </div>
       </div>

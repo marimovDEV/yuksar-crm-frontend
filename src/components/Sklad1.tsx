@@ -59,7 +59,7 @@ export default function Sklad1() {
   }, []);
 
   const filteredStocks = stocks.filter(s => 
-    s.material_name.toLowerCase().includes(searchTerm.toLowerCase())
+    (s.material_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalInventoryValue = stocks.reduce((acc, s) => acc + s.total_value, 0);
@@ -210,7 +210,7 @@ export default function Sklad1() {
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-4">
                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black text-xs">
-                                  {stock.material_name.charAt(0).toUpperCase()}
+                                  {stock.material_name?.charAt(0).toUpperCase()}
                                </div>
                                <div>
                                   <p className="text-sm font-black text-slate-900 mb-0.5">{stock.material_name}</p>
@@ -294,10 +294,7 @@ export default function Sklad1() {
               </div>
               
               <div className="mb-10 aspect-square rounded-[40px] bg-slate-900 overflow-hidden relative border-8 border-slate-100">
-                <QRScanner onScan={(data) => {
-                  console.log("Scanned:", data);
-                  setIsScannerOpen(false);
-                }} />
+                <QRScanner onClose={() => setIsScannerOpen(false)} />
                 {/* Visual Scanner Overlay */}
                 <div className="absolute inset-0 border-[40px] border-slate-900/40 pointer-events-none" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-emerald-500/50 rounded-3xl pointer-events-none animate-pulse" />

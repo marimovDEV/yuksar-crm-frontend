@@ -28,6 +28,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User } from '../types';
 import { useI18n } from '../i18n';
 
+const DOC_TYPES = [
+  { value: 'HISOB_FAKTURA_CHIQIM', label: 'Hisob-faktura (Chiqim)' },
+  { value: 'HISOB_FAKTURA_KIRIM', label: 'Hisob-faktura (Kirim)' },
+  { value: 'ICHKI_YUK_XATI', label: 'Ichki yuk xati' },
+  { value: 'OTKAZMA_BUYRUGI', label: "O'tkazma buyrug'i" },
+  { value: 'PRODUCTION_ORDER', label: 'Ishlab chiqarish buyurtmasi' },
+  { value: 'BUYURTMA_NARYAD', label: 'Buyurtma naryad' },
+];
+
 export default function Documents({ user }: { user: User }) {
   const { locale, t } = useI18n();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -36,7 +45,15 @@ export default function Documents({ user }: { user: User }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTypeTab, setActiveTypeTab] = useState<'ALL' | 'PRODUCTION' | 'INVENTORY' | 'SALES'>('ALL');
   const [selectedDoc, setSelectedDoc] = useState<ERPDocument | null>(null);
-  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    type: 'HISOB_FAKTURA_CHIQIM',
+    from_entity_name: '',
+    to_entity_name: '',
+    note: '',
+  });
+
   // Filters
   const [filters, setFilters] = useState({
     status: '',
@@ -61,7 +78,7 @@ export default function Documents({ user }: { user: User }) {
           created_at__lte: filters.dateTo,
         }
       });
-      setDocs(response.data);
+      setDocs(response.data.results || response.data);
     } catch (err) {
       console.error("Failed to fetch documents", err);
       uiStore.showNotification("Hujjatlarni yuklab bo'lmadi", "error");
@@ -93,6 +110,69 @@ export default function Documents({ user }: { user: User }) {
     }
   };
 
+  const handleExport = () => {
+    const rows = [
+      ['Raqam', 'Tur', 'Kimdan', 'Kimga', 'Holat', 'Sana'],
+      ...filteredDocs.map(d => [
+        d.number,
+        d.type_label || d.type,
+        d.from_entity_name || '',
+        d.to_entity_name || '',
+        d.status,
+        d.created_at ? new Date(d.created_at).toLocaleDateString('ru-RU') : '',
+      ]),
+    ];
+    const csv = '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hujjatlar-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    uiStore.showNotification(t('Eksport muvaffaqiyatli'), 'success');
+  };
+
+  const handlePrint = () => window.print();
+
+  const handleCreateDoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.from_entity_name.trim() || !createForm.to_entity_name.trim()) {
+      uiStore.showNotification(t('Barcha maydonlarni to\'ldiring'), 'error');
+      return;
+    }
+    setCreating(true);
+    try {
+      const typeLabel = DOC_TYPES.find(dt => dt.value === createForm.type)?.label || createForm.type;
+      await api.post('documents/', createForm);
+      const newDoc: ERPDocument = {
+        id: Date.now(),
+        number: `DOC-${new Date().getFullYear()}-${String(docs.length + 1).padStart(3, '0')}`,
+        type: createForm.type,
+        type_label: typeLabel,
+        date: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        from_entity_name: createForm.from_entity_name,
+        to_entity_name: createForm.to_entity_name,
+        status: 'CREATED',
+        status_label: 'Yaratildi',
+        created_by_name: user.full_name || user.name || user.username,
+        items: [],
+        total_amount: 0,
+      } as any;
+      setDocs(prev => [newDoc, ...prev]);
+      setIsCreateOpen(false);
+      setCreateForm({ type: 'HISOB_FAKTURA_CHIQIM', from_entity_name: '', to_entity_name: '', note: '' });
+      uiStore.showNotification(t('Hujjat yaratildi'), 'success');
+    } catch {
+      uiStore.showNotification(t('Xatolik yuz berdi'), 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredDocs = docs.filter(doc => {
     if (activeTypeTab === 'ALL') return true;
     if (activeTypeTab === 'PRODUCTION') return ['PRODUCTION_ORDER', 'BUYURTMA_NARYAD', 'ZAMES_LOG', 'FORMOVKA_LOG'].includes(doc.type);
@@ -111,13 +191,13 @@ export default function Documents({ user }: { user: User }) {
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           {canExportDocuments && (
-            <button className="flex items-center justify-center gap-2 bg-white text-slate-600 px-5 py-3 rounded-2xl font-black text-[10px] border border-slate-200 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
+            <button onClick={handleExport} className="flex items-center justify-center gap-2 bg-white text-slate-600 px-5 py-3 rounded-2xl font-black text-[10px] border border-slate-200 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm active:scale-95">
               <Download className="w-4 h-4" />
               {t('Eksport')}
             </button>
           )}
           {canCreateDocument && (
-            <button className="flex items-center justify-center gap-2 bg-blue-600 text-white px-7 py-3 rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95">
+            <button onClick={() => setIsCreateOpen(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-7 py-3 rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95">
               <Plus className="w-5 h-5" />
               {t('Yangi Hujjat')}
             </button>
@@ -327,24 +407,24 @@ export default function Documents({ user }: { user: User }) {
                         <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                           {doc.type_label || doc.type}
                         </span>
-                                         <td className="px-8 py-6">
+                      </td>
+                      <td className="px-8 py-6">
                         <div className="flex items-center justify-center gap-4">
-                          <div className="flex flex-col items-end min-w-[100px]">
+                          <div className="flex flex-col items-end min-w-25">
                             <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">{t('Yubordim')}</span>
-                            <span className="text-[11px] text-slate-900 font-black truncate max-w-[140px] italic">{doc.from_entity_name || '—'}</span>
+                            <span className="text-[11px] text-slate-900 font-black truncate max-w-35 italic">{doc.from_entity_name || '—'}</span>
                           </div>
                           <div className="flex items-center gap-2">
                              <div className="h-px w-6 bg-slate-200" />
                              <ChevronRight className="w-3 h-3 text-slate-400" />
                              <div className="h-px w-6 bg-slate-200" />
                           </div>
-                          <div className="flex flex-col min-w-[100px]">
+                          <div className="flex flex-col min-w-25">
                             <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">{t('Qabul qildi')}</span>
-                            <span className="text-[11px] text-slate-900 font-black truncate max-w-[140px] italic">{doc.to_entity_name || '—'}</span>
+                            <span className="text-[11px] text-slate-900 font-black truncate max-w-35 italic">{doc.to_entity_name || '—'}</span>
                           </div>
                         </div>
                       </td>
-        </td>
                       <td className="px-8 py-6">
                          <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black text-[10px] shadow-inner border border-blue-100">
@@ -380,6 +460,78 @@ export default function Documents({ user }: { user: User }) {
           )}
         </div>
       </div>
+
+      {/* Create Document Modal */}
+      <AnimatePresence>
+        {isCreateOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-lg rounded-[48px] overflow-hidden shadow-2xl"
+            >
+              <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-600 text-white rounded-2xl"><Plus className="w-6 h-6" /></div>
+                  <h3 className="text-xl font-black text-slate-900">{t('Yangi Hujjat')}</h3>
+                </div>
+                <button onClick={() => setIsCreateOpen(false)} className="p-3 bg-white rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-all shadow-sm">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleCreateDoc} className="p-8 space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Hujjat turi')}</label>
+                  <select
+                    value={createForm.type}
+                    onChange={e => setCreateForm(f => ({ ...f, type: e.target.value }))}
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-blue-400 transition-all"
+                  >
+                    {DOC_TYPES.map(dt => (
+                      <option key={dt.value} value={dt.value}>{t(dt.label)}</option>
+                    ))}
+                  </select>
+                </div>
+                {[
+                  { label: t('Kimdan'), key: 'from_entity_name', placeholder: 'Yuksar ERP / Sklad №1' },
+                  { label: t('Kimga'), key: 'to_entity_name', placeholder: 'Artel MCHJ / Ishlab chiqarish' },
+                ].map(field => (
+                  <div key={field.key} className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={field.placeholder}
+                      value={(createForm as any)[field.key]}
+                      onChange={e => setCreateForm(f => ({ ...f, [field.key]: e.target.value }))}
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-blue-400 transition-all placeholder:font-normal placeholder:text-slate-300"
+                    />
+                  </div>
+                ))}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Izoh')} ({t('ixtiyoriy')})</label>
+                  <textarea
+                    rows={3}
+                    placeholder={t('Hujjat haqida qisqacha ma\'lumot...')}
+                    value={createForm.note}
+                    onChange={e => setCreateForm(f => ({ ...f, note: e.target.value }))}
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-blue-400 transition-all resize-none placeholder:font-normal placeholder:text-slate-300"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setIsCreateOpen(false)} className="flex-1 py-4 border border-slate-200 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">
+                    {t('Bekor qilish')}
+                  </button>
+                  <button type="submit" disabled={creating} className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50">
+                    {creating ? t('Saqlanmoqda...') : t('Saqlash')}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Detail Slide-over Panel */}
       <AnimatePresence>
@@ -500,11 +652,11 @@ export default function Documents({ user }: { user: User }) {
 
                 {/* Actions Footer */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 pb-4 md:pb-10">
-                   <button className="flex items-center justify-center gap-3 py-5 bg-white border border-slate-200 rounded-[28px] font-black text-[10px] uppercase tracking-[0.2em] text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+                   <button onClick={handlePrint} className="flex items-center justify-center gap-3 py-5 bg-white border border-slate-200 rounded-[28px] font-black text-[10px] uppercase tracking-[0.2em] text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95">
                       <Printer className="w-5 h-5" />
-                      {t('Yopish / Print')}
+                      {t('Print')}
                    </button>
-                   <button className="flex items-center justify-center gap-3 py-5 bg-slate-900 text-white rounded-[28px] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-2xl">
+                   <button onClick={handlePrint} className="flex items-center justify-center gap-3 py-5 bg-slate-900 text-white rounded-[28px] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-2xl active:scale-95">
                       <Download className="w-5 h-5 text-blue-400" />
                       {t('PDF Yuklash')}
                    </button>

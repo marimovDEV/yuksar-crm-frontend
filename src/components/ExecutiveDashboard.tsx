@@ -51,7 +51,7 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
     return () => clearInterval(interval);
   }, []);
 
-  const fmt = (n: number) => new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(n) + ' UZS';
 
   if (loading && !data) {
     return (
@@ -62,8 +62,8 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
     );
   }
 
-  const kpis = data.kpis;
-  const heuristics = data.heuristics;
+  const kpis = data?.kpis || {};
+  const heuristics = data?.heuristics || { supply_alerts: [], cash_prediction: null };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-700 pb-10">
@@ -92,16 +92,16 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
         {[
           { 
             label: 'Oylik Sof Foyda', 
-            value: `${fmt(kpis.monthly_profit)} uzs`, 
+            value: fmt(kpis.monthly_profit || 0),
             trend: '+12.4%', 
             icon: DollarSign, 
             color: 'bg-slate-900', 
             text: 'text-white',
-            sub: `${kpis.avg_margin}% avg margin`
+            sub: `${kpis.avg_margin || 0}% ${t('avg margin')}`
           },
           { 
             label: 'Sklad Qiymati', 
-            value: `${fmt(kpis.stock_value)} uzs`, 
+            value: fmt(kpis.stock_value || 0),
             trend: 'Optimized', 
             icon: Package, 
             color: 'bg-white', 
@@ -110,16 +110,16 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
           },
           { 
             label: 'Chiqindi (Waste)', 
-            value: `${kpis.total_waste_kg} kg`, 
+            value: `${kpis.total_waste_kg || 0} kg`, 
             trend: '-5.2%', 
             icon: ZapOff, 
             color: 'bg-white', 
             text: 'text-slate-900',
-            sub: `${kpis.waste_per_block_kg} kg / unit`
+            sub: `${kpis.waste_per_block_kg || 0} ${t('kg / unit')}`
           },
           { 
             label: 'Sotuv Trendi', 
-            value: `${fmt(kpis.total_sales)} uzs`, 
+            value: fmt(kpis.total_sales || 0),
             trend: '+8%', 
             icon: TrendingUp, 
             color: 'bg-white', 
@@ -172,8 +172,8 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
               </div>
 
               <div className="h-[300px] flex items-end justify-between gap-4 px-2">
-                 {data.charts.sales_trend.map((day: any, i: number) => {
-                    const max = Math.max(...data.charts.sales_trend.map((d: any) => d.value));
+                 {(data?.charts?.sales_trend || []).map((day: any, i: number) => {
+                    const max = Math.max(...(data?.charts?.sales_trend || []).map((d: any) => d.value), 0);
                     const height = (day.value / (max || 1)) * 100;
                     return (
                        <div key={i} className="flex-1 group relative flex flex-col items-center">
@@ -233,11 +233,11 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
                        
                        <div className="mt-4 grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-[10px] text-slate-400 mb-1 font-bold">Kutilayotgan tushum (15 kun)</p>
+                             <p className="text-[10px] text-slate-400 mb-1 font-bold">{t('Kutilayotgan tushum (15 kun)')}</p>
                             <p className="text-sm font-black text-emerald-400">{fmt(heuristics.cash_prediction.projected_15d_inflow)} UZS</p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-slate-400 mb-1 font-bold">Muddati o'tgan qarzlar</p>
+                             <p className="text-[10px] text-slate-400 mb-1 font-bold">{t('Muddati o\'tgan qarzlar')}</p>
                             <p className="text-sm font-black text-rose-400">{fmt(heuristics.cash_prediction.overdue)} UZS</p>
                           </div>
                        </div>
@@ -260,7 +260,7 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
                <Layers className="w-4 h-4 text-blue-500" /> {t('Waste Per Sector')}
             </h4>
             <div className="space-y-4">
-               {data.charts.waste_distribution.map((w: any, i: number) => (
+               {(data?.charts?.waste_distribution || []).map((w: any, i: number) => (
                   <div key={i} className="space-y-2">
                      <div className="flex justify-between text-[10px] font-black uppercase">
                         <span className="text-slate-400">{w.name}</span>
@@ -282,15 +282,15 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-xs italic">DONE</div>
                   <div className="flex flex-col">
-                     <span className="text-xs font-black text-slate-800">Mart 2026</span>
-                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Yopilgan (Balanced)</span>
+                     <span className="text-xs font-black text-slate-800">{t('Mart 2026')}</span>
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('Yopilgan (Balanced)')}</span>
                   </div>
                </div>
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-black text-xs italic">OPEN</div>
                   <div className="flex flex-col">
-                     <span className="text-xs font-black text-slate-800">Aprel 2026</span>
-                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aktiv davr</span>
+                     <span className="text-xs font-black text-slate-800">{t('Aprel 2026')}</span>
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('Aktiv davr')}</span>
                   </div>
                </div>
             </div>

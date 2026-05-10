@@ -42,8 +42,8 @@ export default function PurchaseOrders() {
   }, []);
 
   const filtered = batches.filter(b => 
-    b.batch_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (b.batch_number || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (b.supplier_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

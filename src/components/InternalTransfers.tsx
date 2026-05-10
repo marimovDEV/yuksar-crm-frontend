@@ -49,7 +49,7 @@ export default function InternalTransfers() {
       setMaterials(matRes.data);
     } catch (err) {
       console.error(err);
-      uiStore.showNotification("Ma'lumot yuklashda xatolik", "error");
+      uiStore.showNotification(t("Ma'lumot yuklashda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -62,19 +62,19 @@ export default function InternalTransfers() {
   const handleCreateTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTransfer.from_warehouse || !newTransfer.to_warehouse || !newTransfer.material || !newTransfer.quantity) {
-      uiStore.showNotification("Barcha maydonlarni to'ldiring", "warning");
+      uiStore.showNotification(t("Barcha maydonlarni to'ldiring"), "info");
       return;
     }
 
     if (newTransfer.from_warehouse === newTransfer.to_warehouse) {
-      uiStore.showNotification("Bir xil omborlar orasida o'tkazma qilib bo'lmaydi", "error");
+      uiStore.showNotification(t("Bir xil omborlar orasida o'tkazma qilib bo'lmaydi"), "error");
       return;
     }
 
     setLoading(true);
     try {
       await api.post('transfers/', newTransfer);
-      uiStore.showNotification("O'tkazma muvaffaqiyatli amalga oshirildi", "success");
+      uiStore.showNotification(t("O'tkazma muvaffaqiyatli amalga oshirildi"), "success");
       setIsModalOpen(false);
       fetchData();
       setNewTransfer({
@@ -85,7 +85,7 @@ export default function InternalTransfers() {
         notes: ''
       });
     } catch (err) {
-      uiStore.showNotification("O'tkazma amalga oshmadi", "error");
+      uiStore.showNotification(t("O'tkazma amalga oshmadi"), "error");
     } finally {
       setLoading(false);
     }
@@ -278,7 +278,7 @@ export default function InternalTransfers() {
                         className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-[28px] outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-bold text-sm min-h-[120px]"
                         value={newTransfer.notes}
                         onChange={e => setNewTransfer({...newTransfer, notes: e.target.value})}
-                        placeholder={t('O\'tkazma sababi yoki qo\'shimcha ma\'lumotlar...')}
+                        placeholder={t("O'tkazma sababi yoki qo'shimcha ma'lumotlar...")}
                      />
                   </div>
 

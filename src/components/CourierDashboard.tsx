@@ -37,7 +37,7 @@ export default function CourierDashboard({ user }: { user: UserType }) {
       // Fetch documents assigned to this courier via the new DocumentDelivery model
       // Note: We use the documents endpoint and filter by courier in the delivery relation
       const res = await api.get('documents/', { params: { courier_id: user.id } });
-      setDocuments(res.data);
+      setDocuments(res.data.results || res.data);
     } catch (err) {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {

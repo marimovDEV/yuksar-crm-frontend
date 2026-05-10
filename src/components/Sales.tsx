@@ -20,8 +20,12 @@ import {
   Target,
   Users,
   TrendingUp,
-  Activity,
-  Calendar
+  Calendar,
+  PieChart,
+  BarChart,
+  ArrowUpRight,
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { User, Invoice, Product, Client } from '../types';
 import api from '../lib/api';
@@ -49,7 +53,7 @@ export default function Sales({ user }: { user: User }) {
     deliveryAddress: '',
     notes: '',
     discount: 0,
-    warehouseId: '4' // Default to Sklad 4 (Tayyor mahsulot)
+    warehouseId: '4' // Default to Sklad 4 (t('Tayyor mahsulot'))
   });
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [currentItem, setCurrentItem] = useState({
@@ -231,6 +235,7 @@ export default function Sales({ user }: { user: User }) {
     { id: 'COMPLETED', name: t('Yakunlangan'), color: 'emerald', icon: DollarSign },
   ];
 
+
   return (
     <div className="space-y-4 md:space-y-8 pb-10">
       {/* Premium Header */}
@@ -282,23 +287,51 @@ export default function Sales({ user }: { user: User }) {
       </div>
 
       {/* KPI Section */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-        {[
-          { label: t('Bugungi Savdo'), value: kpi ? new Intl.NumberFormat(locale).format(kpi.today_sum) + ' UZS' : '...', icon: TrendingUp, color: 'blue' },
-          { label: t('Aktiv Buyurtmalar'), value: kpi ? kpi.active_orders : '...', icon: Target, color: 'emerald' },
-          { label: t('Oylik Reja'), value: kpi ? `${kpi.monthly_progress}%` : '...', icon: Activity, color: 'amber' },
-          { label: t('Konversiya'), value: kpi ? `${kpi.conversion_rate}%` : '...', icon: Users, color: 'indigo' },
-        ].map((kpiItem, i) => (
-          <div key={i} className="card-responsive p-5 md:p-8 flex items-center gap-4 md:gap-6 hover:shadow-lg transition-all">
-            <div className={`w-10 h-10 md:w-14 md:h-14 bg-${kpiItem.color}-50 rounded-xl md:rounded-2xl flex items-center justify-center text-${kpiItem.color}-600 shrink-0`}>
-              <kpiItem.icon className="w-5 h-5 md:w-6 md:h-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs-bold text-slate-400 mb-1 truncate">{kpiItem.label}</p>
-              <p className="text-base md:text-xl font-black text-slate-900 truncate leading-none">{kpiItem.value}</p>
-            </div>
-          </div>
-        ))}
+      {/* Pipeline Funnel - Visual Overview */}
+      <div className="bg-white p-8 md:p-12 rounded-[48px] border border-slate-100 shadow-premium overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-8 text-blue-500/10 group-hover:scale-110 transition-transform duration-700">
+           <Sparkles className="w-40 h-40" />
+        </div>
+        <div className="relative z-10">
+           <div className="flex items-center justify-between mb-12">
+              <div>
+                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('Savdo Voronkasi Tahlili')}</h3>
+                 <p className="text-slate-400 text-sm font-medium">{t('Real vaqtdagi buyurtmalar oqimi')}</p>
+              </div>
+              <div className="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100">
+                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('Oylik Konversiya')}: 84%</span>
+              </div>
+           </div>
+           
+           <div className="flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-2">
+              {columns.map((col, idx) => {
+                 const count = filteredInvoices.filter(inv => inv.status === col.id).length;
+                 const total = filteredInvoices.length || 1;
+                 const percent = (count / total) * 100;
+                 const width = 100 - (idx * 8); // Funnel shape effect
+                 
+                 return (
+                    <div key={col.id} className="flex-1 w-full group/funnel">
+                       <div className="flex flex-col items-center gap-3">
+                          <div 
+                             className={`h-16 md:h-24 rounded-3xl transition-all duration-700 flex items-center justify-center relative shadow-sm border border-slate-100 group-hover/funnel:shadow-xl group-hover/funnel:-translate-y-1`}
+                             style={{ 
+                                width: `${Math.max(width, 40)}%`,
+                                background: `linear-gradient(135deg, ${idx % 2 === 0 ? '#eff6ff' : '#ffffff'} 0%, #ffffff 100%)`
+                             }}
+                          >
+                             <col.icon className={`w-6 h-6 md:w-8 md:h-8 text-${col.color}-500 opacity-60`} />
+                             <div className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-slate-100 rounded-full flex items-center justify-center shadow-lg">
+                                <span className="text-[10px] font-black text-slate-900">{count}</span>
+                             </div>
+                          </div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">{col.name}</p>
+                       </div>
+                    </div>
+                 );
+              })}
+           </div>
+        </div>
       </div>
 
       {/* Pipeline Toolbar */}
@@ -343,9 +376,11 @@ export default function Sales({ user }: { user: User }) {
                   <motion.div 
                     layoutId={String(inv.id)}
                     key={inv.id} 
-                    className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-pointer"
+                    className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-premium hover:-translate-y-2 transition-all group cursor-pointer relative overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700" />
+                    
+                    <div className="flex justify-between items-start mb-6 relative z-10">
                       <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg uppercase tracking-widest border border-blue-100">{inv.invoice_number}</span>
                       <button className="text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all"><MoreVertical className="w-5 h-5" /></button>
                     </div>
@@ -353,19 +388,19 @@ export default function Sales({ user }: { user: User }) {
                     <h5 className="text-base font-black text-slate-900 mb-1 leading-tight">{inv.customer_name}</h5>
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-2">
-                        {inv.items.slice(0, 3).map((_, idx) => (
+                        {(inv.items || []).slice(0, 3).map((_, idx) => (
                           <div key={idx} className="w-5 h-5 bg-slate-100 border-2 border-white rounded-full flex items-center justify-center">
                             <ShoppingCart className="w-2.5 h-2.5 text-slate-400" />
                           </div>
                         ))}
                       </div>
-                      <span className="text-[9px] font-bold text-slate-400">{inv.items.length} {t('turdagi tovarlar')}</span>
+                      <span className="text-[9px] font-bold text-slate-400">{(inv.items || []).length} {t('turdagi tovarlar')}</span>
                     </div>
 
                     <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                        <div>
                           <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('Summa')}</p>
-                          <p className="font-black text-slate-900">{inv.total_amount.toLocaleString()} <span className="text-[8px] text-slate-300">UZS</span></p>
+                          <p className="font-black text-slate-900">{inv.total_amount.toLocaleString()} <span className="text-[8px] text-slate-300">{t('UZS')}</span></p>
                        </div>
                        
                        {inv.status === 'NEW' && (
@@ -406,7 +441,7 @@ export default function Sales({ user }: { user: User }) {
                         <p className="font-black text-slate-700">{inv.customer_name}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{inv.payment_method_display}</p>
                       </td>
-                      <td className="px-10 py-6 font-black text-blue-600">{inv.total_amount.toLocaleString()} UZS</td>
+                      <td className="px-10 py-6 font-black text-blue-600">{inv.total_amount.toLocaleString()} {t('UZS')}</td>
                       <td className="px-10 py-6">
                         <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
                           inv.status === 'NEW' ? 'bg-blue-50 text-blue-600 border-blue-100' :
@@ -443,7 +478,7 @@ export default function Sales({ user }: { user: User }) {
                              inv.status === 'COMPLETED' ? 'success' : 'default'
                   }}
                   rightElement={
-                    <span className="text-xs font-black text-blue-600 whitespace-nowrap">{inv.total_amount.toLocaleString()} UZS</span>
+                    <span className="text-xs font-black text-blue-600 whitespace-nowrap">{inv.total_amount.toLocaleString()} {t('UZS')}</span>
                   }
                   footer={
                     <div className="flex items-center justify-between w-full">
@@ -582,7 +617,7 @@ export default function Sales({ user }: { user: User }) {
                   {step === 3 && (
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
                        <div className="space-y-4">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Chegirma')} (UZS)</label>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Chegirma')} ({t('UZS')})</label>
                           <input 
                             type="number" 
                             className="w-full px-7 py-5 bg-white border border-slate-200 rounded-[24px] outline-none focus:border-rose-500 font-black text-xl text-rose-600 shadow-sm"
@@ -615,11 +650,11 @@ export default function Sales({ user }: { user: User }) {
                               </div>
                               <div>
                                  <p className="text-base font-black text-slate-900 leading-tight mb-1">{item.name}</p>
-                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.quantity} {t('dona')} x {item.price.toLocaleString()} UZS</p>
+                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.quantity} {t('dona')} x {item.price.toLocaleString()} {t('UZS')}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-10">
-                              <p className="text-lg font-black text-blue-600">{item.total.toLocaleString()} UZS</p>
+                              <p className="text-lg font-black text-blue-600">{item.total.toLocaleString()} {t('UZS')}</p>
                               <button onClick={() => removeFromCart(idx)} className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
                                  <Trash2 className="w-5 h-5" />
                               </button>
@@ -632,7 +667,7 @@ export default function Sales({ user }: { user: User }) {
                       <div className="space-y-2">
                          <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{t('Umumiy Summa')}</span>
                          <h3 className="text-4xl font-black text-slate-900 tracking-tighter">
-                            {totalCartAmount.toLocaleString()} <span className="text-xs text-slate-300 uppercase tracking-widest font-bold">UZS</span>
+                            {totalCartAmount.toLocaleString()} <span className="text-xs text-slate-300 uppercase tracking-widest font-bold">{t('UZS')}</span>
                          </h3>
                          {formData.discount > 0 && <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest">{t('Chegirma')}: -{formData.discount.toLocaleString()}</p>}
                       </div>

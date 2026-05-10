@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ShieldAlert, FileWarning, Eye, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../lib/api';
-import type { ComplianceRule, ComplianceViolation, LegalDocument } from '../types';
+import type { ComplianceRule, ComplianceViolation } from '../types';
+type LegalDocument = { id: number; title: string; document_type?: string; status?: string; expiry_date?: string; created_at?: string; };
 
 type Tab = 'rules' | 'violations' | 'documents';
 

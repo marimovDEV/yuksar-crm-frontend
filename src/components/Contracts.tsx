@@ -87,8 +87,8 @@ export default function Contracts({ user }: { user: User }) {
   };
 
   const filtered = contracts.filter(c => {
-    const matchSearch = c.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       c.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (c.contract_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       (c.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
     return matchSearch && matchStatus;
   });

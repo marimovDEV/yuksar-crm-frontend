@@ -108,7 +108,7 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
             <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest flex items-center gap-2">
                 <Bell className="w-4 h-4 text-blue-600" />
-                Bildirishnomalar
+                t('Bildirishnomalar')
               </h3>
               <div className="flex items-center gap-1">
                 {notifications.some(n => !n.is_read) && (
@@ -140,7 +140,7 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
                   <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Bell className="w-6 h-6 text-slate-300" />
                   </div>
-                  <p className="text-xs font-bold text-slate-400 italic uppercase tracking-widest">{t("Bildirishnomalar yo'q")}</p>
+                  <p className="text-xs font-bold text-slate-400 italic uppercase tracking-widest">{t("t('Bildirishnomalar') yo'q")}</p>
                 </div>
               ) : (
                 notifications.map((n) => (

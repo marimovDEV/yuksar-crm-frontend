@@ -11,7 +11,9 @@ import {
   MoreVertical, 
   Trash2, 
   Clock,
-  Layers
+  Layers,
+  ArrowUpRight,
+  AlertTriangle
 } from 'lucide-react';
 import api from '../lib/api';
 import { User, Transfer, BlockProduction } from '../types';
@@ -20,7 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
 
 export default function Sklad3({ user }: { user: User }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const assignedWarehouses = (user.assignedWarehouses || user.assigned_warehouses || []).map(String);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,19 +59,19 @@ export default function Sklad3({ user }: { user: User }) {
       const mappedTransfers = docsRes.data.map((d: any) => ({
         id: d.id,
         batchNumber: d.number || `TR-${d.id}`,
-        fromLocation: d.from_warehouse_name || 'Noma\'lum',
-        toLocation: d.to_warehouse_name || '3-Ombor',
+        fromLocation: d.from_warehouse_name || t('Noma\'lum'),
+        toLocation: d.to_warehouse_name || t('3-Ombor'),
         quantity: d.items.reduce((acc: number, item: any) => acc + item.quantity, 0),
         date: d.created_at,
         status: d.status,
-        productName: d.items[0]?.product_name || 'Mahsulot',
-        unit: 'dona'
+        productName: d.items[0]?.product_name || t('Mahsulot'),
+        unit: t('dona')
       }));
       
       setTransfers(mappedTransfers);
     } catch (err) {
       console.error("Sklad 3 fetch error", err);
-      uiStore.showNotification("Ma'lumotlarni yuklashda xatolik", "error");
+      uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -86,7 +88,7 @@ export default function Sklad3({ user }: { user: User }) {
     setLoading(true);
     try {
       const selectedBlock = availableBlocks.find(b => b.id === Number(selectedBlockId));
-      if (!selectedBlock) throw new Error("Blok topilmadi");
+      if (!selectedBlock) throw new Error(t("Blok topilmadi"));
 
       await api.post('documents/', {
         type: 'OTKAZMA_BUYRUGI',
@@ -99,12 +101,12 @@ export default function Sklad3({ user }: { user: User }) {
         }]
       });
 
-      uiStore.showNotification("Transfer muvaffaqiyatli yaratildi va yo'lga chiqdi", "success");
+      uiStore.showNotification(t("Transfer muvaffaqiyatli yaratildi va yo'lga chiqdi"), "success");
       setIsModalOpen(false);
       resetForm();
       fetchData();
     } catch (err: any) {
-      uiStore.showNotification(err.response?.data?.error || "Xatolik yuz berdi", "error");
+      uiStore.showNotification(err.response?.data?.error || t("Xatolik yuz berdi"), "error");
     } finally {
       setLoading(false);
     }
@@ -116,11 +118,11 @@ export default function Sklad3({ user }: { user: User }) {
     setLoading(true);
     try {
       await api.post(`documents/${confirmReceive.id}/receive/`);
-      uiStore.showNotification("Mahsulotlar omborga qabul qilindi", "success");
+      uiStore.showNotification(t("Mahsulotlar omborga qabul qilindi"), "success");
       setConfirmReceive(null);
       fetchData();
     } catch (err) {
-      uiStore.showNotification("Qabul qilishda xatolik", "error");
+      uiStore.showNotification(t("Qabul qilishda xatolik"), "error");
     } finally {
       setLoading(false);
     }
@@ -135,8 +137,8 @@ export default function Sklad3({ user }: { user: User }) {
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return "Noma'lum";
-      return d.toLocaleString(locale, { 
+      if (isNaN(d.getTime())) return t("Noma\'lum");
+      return d.toLocaleString(locale === 'uz' ? 'uz-UZ' : 'ru-RU', { 
         day: '2-digit', 
         month: '2-digit', 
         year: 'numeric',
@@ -144,7 +146,7 @@ export default function Sklad3({ user }: { user: User }) {
         minute: '2-digit'
       });
     } catch (e) {
-      return "Noma'lum";
+      return t("Noma\'lum");
     }
   };
 
@@ -159,11 +161,11 @@ export default function Sklad3({ user }: { user: User }) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'DONE': return 'Qabul qilindi';
-      case 'IN_TRANSIT': return "Yo'lda";
-      case 'CANCELLED': return 'Bekor qilindi';
-      case 'CREATED': return 'Yaratildi';
-      default: return status;
+      case 'DONE': return t('Qabul qilindi');
+      case 'IN_TRANSIT': return t("Yo'lda");
+      case 'CANCELLED': return t('Bekor qilindi');
+      case 'CREATED': return t('Yaratildi');
+      default: return t(status);
     }
   };
 
@@ -173,15 +175,15 @@ export default function Sklad3({ user }: { user: User }) {
         <div className="w-20 h-20 bg-rose-50 rounded-[32px] flex items-center justify-center mb-6 shadow-inner ring-4 ring-rose-50/50">
           <X className="w-10 h-10 text-rose-500" />
         </div>
-        <h3 className="text-2xl font-black text-slate-900 mb-2">Ruxsat yo'q</h3>
-        <p className="text-slate-400 text-center max-w-xs font-medium">Sizga ushbu bo'limni boshqarish ruxsati berilmagan. Iltimos, administratorga murojaat qiling.</p>
+        <h3 className="text-2xl font-black text-slate-900 mb-2">{t('Ruxsat yo\'q')}</h3>
+        <p className="text-slate-400 text-center max-w-xs font-medium">{t('Sizga ushbu bo\'limni boshqarish ruxsati berilmagan. Iltimos, administratorga murojaat qiling.')}</p>
       </div>
     );
   }
 
-  const filteredTransfers = transfers.filter(t => 
-    t.batchNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.productName?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTransfers = transfers.filter(tr => 
+    (tr.batchNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (tr.productName || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const stats = {
@@ -194,10 +196,10 @@ export default function Sklad3({ user }: { user: User }) {
       {/* Header & Section Title */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-3">Ichki Ombor <span className="text-blue-600">№3</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-3">{t('Ichki Ombor')} <span className="text-blue-600">№3</span></h1>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] flex items-center gap-2">
             <Navigation className="w-3 h-3 text-blue-500" />
-            Sexlararo harakatlar va zaxira logistikasi
+            {t('Sexlararo harakatlar va zaxira logistikasi')}
           </p>
         </motion.div>
 
@@ -207,8 +209,8 @@ export default function Sklad3({ user }: { user: User }) {
                <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Yo'lda</p>
-              <p className="text-lg font-black text-slate-900 leading-none">{stats.totalInTransit} ta</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('Yo\'lda')}</p>
+              <p className="text-lg font-black text-slate-900 leading-none">{stats.totalInTransit} {t('ta')}</p>
             </div>
           </div>
 
@@ -217,7 +219,7 @@ export default function Sklad3({ user }: { user: User }) {
             className="group flex items-center justify-center gap-3 bg-blue-600 text-white px-8 py-5 rounded-[28px] font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-2xl shadow-blue-200 active:scale-95 transition-all"
           >
             <Truck className="w-5 h-5 group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform" />
-            <span>Yangi Harakat</span>
+            <span>{t('Yangi Harakat')}</span>
           </button>
         </div>
       </div>
@@ -230,15 +232,15 @@ export default function Sklad3({ user }: { user: User }) {
       >
         <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/30">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-2">Harakatlar Jurnali</h3>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest opacity-60">Barcha ichki o'tkazmalar tarixi</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-2">{t('Harakatlar Jurnali')}</h3>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest opacity-60">{t('Barcha ichki o\'tkazmalar tarixi')}</p>
           </div>
           
           <div className="relative group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="text" 
-              placeholder="Partiya yoki mahsulot bo'yicha qidirish..." 
+              placeholder={t('Partiya yoki mahsulot bo\'yicha qidirish...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full md:w-80 pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[24px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 text-sm font-bold transition-all shadow-inner"
@@ -250,12 +252,12 @@ export default function Sklad3({ user }: { user: User }) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">Hujjat / Partiya</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">Mahsulot</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">Yo'nalish</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Miqdor</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Holat</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Amallar</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">{t('Hujjat / Partiya')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">{t('Mahsulot')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">{t('Yo\'nalish')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">{t('Miqdor')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">{t('Holat')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">{t('Amallar')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -290,7 +292,7 @@ export default function Sklad3({ user }: { user: User }) {
                   </td>
                   <td className="px-10 py-7 text-center">
                     <span className="px-4 py-2 bg-slate-900 text-white rounded-2xl font-black text-xs shadow-lg shadow-slate-200">
-                      {transfer.quantity} <span className="text-[10px] opacity-40 ml-1 uppercase">{transfer.unit}</span>
+                      {transfer.quantity} <span className="text-[10px] opacity-40 ml-1 uppercase">{t(transfer.unit)}</span>
                     </span>
                   </td>
                   <td className="px-10 py-7 text-center">
@@ -306,15 +308,15 @@ export default function Sklad3({ user }: { user: User }) {
                         onClick={() => setConfirmReceive(transfer)}
                         className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-blue-100 hover:shadow-emerald-100 active:scale-90"
                       >
-                        Qabul qilish
+                        {t('Qabul qilish')}
                       </button>
                     ) : transfer.status === 'DONE' ? (
                       <div className="flex items-center justify-end gap-2 text-emerald-500">
-                         <span className="text-[10px] font-black uppercase tracking-widest">Bajarildi</span>
+                         <span className="text-[10px] font-black uppercase tracking-widest">{t('Bajarildi')}</span>
                          <CheckCircle2 className="w-5 h-5" />
                       </div>
                     ) : (
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Amal yo'q</span>
+                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{t('Amal yo\'q')}</span>
                     )}
                   </td>
                 </tr>
@@ -325,7 +327,7 @@ export default function Sklad3({ user }: { user: User }) {
                     <td colSpan={6} className="py-20 text-center">
                        <div className="flex flex-col items-center gap-4">
                           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                          <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Ma'lumotlar yuklanmoqda...</p>
+                          <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{t('Ma\'lumotlar yuklanmoqda...')}</p>
                        </div>
                     </td>
                  </tr>
@@ -335,7 +337,7 @@ export default function Sklad3({ user }: { user: User }) {
                 <tr>
                   <td colSpan={6} className="py-32 text-center text-slate-300 italic font-black text-lg">
                     <Layers className="w-16 h-16 mx-auto mb-4 opacity-10" />
-                    Harakatlar topilmadi
+                    {t('Harakatlar topilmadi')}
                   </td>
                 </tr>
               )}
@@ -353,13 +355,13 @@ export default function Sklad3({ user }: { user: User }) {
                 <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8 mx-auto shadow-inner">
                    <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 text-center mb-3">Haqiqatan ham qabul qilasizmi?</h3>
+                <h3 className="text-2xl font-black text-slate-900 text-center mb-3">{t('Haqiqatan ham qabul qilasizmi?')}</h3>
                 <p className="text-slate-500 text-center text-sm font-medium mb-10">
-                  {confirmReceive.batchNumber} partiyadagi {confirmReceive.quantity} {confirmReceive.unit} mahsulotni omborga qirishni tasdiqlaysizmi?
+                  {confirmReceive.batchNumber} {t('partiyadagi')} {confirmReceive.quantity} {t(confirmReceive.unit)} {t('mahsulotni omborga qirishni tasdiqlaysizmi?')}
                 </p>
                 <div className="flex gap-4">
-                   <button onClick={() => setConfirmReceive(null)} className="flex-1 py-4 border-2 border-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all">Yo'q, bekor qilish</button>
-                   <button onClick={handleReceiveTransfer} className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-200 active:scale-95 transition-all">Tasdiqlash</button>
+                   <button onClick={() => setConfirmReceive(null)} className="flex-1 py-4 border-2 border-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all">{t('Yo\'q, bekor qilish')}</button>
+                   <button onClick={handleReceiveTransfer} className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-200 active:scale-95 transition-all">{t('Tasdiqlash')}</button>
                 </div>
              </motion.div>
           </div>
@@ -386,8 +388,8 @@ export default function Sklad3({ user }: { user: User }) {
               <div className="p-12">
                 <div className="flex justify-between items-center mb-12">
                   <div>
-                     <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Yangi Transfer</h2>
-                     <p className="text-xs text-slate-400 font-black uppercase tracking-widest">Sklad 2 dan mahsulotlarni o'tkazish</p>
+                     <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">{t('Yangi Transfer')}</h2>
+                     <p className="text-xs text-slate-400 font-black uppercase tracking-widest">{t('Sklad 2 dan mahsulotlarni o\'tkazish')}</p>
                   </div>
                   <button onClick={() => setIsModalOpen(false)} className="p-4 bg-slate-50 rounded-2xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">
                     <X className="w-6 h-6" />
@@ -396,7 +398,7 @@ export default function Sklad3({ user }: { user: User }) {
 
                 <form onSubmit={handleCreateTransfer} className="space-y-10">
                   <div className="space-y-4">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Mahsulotni tanlang (Sklad 2 - Tayyor)</label>
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Mahsulotni tanlang (Sklad 2 - Tayyor)')}</label>
                     <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-3 scrollbar-vibrant">
                       {availableBlocks.map(b => (
                         <button
@@ -413,20 +415,20 @@ export default function Sklad3({ user }: { user: User }) {
                                 <Box className="w-5 h-5" />
                              </div>
                              <div>
-                                <span className="text-sm font-black text-slate-900 block leading-tight mb-0.5">Partiya №{b.form_number}</span>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Vajm: {b.volume.toFixed(2)} m³ | {b.density} kg/m³</span>
+                                <span className="text-sm font-black text-slate-900 block leading-tight mb-0.5">{t('Partiya')} №{b.form_number}</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t('Hajm')}: {b.volume.toFixed(2)} m³ | {b.density} kg/m³</span>
                              </div>
                           </div>
                           <div className="text-right">
                              <span className="text-lg font-black text-slate-900 block leading-tight">{b.block_count}</span>
-                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">dona tayyor</span>
+                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t('dona tayyor')}</span>
                           </div>
                         </button>
                       ))}
                       {availableBlocks.length === 0 && (
                         <div className="text-center py-16 bg-slate-50/50 rounded-[32px] border-2 border-dashed border-slate-100">
                           <Layers className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                          <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Sklad 2 da tayyor bloklar mavjud emas</p>
+                          <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">{t('Sklad 2 da tayyor bloklar mavjud emas')}</p>
                         </div>
                       )}
                     </div>
@@ -434,21 +436,21 @@ export default function Sklad3({ user }: { user: User }) {
 
                   <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-4">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Qayerga yuborilsin?</label>
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Qayerga yuborilsin?')}</label>
                       <select 
                         required
                         value={targetWarehouseId}
                         onChange={(e) => setTargetWarehouseId(e.target.value)}
                         className="w-full h-16 bg-slate-50 border-none rounded-[24px] px-6 font-black text-slate-900 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="">Tanlang...</option>
+                        <option value="">{t('Tanlang...')}</option>
                         {warehouses.filter(w => w.name !== 'Sklad №2').map(w => (
                            <option key={w.id} value={w.id}>{w.name}</option>
                         ))}
                       </select>
                     </div>
                     <div className="space-y-4">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Miqdor (dona)</label>
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Miqdor (dona)')}</label>
                       <div className="relative">
                         <Package className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input 
@@ -468,7 +470,7 @@ export default function Sklad3({ user }: { user: User }) {
                     disabled={loading || !selectedBlockId || !targetWarehouseId}
                     className="w-full bg-slate-900 text-white py-6 rounded-[28px] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-slate-200 hover:shadow-blue-200 hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale"
                   >
-                    {loading ? 'Yuborilmoqda...' : 'Harakatni Tasdiqlash'}
+                    {loading ? t('Yuborilmoqda...') : t('Harakatni Tasdiqlash')}
                   </button>
                 </form>
               </div>
