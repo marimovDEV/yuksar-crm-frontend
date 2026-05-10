@@ -187,6 +187,12 @@ export default function App() {
         { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'Sotuv menejeri', 'Kuryer'] },
         { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['Bosh Admin'] },
         { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['Bosh Admin'] },
+      ]
+    },
+    {
+      id: 'user-guide',
+      title: null,
+      items: [
         { id: 'guide', name: t('Rukavodstvo'), icon: BookOpen, roles: ['Bosh Admin', 'Admin', 'Sotuv menejeri', 'Omborchi', 'Ishlab chiqarish ustasi'] },
       ]
     }
