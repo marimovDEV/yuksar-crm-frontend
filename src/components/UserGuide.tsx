@@ -24,7 +24,9 @@ import {
   QrCode,
   Download,
   Settings,
-  Truck
+  Truck,
+  Layers,
+  Scissors
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
