@@ -4,33 +4,27 @@ import {
   DollarSign, 
   Activity, 
   TrendingUp, 
-  Package, 
-  Clock,
   ArrowUpRight,
   ShieldAlert,
   Factory,
   Cpu,
-  ShoppingCart,
-  Truck,
   Database,
-  Layers as LayersIcon,
   CheckCircle2,
-  Trash2,
   AlertTriangle,
   Zap,
   ArrowRight,
-  Plus,
-  BarChart3,
-  Scale,
+  MonitorDot,
   Gauge,
-  Radio,
-  Timer,
-  ChevronRight,
-  MonitorDot
+  Thermometer,
+  Wind,
+  Box,
+  Truck,
+  Layers,
+  Settings2,
+  Maximize2
 } from 'lucide-react';
 import api from '../lib/api';
 import { useI18n } from '../i18n';
-import { uiStore } from '../lib/store';
 
 const AreaTrendChart = lazy(() => import('./charts/AreaTrendChart'));
 
@@ -38,89 +32,85 @@ interface ExecutiveDashboardProps {
   onAction: (tabId: string) => void;
 }
 
-/* ─── Miniature Live Components ─── */
+/* ─── Factory Digital Twin Components ─── */
 
-function MiniProductionFlow({ data }: { data: any }) {
+function EquipmentNode({ 
+  id, name, status, value, unit, icon: Icon, cx, cy, onClick 
+}: { 
+  id: string; name: string; status: 'active'|'warning'|'error'|'offline'; 
+  value: string; unit: string; icon: any; cx: number; cy: number; onClick: () => void 
+}) {
   const { t } = useI18n();
+  const colors = {
+    active: 'text-emerald-400 stroke-emerald-500/50 fill-emerald-500/10',
+    warning: 'text-amber-400 stroke-amber-500/50 fill-amber-500/10',
+    error: 'text-rose-400 stroke-rose-500/50 fill-rose-500/10',
+    offline: 'text-slate-500 stroke-slate-500/30 fill-slate-500/5'
+  };
+
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-between items-end">
-        <div className="flex items-center gap-2">
-           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Live Flow')}</span>
-        </div>
-        <span className="text-xl font-black text-slate-900">842 <span className="text-[10px] text-slate-400">kg/h</span></span>
-      </div>
-      <div className="h-12 w-full bg-slate-50 rounded-xl flex items-end gap-1 p-1 overflow-hidden">
-        {[40, 65, 45, 90, 55, 75, 40, 85, 30, 95, 60, 45, 70, 50, 80].map((h, i) => (
-          <motion.div 
-            key={i}
-            initial={{ height: 0 }}
-            animate={{ height: `${h}%` }}
-            transition={{ delay: i * 0.02, duration: 1 }}
-            className="flex-1 bg-indigo-500/20 rounded-sm"
-          />
-        ))}
-      </div>
-    </div>
+    <motion.g 
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.05 }}
+      onClick={onClick}
+      className="cursor-pointer group"
+    >
+      {/* Glow Effect */}
+      <circle cx={cx} cy={cy} r="60" className={`${colors[status]} opacity-20 blur-2xl group-hover:opacity-40 transition-opacity`} />
+      
+      {/* Machine Body */}
+      <rect x={cx - 50} y={cy - 40} width="100" height="80" rx="20" className={`${colors[status]} stroke-2 transition-colors duration-500`} />
+      <rect x={cx - 42} y={cy - 32} width="84" height="64" rx="14" className="fill-slate-900/40" />
+
+      {/* Status Light */}
+      <circle cx={cx + 35} cy={cy - 25} r="4" className={status === 'active' ? 'fill-emerald-500 animate-pulse' : status === 'warning' ? 'fill-amber-500 animate-bounce' : 'fill-rose-500'} />
+      
+      {/* Icon */}
+      <foreignObject x={cx - 15} y={cy - 25} width="30" height="30">
+        <Icon className={`w-full h-full ${colors[status].split(' ')[0]}`} />
+      </foreignObject>
+
+      {/* Label & Value */}
+      <text x={cx} y={cy + 58} textAnchor="middle" className="text-[10px] font-black fill-slate-400 uppercase tracking-widest">{t(name)}</text>
+      <text x={cx} y={cy + 22} textAnchor="middle" className="text-sm font-black fill-white tracking-tighter">
+        {value} <tspan className="text-[10px] fill-slate-500">{unit}</tspan>
+      </text>
+
+      {/* Interactive Tooltip / Detail Hint */}
+      <motion.circle 
+        cx={cx + 35} cy={cy + 25} r="8" 
+        className="fill-indigo-600/50 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <text x={cx + 35} y={cy + 28} textAnchor="middle" className="text-[8px] font-black fill-white pointer-events-none opacity-0 group-hover:opacity-100">+</text>
+    </motion.g>
   );
 }
 
-function MiniWarehouseStatus({ data }: { data: any }) {
-  const { t } = useI18n();
+function FlowPath({ d, active }: { d: string; active: boolean }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t('EPS Granula')}</p>
-        <p className="text-sm font-black text-slate-900">12.4 <span className="text-[10px]">t</span></p>
-      </div>
-      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{t('Tayyor Blok')}</p>
-        <p className="text-sm font-black text-slate-900">320 <span className="text-[10px]">ta</span></p>
-      </div>
-    </div>
-  );
-}
-
-function MiniQCStats({ data }: { data: any }) {
-  const { t } = useI18n();
-  return (
-    <div className="flex items-center gap-4">
-      <div className="relative w-14 h-14 shrink-0">
-        <svg className="w-full h-full -rotate-90">
-          <circle cx="28" cy="28" r="24" fill="none" stroke="#f1f5f9" strokeWidth="6" />
-          <circle cx="28" cy="28" r="24" fill="none" stroke="#ef4444" strokeWidth="6" 
-                  strokeDasharray={150} strokeDashoffset={150 * (1 - 0.021)} 
-                  strokeLinecap="round" />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-rose-600">2.1%</span>
-      </div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{t('Brak Foizi')}</p>
-        <p className="text-xs font-bold text-slate-600 leading-tight">{t('Me\'yordan past')}</p>
-      </div>
-    </div>
+    <g>
+      <path d={d} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="12" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="rgba(79, 70, 229, 0.1)" strokeWidth="6" strokeLinecap="round" />
+      {active && (
+        <path d={d} fill="none" stroke="url(#flowGradient)" strokeWidth="4" strokeLinecap="round"
+              strokeDasharray="10, 20" className="animate-flow-dash" />
+      )}
+    </g>
   );
 }
 
 export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps) {
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
-  const [strategicKpis, setStrategicKpis] = useState<any[]>([]);
-  const [heuristics, setHeuristics] = useState<any>(null);
-  const [financeStatus, setFinanceStatus] = useState<any>(null);
-  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [data, setData] = useState<any>(null);
 
   const fetchData = async () => {
     try {
       const res = await api.get('dashboard/summary/', { params: { period: 'month' } });
-      const data = res.data;
-      setStrategicKpis(data.strategicKpis || []);
-      setHeuristics(data.heuristics || null);
-      setFinanceStatus(data.finance_status || null);
-      setPendingApprovals(data.pending_approvals || []);
+      setData(res.data);
     } catch (err) {
-      console.error("Failed to fetch strategic data", err);
+      console.error("Failed to fetch factory data", err);
     } finally {
       setLoading(false);
     }
@@ -128,267 +118,194 @@ export default function ExecutiveDashboard({ onAction }: ExecutiveDashboardProps
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 10000); // 10s for Digital Twin feel
     return () => clearInterval(interval);
   }, []);
 
-  const fmtValue = (v: any, name: string) => {
-    if (name?.includes('UZS') || name?.includes('Tushum') || name?.includes('Foyda') || name?.includes('Qiymati') || name?.includes('Daromad')) {
-      const n = typeof v === 'number' ? v : parseFloat(String(v || '0').replace(/[^0-9.]/g, ''));
-      if (isNaN(n)) return String(v || '0');
-      return n.toLocaleString('ru-RU') + ' UZS';
-    }
-    return String(v || '0');
-  };
-
-  const chartFallback = <div className="h-[300px] animate-pulse rounded-[40px] bg-slate-100" />;
-
-  if (loading && !heuristics) return (
-    <div className="p-10 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Master Control Center Yuklanmoqda...')}</p>
+  if (loading && !data) return (
+    <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-6">
+       <motion.div 
+         animate={{ rotate: 360 }} 
+         transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+         className="w-20 h-20 border-b-4 border-r-4 border-indigo-500 rounded-full" 
+       />
+       <h2 className="text-xl font-black text-indigo-400 uppercase tracking-[0.4em]">{t('Synchronizing Factory Data...')}</h2>
     </div>
   );
 
-  const gateways = [
-    { 
-      id: 'production', 
-      name: 'Ishlab Chiqarish', 
-      icon: Factory, 
-      color: 'indigo', 
-      desc: 'Real-vaqt monitoringi va MES boshqaruvi',
-      component: <MiniProductionFlow data={null} />
-    },
-    { 
-      id: 'warehouse', 
-      name: 'Ombor Tizimi', 
-      icon: Database, 
-      color: 'blue', 
-      desc: 'Xom-ashyo va tayyor mahsulot balansi',
-      component: <MiniWarehouseStatus data={null} />
-    },
-    { 
-      id: 'qc', 
-      name: 'Sifat Nazorati', 
-      icon: CheckCircle2, 
-      color: 'rose', 
-      desc: 'Brak tahlili va laboratoriya natijalari',
-      component: <MiniQCStats data={null} />
-    },
-    { 
-      id: 'finance', 
-      name: 'Moliya & Kassa', 
-      icon: DollarSign, 
-      color: 'emerald', 
-      desc: 'Cashflow, P&L va qarzdorlik tahlili',
-      component: (
-        <div className="flex flex-col gap-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase">{t('Oylik Tushum')}</p>
-          <p className="text-xl font-black text-slate-900 tracking-tight">{fmtValue(financeStatus?.revenue, 'UZS')}</p>
-        </div>
-      )
-    },
-  ];
-
   return (
-    <div className="space-y-8 animate-slide-up pb-20 relative">
+    <div className="fixed inset-0 top-[64px] bg-[#060e1e] overflow-hidden flex flex-col">
       
-      {/* 🏛 MASTER CONTROL HEADER (GLOBAL LIVE OVERVIEW) */}
-      <div className="bg-slate-950 text-white p-10 rounded-[64px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] relative overflow-hidden border border-white/5">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
-         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-emerald-600/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
-         
-         <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-12 mb-12">
-               <div className="flex items-center gap-10">
-                  <div className="relative w-36 h-36 flex items-center justify-center">
-                     <svg className="w-full h-full -rotate-90">
-                        <circle cx="72" cy="72" r="64" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="14" />
-                        <circle cx="72" cy="72" r="64" fill="none" stroke="url(#healthGradient)" strokeWidth="14" 
-                                strokeDasharray={402} strokeDashoffset={402 - (402 * (heuristics?.business_health?.score || 85)) / 100} 
-                                strokeLinecap="round" className="transition-all duration-1000" />
-                        <defs>
-                          <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#4f46e5" />
-                            <stop offset="100%" stopColor="#10b981" />
-                          </linearGradient>
-                        </defs>
-                     </svg>
-                     <div className="absolute flex flex-col items-center">
-                        <span className="text-4xl font-black tracking-tighter">{heuristics?.business_health?.score || 85}%</span>
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">HEALTH</span>
-                     </div>
-                  </div>
-                  <div>
-                     <h1 className="text-4xl font-black tracking-tighter mb-3 leading-none">{t('Master Control Center')}</h1>
-                     <div className="flex items-center gap-5">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                           <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{t('Live Overview')}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 font-bold max-w-xs leading-tight">
-                           {t('Zavod barcha tizimlari real-vaqt rejimida nazorat qilinmoqda')}
-                        </p>
-                     </div>
-                  </div>
-               </div>
+      {/* 🏙 SCADA TOP OVERLAY (HUD) */}
+      <div className="absolute top-8 left-8 right-8 z-20 flex items-start justify-between pointer-events-none">
+        <div className="flex flex-col gap-1 pointer-events-auto">
+          <div className="flex items-center gap-3">
+             <div className="w-4 h-4 bg-emerald-500 rounded-sm animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+             <h1 className="text-3xl font-black text-white tracking-tighter uppercase">{t('Yuksar Digital Twin v1.0')}</h1>
+          </div>
+          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] pl-7 opacity-70">Industrial MES Interface</p>
+        </div>
 
-               <div className="flex items-center gap-6">
-                  <div className="px-10 py-6 bg-white/5 border border-white/10 rounded-[40px] backdrop-blur-md">
-                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 text-center">{t('Oylik Tushum')}</p>
-                     <p className="text-3xl font-black text-white tracking-tighter">{fmtValue(financeStatus?.revenue, 'UZS')}</p>
-                  </div>
-                  <button onClick={() => fetchData()} className="w-20 h-20 bg-indigo-600 rounded-[32px] flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-indigo-600/40 group">
-                     <Zap className="w-9 h-9 group-hover:rotate-12 transition-transform" />
-                  </button>
-               </div>
-            </div>
-
-            {/* AI STRATEGIC SUMMARY (QUICK VIEW) */}
-            <div className="bg-white/5 border border-white/10 rounded-[44px] p-8 backdrop-blur-xl flex flex-col md:flex-row items-center gap-8 group hover:bg-white/10 transition-colors">
-               <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center shrink-0">
-                  <MonitorDot className="w-8 h-8 text-indigo-400" />
-               </div>
-               <div className="flex-1">
-                  <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-2">AI Summary</h3>
-                  <p className="text-lg font-medium text-slate-300 italic leading-snug">
-                     "{t(heuristics?.ai_recommendation || "Ishlab chiqarish samaradorligi 12% ga oshdi. Sifat nazoratida (QC) barqarorlik kuzatilmoqda.")}"
-                  </p>
-               </div>
-               <div className="flex gap-4">
-                  <button className="px-6 py-3 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all">
-                     {t('Full Audit')}
-                  </button>
-               </div>
-            </div>
-         </div>
+        <div className="flex items-center gap-4 pointer-events-auto">
+           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 px-8 py-4 rounded-[32px] flex items-center gap-10">
+              <div>
+                <p className="text-[8px] font-black text-slate-500 uppercase mb-1 tracking-widest">{t('Oylik Tushum')}</p>
+                <p className="text-xl font-black text-white tracking-tighter">{(data.finance_status?.revenue || 0).toLocaleString()} UZS</p>
+              </div>
+              <div className="w-px h-8 bg-white/10" />
+              <div>
+                <p className="text-[8px] font-black text-slate-500 uppercase mb-1 tracking-widest">{t('Zavod Holati')}</p>
+                <p className="text-xl font-black text-emerald-400 tracking-tighter">{data.heuristics?.business_health?.score || 85}%</p>
+              </div>
+           </div>
+           <button onClick={() => fetchData()} className="w-16 h-16 bg-indigo-600/20 border border-indigo-600/30 rounded-2xl flex items-center justify-center text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all backdrop-blur-md shadow-2xl">
+              <Zap className="w-8 h-8" />
+           </button>
+        </div>
       </div>
 
-      {/* 🚀 MODULE GATEWAYS (THE LIVE INTERFACE) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {gateways.map((gate, i) => (
-          <motion.button 
-            key={gate.id}
-            onClick={() => onAction && onAction(gate.id)}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="group bg-white p-8 rounded-[56px] border border-slate-100 shadow-premium hover:shadow-2xl hover:border-indigo-200 transition-all text-left flex flex-col h-[340px] relative overflow-hidden"
-          >
-             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
-             
-             <div className="flex justify-between items-start mb-6 relative z-10">
-                <div className={`w-16 h-16 rounded-[24px] bg-${gate.color}-500/10 flex items-center justify-center text-${gate.color}-600 group-hover:bg-${gate.color}-500 group-hover:text-white transition-all duration-500 shadow-sm border border-${gate.color}-500/5`}>
-                   <gate.icon className="w-8 h-8" />
-                </div>
-                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-indigo-600 transition-colors">
-                   <ArrowUpRight className="w-6 h-6 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </div>
-             </div>
+      {/* 🏭 MAIN FACTORY MAP (THE HEART) */}
+      <div className="flex-1 relative">
+        <svg viewBox="0 0 1600 900" className="w-full h-full object-contain filter drop-shadow-2xl">
+          <defs>
+            <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4f46e5" stopOpacity="0" />
+              <stop offset="50%" stopColor="#818cf8" stopOpacity="1" />
+              <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+            </linearGradient>
+            <style>{`
+              @keyframes flow { to { stroke-dashoffset: -30; } }
+              .animate-flow-dash { animation: flow 1s linear infinite; }
+            `}</style>
+          </defs>
 
-             <div className="mb-auto relative z-10">
-                <h4 className="text-xl font-black text-slate-900 mb-2 tracking-tight">{t(gate.name)}</h4>
-                <p className="text-[11px] text-slate-400 font-bold leading-relaxed uppercase tracking-wider">{t(gate.desc)}</p>
-             </div>
+          {/* BACKGROUND GRID */}
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1"/>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#grid)" />
 
-             {/* Miniature Live Component Placeholder */}
-             <div className="mt-6 pt-6 border-t border-slate-50 relative z-10">
-                {gate.component}
-             </div>
-          </motion.button>
-        ))}
+          {/* FLOW PATHS */}
+          <FlowPath d="M 200 300 H 400" active={true} /> {/* Silo -> Expander */}
+          <FlowPath d="M 400 300 V 150 H 600" active={true} /> {/* Expander -> Aging */}
+          <FlowPath d="M 600 150 V 450 H 800" active={true} /> {/* Aging -> Press */}
+          <FlowPath d="M 800 450 H 1100" active={true} /> {/* Press -> Cutting */}
+          <FlowPath d="M 1100 450 V 650 H 1300" active={true} /> {/* Cutting -> QC */}
+          <FlowPath d="M 1300 650 H 1450" active={true} /> {/* QC -> Warehouse */}
+
+          {/* EQUIPMENT NODES */}
+          <EquipmentNode id="warehouse" name="Xomashyo Silo" status="active" value="12.4" unit="t" icon={Database} cx={200} cy={300} onClick={() => onAction('warehouse')} />
+          <EquipmentNode id="production" name="Ko'pirtirish" status="active" value="842" unit="kg/h" icon={Wind} cx={400} cy={300} onClick={() => onAction('production')} />
+          <EquipmentNode id="production-aging" name="Quritish (Aging)" status="active" value="24" unit="blok" icon={Clock} cx={600} cy={150} onClick={() => onAction('production')} />
+          <EquipmentNode id="production-press" name="Press (Formovka)" status="active" value="4.2" unit="bar" icon={Layers} cx={800} cy={450} onClick={() => onAction('production')} />
+          <EquipmentNode id="cnc" name="Kesish (CNC)" status="active" value="12" unit="m/min" icon={Cpu} cx={1100} cy={450} onClick={() => onAction('production')} />
+          <EquipmentNode id="qc" name="Sifat Nazorati" status="warning" value="2.1" unit="%" icon={CheckCircle2} cx={1300} cy={650} onClick={() => onAction('qc')} />
+          <EquipmentNode id="warehouse-ready" name="Tayyor Ombor" status="active" value="320" unit="blok" icon={Box} cx={1500} cy={650} onClick={() => onAction('warehouse')} />
+        </svg>
+
+        {/* 📟 SIDEBAR HUD (KPI LIST) */}
+        <div className="absolute top-40 right-8 w-80 space-y-4">
+           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[40px] shadow-2xl">
+              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 flex items-center justify-between">
+                {t('System Diagnostics')}
+                <Settings2 className="w-3 h-3" />
+              </h3>
+              <div className="space-y-6">
+                 {[
+                   { label: 'Real-time Tushum', val: (data.finance_status?.revenue || 0).toLocaleString(), icon: DollarSign, color: 'text-emerald-400' },
+                   { label: 'Aktiv Ishlar', val: '14', icon: Activity, color: 'text-indigo-400' },
+                   { label: 'Brak Foizi', val: '2.1%', icon: AlertTriangle, color: 'text-rose-400' }
+                 ].map((item, i) => (
+                   <div key={i} className="flex items-center gap-4 group cursor-default">
+                      <div className={`w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform`}>
+                        <item.icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase mb-0.5">{t(item.label)}</p>
+                        <p className="text-sm font-black text-white tracking-tight">{item.val}</p>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+           </div>
+
+           <div className="bg-indigo-600 p-6 rounded-[40px] shadow-2xl shadow-indigo-600/20 relative overflow-hidden group">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
+              <div className="relative z-10">
+                 <h4 className="text-xs font-black text-white/70 uppercase tracking-widest mb-2">{t('AI Insights')}</h4>
+                 <p className="text-xs font-bold text-white leading-relaxed italic line-clamp-3">
+                   "{t(data.heuristics?.ai_recommendation || "Production efficiency increased by 14%. Potential to optimize logistics routes for tomorrow.")}"
+                 </p>
+                 <button className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase text-indigo-100 tracking-widest hover:translate-x-1 transition-transform">
+                    {t('Detail')} <ChevronRight className="w-3 h-3" />
+                 </button>
+              </div>
+           </div>
+        </div>
+
+        {/* 🚨 LIVE ALERT FEED (BOTTOM OVERLAY) */}
+        <div className="absolute bottom-8 left-8 max-w-md">
+           <div className="flex items-center gap-4 mb-4">
+              <div className="px-4 py-2 bg-rose-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-rose-600/30">
+                {t('Live Alerts')}
+              </div>
+              <span className="text-[10px] font-bold text-slate-500">{t('Real-time feed active')}</span>
+           </div>
+           <div className="space-y-2">
+              {data.heuristics?.strategic_metrics?.slice(0, 2).map((alert: any, i: number) => (
+                <motion.div 
+                  key={i}
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.2 }}
+                  className="bg-slate-900/80 backdrop-blur-md border-l-4 border-l-rose-500 p-4 rounded-r-2xl border-y border-r border-white/5 flex items-center gap-4 group hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                   <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                      <ShieldAlert className="w-5 h-5" />
+                   </div>
+                   <div className="flex-1">
+                      <p className="text-[11px] font-black text-white leading-tight mb-1">{t(alert.content)}</p>
+                      <p className="text-[9px] font-bold text-slate-500 line-clamp-1">{t(alert.recommendation)}</p>
+                   </div>
+                   <ArrowRight className="w-4 h-4 text-slate-700 group-hover:text-white transition-colors" />
+                </motion.div>
+              ))}
+           </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         
-         {/* 🛡 TASDIQLASHLAR (QUICK ACTIONS) */}
-         <div className="bg-white p-10 rounded-[56px] border border-slate-100 shadow-premium flex flex-col">
-            <div className="flex items-center justify-between mb-8">
-               <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                     <CheckCircle2 className="w-7 h-7" />
-                  </div>
-                  {t('Tasdiqlar')}
-               </h3>
-               <span className="bg-rose-500 text-white text-[10px] px-3 py-1.5 rounded-full font-black">
-                  {pendingApprovals.length}
-               </span>
-            </div>
-            <div className="space-y-4 flex-1 overflow-y-auto pr-2 scrollbar-hide max-h-[400px]">
-               {pendingApprovals.length > 0 ? pendingApprovals.map((app: any) => (
-                  <div key={app.id} className="p-6 rounded-[32px] bg-slate-50 border border-slate-100 group hover:border-indigo-300 hover:bg-white hover:shadow-xl transition-all duration-300">
-                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t(app.module)}</span>
-                        <div className={`w-2 h-2 rounded-full ${app.priority === 'HIGH' ? 'bg-rose-500' : 'bg-indigo-500'}`} />
-                     </div>
-                     <h4 className="text-sm font-black text-slate-900 mb-2 leading-tight">{app.title}</h4>
-                     <div className="flex items-center gap-3 mt-4">
-                        <button className="flex-1 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 transition-all">
-                           {t('Ko\'rish')}
-                        </button>
-                        <button className="w-10 h-10 bg-white border border-slate-200 text-slate-400 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all">
-                           <Trash2 className="w-5 h-5" />
-                        </button>
-                     </div>
-                  </div>
-               )) : (
-                  <div className="flex flex-col items-center justify-center py-10 opacity-30 italic text-sm">
-                     {t('Kutilayotgan tasdiqlar yo\'q')}
-                  </div>
-               )}
-            </div>
-         </div>
-
-         {/* ⚠️ RISK & ALERT CENTER (SCADA STYLE) */}
-         <div className="bg-white p-10 rounded-[56px] border border-slate-100 shadow-premium lg:col-span-2">
-            <div className="flex items-center justify-between mb-8">
-               <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-4">
-                  <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-                     <ShieldAlert className="w-7 h-7" />
-                  </div>
-                  {t('Risk Control & Alerts')}
-               </h3>
-               <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">{t('Barchasi')}</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {heuristics?.strategic_metrics?.map((risk: any, i: number) => (
-                  <div key={i} className={`p-6 rounded-[36px] border flex flex-col gap-3 group transition-all cursor-default ${risk.priority === 'CRITICAL' ? 'bg-rose-50/50 border-rose-100 hover:bg-rose-50' : 'bg-amber-50/50 border-amber-100 hover:bg-amber-50'}`}>
-                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${risk.priority === 'CRITICAL' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'}`}>
-                           <AlertTriangle className="w-5 h-5" />
-                        </div>
-                        <h4 className={`text-sm font-black ${risk.priority === 'CRITICAL' ? 'text-rose-900' : 'text-amber-900'}`}>{t(risk.content)}</h4>
-                     </div>
-                     <p className="text-[11px] font-medium text-slate-500 leading-relaxed pl-1">
-                        {t(risk.recommendation)}
-                     </p>
-                  </div>
-               ))}
-            </div>
-
-            {/* Strategic Trend Preview */}
-            <div className="mt-8 p-8 bg-slate-900 rounded-[44px] text-white">
-               <div className="flex items-center justify-between mb-6">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">{t('Oylik Tushum Trendi')}</h4>
-                  <div className="flex items-center gap-4">
-                     <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest">
-                        <div className="w-2 h-2 bg-indigo-500 rounded-full" /> {t('Real')}
-                     </div>
-                     <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-slate-500">
-                        <div className="w-2 h-2 bg-slate-700 rounded-full" /> {t('Target')}
-                     </div>
-                  </div>
-               </div>
-               <div className="h-[120px] w-full">
-                  <Suspense fallback={chartFallback}>
-                     <AreaTrendChart period="month" />
-                  </Suspense>
-               </div>
-            </div>
-         </div>
-
+      {/* 🗺 BOTTOM GLOBAL NAVIGATION (MINI) */}
+      <div className="h-20 bg-slate-950/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-20">
+         {[
+           { id: 'dashboard', icon: MonitorDot, label: 'Control Center' },
+           { id: 'production', icon: Factory, label: 'MES Center' },
+           { id: 'warehouse', icon: Database, label: 'SCM Center' },
+           { id: 'sales', icon: ShoppingCart, label: 'Sales CRM' },
+           { id: 'finance', icon: DollarSign, label: 'Finance' },
+         ].map((item) => (
+           <button 
+             key={item.id}
+             onClick={() => onAction(item.id)}
+             className="flex items-center gap-3 px-6 py-2.5 rounded-2xl hover:bg-white/5 transition-all group"
+           >
+              <item.icon className="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+              <span className="text-[10px] font-black text-slate-600 group-hover:text-white uppercase tracking-widest transition-colors">{t(item.label)}</span>
+           </button>
+         ))}
       </div>
-      
+
     </div>
   );
 }
+
+const ChevronRight = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const ShoppingCart = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
