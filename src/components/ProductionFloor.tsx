@@ -23,7 +23,10 @@ import {
   MonitorDot,
   QrCode,
   MapPin,
-  Activity
+  Activity,
+  Maximize2,
+  Wind,
+  Zap
 } from 'lucide-react';
 import api from '../lib/api';
 import { User, Zames, Bunker, Recipe, RawMaterialBatch, Material, ProductionOrder, ProductionOrderStage, BlockProduction, FinishedBlock } from '../types';
