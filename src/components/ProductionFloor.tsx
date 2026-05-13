@@ -994,37 +994,143 @@ export default function ProductionFloor({ user }: { user: User }) {
           )}
 
           {subTab === 'monitoring' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+            <div className="space-y-8 animate-in fade-in duration-700">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{t('Factory Live Monitoring')}</h3>
-                  <p className="text-slate-500 font-medium">{t('Barcha aktiv ishlab chiqarish jarayonlari nazorati')}</p>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+                    <MonitorDot className="w-10 h-10 text-indigo-600 animate-pulse" />
+                    {t('Live MES Control Center')}
+                  </h3>
+                  <p className="text-slate-500 font-medium">{t('Real-vaqtda ishlab chiqarish jarayonlari va uskunalar nazorati')}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                   <div className="flex items-center gap-2 px-6 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-sm">
+                      <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
+                      <span className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">{t('Tizim Online')}</span>
+                   </div>
+                   <button className="p-4 bg-slate-900 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
+                      <Maximize2 className="w-6 h-6" />
+                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-6">
+
+              {/* 🏭 LIVE SCADA VIEWPORT */}
+              <div className="relative bg-[#0a1120] rounded-[56px] border-8 border-slate-50 shadow-2xl overflow-hidden min-h-[600px] flex items-center justify-center group">
+                 <div className="absolute inset-0 opacity-20 pointer-events-none" 
+                      style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+                 
+                 <svg viewBox="0 0 1000 500" className="w-full h-full max-w-4xl filter drop-shadow-[0_0_30px_rgba(79,70,229,0.2)]">
+                    <defs>
+                      <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.1)" />
+                      </marker>
+                    </defs>
+
+                    {/* PIPES / FLOW LINES */}
+                    <g className="opacity-40">
+                       <path d="M 100 250 H 250" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
+                       <path d="M 250 250 H 450" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
+                       <path d="M 450 250 H 650" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
+                       <path d="M 650 250 H 850" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
+                       
+                       {/* Animated Glow Flow */}
+                       <path d="M 100 250 H 850" fill="none" stroke="#4f46e5" strokeWidth="2" strokeDasharray="10, 30" className="animate-flow-dash" />
+                    </g>
+
+                    {/* PRODUCTION MACHINES (SCADA OBJECTS) */}
+                    {[
+                      { id: 'expander', name: 'Expander', cx: 150, cy: 250, val: '72°C', icon: Wind },
+                      { id: 'drying', name: 'Aging', cx: 350, cy: 250, val: '12%', icon: Clock },
+                      { id: 'press', name: 'Block Press', cx: 550, cy: 250, val: '4.2 bar', icon: Layers },
+                      { id: 'cutting', name: 'CNC Cutting', cx: 750, cy: 250, val: '12 m/m', icon: Cpu }
+                    ].map((m, i) => (
+                      <motion.g 
+                        key={m.id} 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="cursor-pointer group/machine"
+                      >
+                         <circle cx={m.cx} cy={m.cy} r="60" className="fill-indigo-500/5 stroke-indigo-500/20 stroke-1 group-hover/machine:stroke-indigo-500 transition-all duration-500" />
+                         <rect x={m.cx - 35} y={m.cy - 35} width="70" height="70" rx="16" className="fill-slate-900 border border-white/5" />
+                         <foreignObject x={m.cx - 15} y={m.cy - 25} width="30" height="30">
+                            <m.icon className="w-full h-full text-indigo-400 group-hover/machine:scale-110 transition-transform" />
+                         </foreignObject>
+                         <text x={m.cx} y={m.cy + 25} textAnchor="middle" className="text-[12px] font-black fill-white tracking-tighter">{m.val}</text>
+                         <text x={m.cx} y={m.cy + 85} textAnchor="middle" className="text-[10px] font-black fill-slate-500 uppercase tracking-widest">{t(m.name)}</text>
+                         
+                         {/* Status Ring */}
+                         <circle cx={m.cx} cy={m.cy} r="45" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="100, 180" className="animate-spin-slow opacity-30" />
+                      </motion.g>
+                    ))}
+                 </svg>
+
+                 {/* 🏷 OVERLAY HUD ELEMENTS */}
+                 <div className="absolute top-10 left-10 flex flex-col gap-4">
+                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-5 rounded-3xl space-y-1">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('Current Output')}</p>
+                       <h4 className="text-2xl font-black text-white tracking-tighter">842.5 <span className="text-xs text-indigo-400">kg/h</span></h4>
+                    </div>
+                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-5 rounded-3xl space-y-1">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('Batch Success')}</p>
+                       <h4 className="text-2xl font-black text-emerald-400 tracking-tighter">99.2%</h4>
+                    </div>
+                 </div>
+
+                 <div className="absolute bottom-10 right-10 max-w-sm">
+                    <div className="bg-indigo-600 p-6 rounded-[32px] shadow-2xl text-white relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">
+                          <Zap className="w-12 h-12" />
+                       </div>
+                       <h4 className="text-xs font-black uppercase tracking-widest mb-2 opacity-70">{t('Next Optimized Step')}</h4>
+                       <p className="text-sm font-bold leading-snug">
+                          {t("Blok-press #2 uskunasi sovutish bosqichida. 4 daqiqadan so'ng yangi blok quyish tavsiya etiladi.")}
+                       </p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* 📋 ACTIVE ORDERS REAL-TIME FEED */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {productionOrders
                   .filter(order => order.stages?.some(s => s.status === 'ACTIVE'))
                   .map(order => {
                     const activeStage = order.stages?.find(s => s.status === 'ACTIVE');
                     if (!activeStage) return null;
                     return (
-                      <motion.div key={order.id} className="rounded-[40px] border-2 border-slate-100 bg-white p-8 flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-8">
-                           <div className="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center shadow-xl shadow-blue-100">
+                      <motion.div 
+                        key={order.id} 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="rounded-[44px] bg-slate-50 border border-slate-100 p-8 flex items-center justify-between group hover:bg-white hover:shadow-2xl transition-all duration-500"
+                      >
+                        <div className="flex items-center gap-6">
+                           <div className="w-20 h-20 bg-indigo-600 text-white rounded-[28px] flex items-center justify-center shadow-xl shadow-indigo-100 group-hover:scale-105 transition-transform">
                               <Factory className="w-10 h-10" />
                            </div>
                            <div>
-                              <h4 className="text-2xl font-black text-slate-900">{order.order_number}</h4>
-                              <p className="text-sm font-bold text-slate-500">{order.product_name}</p>
-                              <p className="text-xs font-black text-blue-600 uppercase tracking-widest mt-1">{t('Joriy Bosqich')}: {activeStage.stage_type_display}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <h4 className="text-xl font-black text-slate-900 tracking-tight">{order.order_number}</h4>
+                                 <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[9px] font-black rounded-full uppercase">{t('Aktiv')}</span>
+                              </div>
+                              <p className="text-xs font-bold text-slate-500 mb-2">{order.product_name}</p>
+                              <div className="flex items-center gap-3">
+                                 <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-lg">
+                                    {activeStage.stage_type_display}
+                                 </span>
+                                 <div className="flex items-center gap-1 text-[10px] font-black text-slate-400">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>24m {t('o\'tdi')}</span>
+                                 </div>
+                              </div>
                            </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                           <button onClick={() => handleResetStage(order.id, activeStage.id)} className="px-6 py-4 rounded-2xl bg-slate-50 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center gap-2">
-                              <RotateCcw className="w-4 h-4" /> {t('Tayyor holatga') }
+                        <div className="flex flex-col gap-2">
+                           <button onClick={() => handleForceComplete(order.id, activeStage.id)} className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-sm">
+                              <CheckCircle2 className="w-6 h-6" />
                            </button>
-                           <button onClick={() => handleForceComplete(order.id, activeStage.id)} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2">
-                              <CheckCircle2 className="w-4 h-4" /> {t('Yakunlash')}
+                           <button onClick={() => handleResetStage(order.id, activeStage.id)} className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
+                              <RotateCcw className="w-6 h-6" />
                            </button>
                         </div>
                       </motion.div>
