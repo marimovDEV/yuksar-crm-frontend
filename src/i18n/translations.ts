@@ -626,7 +626,6 @@ const EXACT_RU_TRANSLATIONS: Record<string, string> = {
   "Nazorat kutilmoqda": "Ожидает контроля",
   "Nazorat paneli": "Панель контроля",
   "Noma'lum mahsulot": "Неизвестный товар",
-  "Noma\'lum": "Неизвестно",
   "Nomenklatura, partiyalar va ishlab chiqarishga uzatish": "Номенклатура, партии и передача в производство",
   "O'chirish": "Удалить",
   "O'qilgan deb belgilash": "Отметить как прочитанное",

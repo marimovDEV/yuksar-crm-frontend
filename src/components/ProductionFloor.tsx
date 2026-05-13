@@ -1408,8 +1408,7 @@ export default function ProductionFloor({ user }: { user: User }) {
            </div>
         )}
       </AnimatePresence>
-    </div>
-  </>
+    </>
   );
 }
 
