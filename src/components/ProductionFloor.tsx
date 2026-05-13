@@ -389,6 +389,8 @@ export default function ProductionFloor({ user }: { user: User }) {
 
   const availableZames = zamesy.filter(z => z.status === 'DONE' && !bunkers.some(b => b.batchNumber === `EXP-${z.zames_number}`));
 
+  return (
+    <>
       <div className="space-y-6">
         {/* Real-time Machine Status Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -1406,7 +1408,8 @@ export default function ProductionFloor({ user }: { user: User }) {
            </div>
         )}
       </AnimatePresence>
-    </>
+    </div>
+  </>
   );
 }
 
