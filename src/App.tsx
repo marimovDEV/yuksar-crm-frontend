@@ -314,6 +314,12 @@ export default function App() {
     initAuth();
   }, []);
 
+  useEffect(() => {
+    const onSessionExpired = () => setUser(null);
+    window.addEventListener('auth:logout', onSessionExpired);
+    return () => window.removeEventListener('auth:logout', onSessionExpired);
+  }, []);
+
   // Auth Form State
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

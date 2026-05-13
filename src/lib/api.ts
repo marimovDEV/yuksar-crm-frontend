@@ -19,16 +19,18 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Add a response interceptor to handle 401 (Unauthorized)
+// On 401: clear tokens and notify App to show login form.
+// Never force a page redirect — that breaks ongoing login requests.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear tokens and redirect to login if unauthorized
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const url = error.config?.url || '';
+      // Don't logout on the token endpoint itself (wrong password = expected 401)
+      if (!url.includes('token/')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.dispatchEvent(new Event('auth:logout'));
       }
     }
     return Promise.reject(error);
