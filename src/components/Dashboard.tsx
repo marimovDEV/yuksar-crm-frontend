@@ -39,6 +39,10 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
   const [orderStatus, setOrderStatus] = useState<any>(null);
 
   const fetchData = async () => {
+    // Prevent 401 errors by checking token
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     try {
       const res = await api.get('dashboard/summary/', { params: { period: 'day' } });
       const data = res.data;

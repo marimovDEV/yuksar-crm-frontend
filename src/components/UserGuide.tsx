@@ -83,9 +83,44 @@ export default function UserGuide() {
         setLoading(true);
         const response = await api.get('user-guide/');
         const data = response.data;
-        setSections(data);
-        if (data.length > 0) {
+        
+        if (data && data.length > 0) {
+          setSections(data);
           setActiveSectionId(data[0].id);
+        } else {
+          // Professional Fallback Data
+          const fallback: GuideSection[] = [
+            {
+              id: 1, title_uz: 'Boshqaruv Paneli', title_ru: 'Панель управления', icon: 'Layout', order: 1,
+              contents: [
+                { id: 101, title_uz: 'Direktor Paneli', title_ru: 'Панель директора', body_uz: 'Zavodning barcha operatsion ko\'rsatkichlarini real vaqtda kuzatish. KPI kartalari bugungi ishlab chiqarish, sotuv va moliyaviy holatni ko\'rsatib turadi.', body_ru: 'Мониторинг всех операционных показателей завода в реальном времени. Карты KPI показывают сегодняшнее производство, продажи и финансовое состояние.', order: 1 },
+                { id: 102, title_uz: 'Monitoring', title_ru: 'Мониторинг', body_uz: 'Uskunalar holati va aktiv liniyalarni "Monitoring" bo\'limida kuzatishingiz mumkin. Har bir uskuna o\'zining texnik ko\'rsatkichlarini (bosim, harorat, yuklama) ko\'rsatadi.', body_ru: 'Состояние оборудования и активные линии можно отслеживать в разделе «Мониторинг». Каждое оборудование показывает свои технические показатели (давление, температура, нагрузка).', order: 2 }
+              ]
+            },
+            {
+              id: 2, title_uz: 'Ishlab Chiqarish', title_ru: 'Производство', icon: 'Factory', order: 2,
+              contents: [
+                { id: 201, title_uz: 'Zames va Bunkerlar', title_ru: 'Замесы и Бункеры', body_uz: 'Xom-ashyoni ko\'pirtirish (zames) va ularni saqlash bunkerlariga yuklash jarayoni. Har bir zamesga mahsulot pasporti biriktiriladi.', body_ru: 'Процесс вспенивания сырья (замес) и их загрузка в бункеры хранения. К каждому замесу прилагается паспорт изделия.', order: 1 },
+                { id: 202, title_uz: 'Blok Formovka', title_ru: 'Формовка блоков', body_uz: 'Bunkerlardagi tayyor materialdan bloklar quyish. Har bir blok o\'zining QR kodi va pasportiga ega bo\'ladi.', body_ru: 'Литье блоков из готового материала в бункерах. Каждый блок будет иметь свой QR-код и паспорт.', order: 2 }
+              ]
+            },
+            {
+              id: 3, title_uz: 'Ombor va Logistika', title_ru: 'Склад и Логистика', icon: 'Database', order: 3,
+              contents: [
+                { id: 301, title_uz: 'Xom-ashyo Qabuli', title_ru: 'Прием сырья', body_uz: 'Kutilayotgan xom-ashyo partiyalarini qabul qilish va Sifat Nazorati (QC) dan o\'tkazish.', body_ru: 'Прием ожидаемых партий сырья и прохождение контроля качества (QC).', order: 1 },
+                { id: 302, title_uz: 'Tayyor Mahsulot', title_ru: 'Готовая продукция', body_uz: 'Tayyor bloklarni mijozlarga yuklash va logistika nazorati.', body_ru: 'Погрузка готовых блоков заказчикам и логистический контроль.', order: 2 }
+              ]
+            },
+            {
+              id: 4, title_uz: 'Moliya va Hisobotlar', title_ru: 'Финансы и Отчеты', icon: 'Wallet', order: 4,
+              contents: [
+                { id: 401, title_uz: 'Pul Oqimi', title_ru: 'Движение денежных средств', body_uz: 'Kassalar va bank hisoblaridagi barcha tranzaksiyalar nazorati. Daromad va xarajatlarni toifalash.', body_ru: 'Контроль всех операций по кассам и банковским счетам. Классификация доходов и расходов.', order: 1 },
+                { id: 402, title_uz: 'Buxgalteriya', title_ru: 'Бухгалтерия', body_uz: 'Double-entry tizimi asosidagi buxgalteriya hisobi, balans va P&L hisobotlari.', body_ru: 'Бухгалтерский учет на основе системы двойной записи, балансовые отчеты и отчеты о прибылях и убытках.', order: 2 }
+              ]
+            }
+          ];
+          setSections(fallback);
+          setActiveSectionId(1);
         }
         setError(null);
       } catch (err) {

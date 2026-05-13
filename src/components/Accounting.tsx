@@ -6,9 +6,10 @@ import {
   Plus, Check, X, Eye, ArrowUpRight, ArrowDownRight,
   Landmark, PieChart, BarChart3, RefreshCw, AlertCircle,
   Wallet, Building2, Receipt, Scale, Download, Printer,
-  History, ShieldCheck, CheckCircle2
+  History, ShieldCheck, CheckCircle2, Paperclip
 } from 'lucide-react';
 import api from '../lib/api';
+import { useI18n } from '../i18n';
 import type {
   User, AccountNode, JournalEntry, TrialBalance,
   BalanceSheet, IncomeStatement, CashFlowStatement, AccountingSummary, TaxRate
@@ -27,6 +28,7 @@ type Tab = 'dashboard' | 'accounts' | 'journal' | 'trial-balance' | 'balance-she
 const fmt = (n: number) => new Intl.NumberFormat('uz-UZ').format(Math.round(n));
 
 export default function Accounting({ user }: Props) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [loading, setLoading] = useState(false);
 

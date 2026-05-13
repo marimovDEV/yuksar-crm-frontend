@@ -60,6 +60,9 @@ export default function AreaTrendChart({
     }
     if (!period) return;
 
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     api.get('sales/kpi/')
       .then(res => {
         const trend = res.data?.weekly_trend;

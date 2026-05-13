@@ -47,7 +47,7 @@ export default function QualityControl({ user }: { user: UserType }) {
       setLoading(true);
       const [blocksRes, batchesRes] = await Promise.all([
         api.get('production/finished-blocks/'),
-        api.get('warehouse/batches/')
+        api.get('batches/')
       ]);
       setBlocks(blocksRes.data);
       setBatches(batchesRes.data.results || batchesRes.data);
@@ -204,7 +204,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                     {/* Classification Distribution */}
                     <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100">
                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8">{t('Sifat Tasnifi Taqsimoti')}</h3>
-                       <div className="h-[300px]">
+                       <div className="h-[300px] min-h-[300px]">
                           <ResponsiveContainer width="100%" height="100%">
                              <PieChart>
                                 <Pie
@@ -237,7 +237,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                     {/* Daily Volume */}
                     <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100">
                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8">{t('Kunlik QC Hajmi')}</h3>
-                       <div className="h-[300px]">
+                       <div className="h-[300px] min-h-[300px]">
                           <ResponsiveContainer width="100%" height="100%">
                              <BarChart data={
                                Object.entries(

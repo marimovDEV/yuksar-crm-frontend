@@ -78,6 +78,10 @@ export default function ExecutiveDashboard({ onAction }: { onAction: (id: string
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
+    // Prevent requests if not authenticated to avoid 401 errors in console
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     try {
       const res = await api.get('dashboard/summary/');
       setData(res.data);
@@ -293,8 +297,8 @@ export default function ExecutiveDashboard({ onAction }: { onAction: (id: string
                   <span className="px-3 py-1 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest cursor-pointer">30 kun</span>
                </div>
             </div>
-            <div className="h-[240px]">
-               <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[240px] min-h-[240px] w-full">
+               <ResponsiveContainer width="100%" height="100%" minHeight={200} debounce={50}>
                   <AreaChart data={[
                     { day: 'Mon', val: 42 }, { day: 'Tue', val: 38 }, { day: 'Wed', val: 55 },
                     { day: 'Thu', val: 48 }, { day: 'Fri', val: 72 }, { day: 'Sat', val: 65 },

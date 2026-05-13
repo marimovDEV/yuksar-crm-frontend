@@ -66,7 +66,6 @@ export default function ProductionFloor({ user }: { user: User }) {
   const [isFailModalOpen, setIsFailModalOpen] = useState<{orderId: number, stageId: number} | null>(null);
   const [failReason, setFailReason] = useState('');
   const [operatorMode, setOperatorMode] = useState(false);
-  const [immersiveMachine, setImmersiveMachine] = useState<string | null>(null);
   
   // Zames Form
   const [selectedRecipeId, setSelectedRecipeId] = useState('');
@@ -390,16 +389,6 @@ export default function ProductionFloor({ user }: { user: User }) {
 
   const availableZames = zamesy.filter(z => z.status === 'DONE' && !bunkers.some(b => b.batchNumber === `EXP-${z.zames_number}`));
 
-  return (
-    <>
-      <AnimatePresence>
-        {immersiveMachine && (
-          <ImmersiveProcessWorld 
-            machineId={immersiveMachine} 
-            onClose={() => setImmersiveMachine(null)} 
-          />
-        )}
-      </AnimatePresence>
       <div className="space-y-6">
         {/* Real-time Machine Status Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -1026,81 +1015,48 @@ export default function ProductionFloor({ user }: { user: User }) {
                 </div>
               </div>
 
-              {/* 🏭 LIVE SCADA VIEWPORT */}
-              <div className="relative bg-[#0a1120] rounded-[56px] border-8 border-slate-50 shadow-2xl overflow-hidden min-h-[600px] flex items-center justify-center group">
-                 <div className="absolute inset-0 opacity-20 pointer-events-none" 
-                      style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-                 
-                 <svg viewBox="0 0 1000 500" className="w-full h-full max-w-4xl filter drop-shadow-[0_0_30px_rgba(79,70,229,0.2)]">
-                    <defs>
-                      <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.1)" />
-                      </marker>
-                    </defs>
+              {/* 🏭 HIGH-DENSITY MACHINE MONITORING GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { id: 'expander', name: 'Expander (Ko\'pirtirish)', status: 'ACTIVE', val: '72.4°C', load: '85%', speed: '1400 rpm', icon: Wind, color: 'blue' },
+                  { id: 'drying', name: 'Aging (Quritish)', status: 'ACTIVE', val: '12%', load: '92%', speed: '24h cycle', icon: Clock, color: 'indigo' },
+                  { id: 'press', name: 'Block Press (Qoliplash)', status: 'ACTIVE', val: '4.2 bar', load: '76%', speed: '12 blocks/h', icon: Layers, color: 'emerald' },
+                  { id: 'cutting', name: 'CNC Cutting (Kesish)', status: 'WARNING', val: '12 m/m', load: '94%', speed: '2800 rpm', icon: Cpu, color: 'rose' }
+                ].map((m) => (
+                  <div key={m.id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                     <div className="flex items-start justify-between mb-6">
+                        <div className={`w-12 h-12 rounded-2xl bg-${m.color}-50 flex items-center justify-center text-${m.color}-600`}>
+                           <m.icon className="w-6 h-6" />
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${m.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                           {t(m.status)}
+                        </div>
+                     </div>
+                     <h4 className="text-sm font-black text-slate-900 mb-1">{t(m.name)}</h4>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Operational Node: {m.id.toUpperCase()}</p>
+                     
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                           <span className="text-[10px] font-bold text-slate-500 uppercase">{t('Asosiy Ko\'rsatkich')}</span>
+                           <span className="text-sm font-black text-slate-900">{m.val}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                           <span className="text-[10px] font-bold text-slate-500 uppercase">{t('Yuklama')}</span>
+                           <span className="text-sm font-black text-slate-900">{m.load}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-[10px] font-bold text-slate-500 uppercase">{t('Tezlik')}</span>
+                           <span className="text-sm font-black text-slate-900">{m.speed}</span>
+                        </div>
+                     </div>
 
-                    {/* PIPES / FLOW LINES */}
-                    <g className="opacity-40">
-                       <path d="M 100 250 H 250" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
-                       <path d="M 250 250 H 450" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
-                       <path d="M 450 250 H 650" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
-                       <path d="M 650 250 H 850" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" strokeLinecap="round" />
-                       
-                       {/* Animated Glow Flow */}
-                       <path d="M 100 250 H 850" fill="none" stroke="#4f46e5" strokeWidth="2" strokeDasharray="10, 30" className="animate-flow-dash" />
-                    </g>
-
-                    {/* PRODUCTION MACHINES (SCADA OBJECTS) */}
-                    {[
-                      { id: 'expander', name: 'Expander', cx: 150, cy: 250, val: '72°C', icon: Wind },
-                      { id: 'drying', name: 'Aging', cx: 350, cy: 250, val: '12%', icon: Clock },
-                      { id: 'press', name: 'Block Press', cx: 550, cy: 250, val: '4.2 bar', icon: Layers },
-                      { id: 'cutting', name: 'CNC Cutting', cx: 750, cy: 250, val: '12 m/m', icon: Cpu }
-                    ].map((m, i) => (
-                      <motion.g 
-                        key={m.id} 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        onClick={() => setImmersiveMachine(m.id)}
-                        className="cursor-pointer group/machine"
-                      >
-                         <circle cx={m.cx} cy={m.cy} r="60" className="fill-indigo-500/5 stroke-indigo-500/20 stroke-1 group-hover/machine:stroke-indigo-500 transition-all duration-500" />
-                         <rect x={m.cx - 35} y={m.cy - 35} width="70" height="70" rx="16" className="fill-slate-900 border border-white/5" />
-                         <foreignObject x={m.cx - 15} y={m.cy - 25} width="30" height="30">
-                            <m.icon className="w-full h-full text-indigo-400 group-hover/machine:scale-110 transition-transform" />
-                         </foreignObject>
-                         <text x={m.cx} y={m.cy + 25} textAnchor="middle" className="text-[12px] font-black fill-white tracking-tighter">{m.val}</text>
-                         <text x={m.cx} y={m.cy + 85} textAnchor="middle" className="text-[10px] font-black fill-slate-500 uppercase tracking-widest">{t(m.name)}</text>
-                         
-                         {/* Status Ring */}
-                         <circle cx={m.cx} cy={m.cy} r="45" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="100, 180" className="animate-spin-slow opacity-30" />
-                      </motion.g>
-                    ))}
-                 </svg>
-
-                 {/* 🏷 OVERLAY HUD ELEMENTS */}
-                 <div className="absolute top-10 left-10 flex flex-col gap-4">
-                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-5 rounded-3xl space-y-1">
-                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('Current Output')}</p>
-                       <h4 className="text-2xl font-black text-white tracking-tighter">842.5 <span className="text-xs text-indigo-400">kg/h</span></h4>
-                    </div>
-                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 p-5 rounded-3xl space-y-1">
-                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('Batch Success')}</p>
-                       <h4 className="text-2xl font-black text-emerald-400 tracking-tighter">99.2%</h4>
-                    </div>
-                 </div>
-
-                 <div className="absolute bottom-10 right-10 max-w-sm">
-                    <div className="bg-indigo-600 p-6 rounded-[32px] shadow-2xl text-white relative overflow-hidden group">
-                       <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">
-                          <Zap className="w-12 h-12" />
-                       </div>
-                       <h4 className="text-xs font-black uppercase tracking-widest mb-2 opacity-70">{t('Next Optimized Step')}</h4>
-                       <p className="text-sm font-bold leading-snug">
-                          {t("Blok-press #2 uskunasi sovutish bosqichida. 4 daqiqadan so'ng yangi blok quyish tavsiya etiladi.")}
-                       </p>
-                    </div>
-                 </div>
+                     <div className="mt-6 pt-6 border-t border-slate-50">
+                        <button className="w-full py-3 bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                           {t('To\'liq Monitoring')}
+                        </button>
+                     </div>
+                  </div>
+                ))}
               </div>
 
               {/* 📋 ACTIVE ORDERS REAL-TIME FEED */}
@@ -1454,177 +1410,4 @@ export default function ProductionFloor({ user }: { user: User }) {
   );
 }
 
-/* ─── IMMERSIVE OPERATIONAL WORLD COMPONENT ─── */
 
-function ImmersiveProcessWorld({ machineId, onClose }: { machineId: string, onClose: () => void }) {
-  const { t } = useI18n();
-  
-  return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 1.1 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="fixed inset-0 z-[100] bg-[#05080f] flex flex-col p-10 overflow-hidden"
-    >
-       {/* Industrial Ambient Grid Background */}
-       <div className="absolute inset-0 opacity-10 pointer-events-none" 
-            style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-
-       {/* HEADER HUD */}
-       <div className="relative z-10 flex items-center justify-between mb-10">
-          <div className="flex flex-col gap-1">
-             <div className="flex items-center gap-4">
-                <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-colors">
-                   <RotateCcw className="w-6 h-6 text-white" />
-                </button>
-                <h1 className="text-4xl font-black text-white tracking-tighter uppercase">{t(machineId)} <span className="text-indigo-500">{t('Operational World')}</span></h1>
-             </div>
-             <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] ml-16 opacity-60">Live Process Telemetry & Visual Control</p>
-          </div>
-
-          <div className="flex items-center gap-4">
-             <div className="bg-slate-900/80 backdrop-blur-xl border border-white/10 px-8 py-5 rounded-[40px] flex items-center gap-10 shadow-2xl">
-                <div>
-                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('Health')}</p>
-                   <p className="text-2xl font-black text-emerald-400 tracking-tighter">98.2%</p>
-                </div>
-                <div className="w-px h-10 bg-white/10" />
-                <div>
-                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('Vibration')}</p>
-                   <p className="text-2xl font-black text-white tracking-tighter">0.42 <span className="text-xs text-slate-500">mm/s</span></p>
-                </div>
-             </div>
-          </div>
-       </div>
-
-       {/* MAIN VISUAL AREA */}
-       <div className="flex-1 relative flex items-center justify-center bg-slate-950/40 rounded-[64px] border border-white/5 shadow-inner">
-          <AnimatePresence mode="wait">
-            {machineId === 'cutting' && (
-              <motion.div key="cnc" className="w-full h-full flex flex-col items-center justify-center gap-10">
-                 {/* CNC VISUALIZATION */}
-                 <svg viewBox="0 0 1000 400" className="w-full max-w-4xl overflow-visible">
-                    {/* Conveyor */}
-                    <rect x="0" y="250" width="1000" height="40" fill="#1e293b" rx="4" />
-                    
-                    {/* Moving Blocks on Conveyor */}
-                    {[0, 1, 2].map(i => (
-                      <motion.rect 
-                        key={i} x={0} y="150" width="180" height="100" fill="#334155" rx="8"
-                        animate={{ x: [0, 1200] }}
-                        transition={{ duration: 15, repeat: Infinity, delay: i * 5, ease: "linear" }}
-                      />
-                    ))}
-
-                    {/* CNC Bridge */}
-                    <rect x="450" y="0" width="100" height="300" fill="#0f172a" rx="10" stroke="#334155" strokeWidth="4" />
-                    
-                    {/* Cutting Head */}
-                    <motion.g 
-                      animate={{ y: [0, 100, 0], x: [-30, 30, -30] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                    >
-                       <rect x="490" y="100" width="20" height="100" fill="#3b82f6" />
-                       <motion.circle 
-                          r="6" cx="500" cy="205" 
-                          fill="#fbbf24" 
-                          animate={{ scale: [1, 2, 1], opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 0.1, repeat: Infinity }}
-                          className="filter blur-[2px]"
-                       />
-                    </motion.g>
-                 </svg>
-                 
-                 <div className="grid grid-cols-4 gap-8 w-full max-w-5xl">
-                    {[
-                      { label: 'Blade Speed', val: '2,800 RPM', color: 'blue' },
-                      { label: 'Feed Rate', val: '12 m/min', color: 'indigo' },
-                      { label: 'Temp', val: '42°C', color: 'amber' },
-                      { label: 'Efficiency', val: '94%', color: 'emerald' }
-                    ].map(st => (
-                      <div key={st.label} className="bg-slate-900/40 p-6 rounded-[32px] border border-white/5 text-center">
-                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{t(st.label)}</p>
-                         <h4 className="text-2xl font-black text-white">{st.val}</h4>
-                      </div>
-                    ))}
-                 </div>
-              </motion.div>
-            )}
-
-            {machineId === 'press' && (
-              <motion.div key="press" className="w-full h-full flex items-center justify-center">
-                 <svg viewBox="0 0 600 600" className="w-full max-w-2xl overflow-visible">
-                    {/* Heavy Press Frame */}
-                    <rect x="100" y="50" width="400" height="500" fill="none" stroke="#1e293b" strokeWidth="20" rx="20" />
-                    <rect x="50" y="500" width="500" height="40" fill="#1e293b" rx="4" />
-                    
-                    {/* Piston Animation */}
-                    <motion.g
-                       animate={{ y: [0, 350, 0] }}
-                       transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                       <rect x="150" y="50" width="300" height="60" fill="#334155" rx="8" stroke="#475569" strokeWidth="4" />
-                       <rect x="280" y="0" width="40" height="50" fill="#475569" />
-                       
-                       {/* Pressure Glow */}
-                       <motion.rect 
-                         x="150" y="100" width="300" height="10" 
-                         fill="#fbbf24" opacity="0"
-                         animate={{ opacity: [0, 0, 0.8, 0], y: [0, 0, 5, 0] }}
-                         transition={{ duration: 5, repeat: Infinity }}
-                         className="filter blur-[4px]"
-                       />
-                    </motion.g>
-
-                    {/* Steam Effects */}
-                    <AnimatePresence>
-                       <motion.g
-                         initial={{ opacity: 0 }}
-                         animate={{ opacity: [0, 0.5, 0] }}
-                         transition={{ duration: 5, repeat: Infinity, delay: 2.5 }}
-                       >
-                          <circle cx="100" cy="500" r="20" fill="white" className="filter blur-xl" />
-                          <circle cx="500" cy="500" r="20" fill="white" className="filter blur-xl" />
-                       </motion.g>
-                    </AnimatePresence>
-                 </svg>
-              </motion.div>
-            )}
-          </AnimatePresence>
-       </div>
-
-       {/* FOOTER METRICS */}
-       <div className="relative z-10 grid grid-cols-3 gap-8 mt-10">
-          <div className="bg-slate-900/60 p-8 rounded-[48px] border border-white/5">
-             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">{t('Active Worker')}</h3>
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white font-black text-xl">S</div>
-                <div>
-                   <p className="text-lg font-black text-white">Sardor Berdiyev</p>
-                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Shift A • Level 4 Technician</p>
-                </div>
-             </div>
-          </div>
-          
-          <div className="bg-slate-900/60 p-8 rounded-[48px] border border-white/5">
-             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">{t('Operational Log')}</h3>
-             <div className="space-y-2">
-                <p className="text-[10px] font-bold text-white/60"><span className="text-indigo-400 font-black mr-2">14:22:04</span> Process cycle completed successfully</p>
-                <p className="text-[10px] font-bold text-white/60"><span className="text-indigo-400 font-black mr-2">14:21:58</span> Target pressure reached: 4.2 bar</p>
-                <p className="text-[10px] font-bold text-white/60"><span className="text-indigo-400 font-black mr-2">14:21:40</span> Material feed sequence initiated</p>
-             </div>
-          </div>
-
-          <div className="bg-slate-900/60 p-8 rounded-[48px] border border-white/5 relative overflow-hidden group">
-             <div className="absolute inset-0 bg-emerald-500/5 group-hover:bg-emerald-500/10 transition-colors" />
-             <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 relative z-10">{t('QC Sync')}</h3>
-             <div className="flex items-center justify-between relative z-10">
-                <p className="text-2xl font-black text-emerald-400">PASSED</p>
-                <ShieldCheck className="w-8 h-8 text-emerald-500" />
-             </div>
-             <p className="text-[10px] font-bold text-slate-500 mt-2 relative z-10">Latest batch inspection verified</p>
-          </div>
-       </div>
-    </motion.div>
-  );
-}

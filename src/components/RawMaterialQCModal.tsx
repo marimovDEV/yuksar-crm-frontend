@@ -49,13 +49,13 @@ export default function RawMaterialQCModal({ batch, onClose, onSuccess, t }: Raw
     setLoading(true);
     try {
       if (result === 'APPROVED') {
-        await api.post(`warehouse/batches/${batch.id}/qc_approve/`, { 
+        await api.post(`batches/${batch.id}/qc_approve/`, { 
           warehouse_id: selectedWarehouse,
           measurements,
           notes
         });
       } else {
-        await api.post(`warehouse/batches/${batch.id}/qc_reject/`, { 
+        await api.post(`batches/${batch.id}/qc_reject/`, { 
           notes
         });
       }

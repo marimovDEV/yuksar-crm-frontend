@@ -285,7 +285,7 @@ export default function Finance({ user }: FinanceProps) {
                   <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-1">{t('finance.net_profit')}</p>
                   <h3 className="text-2xl font-black text-slate-900 tracking-tight">{fmt(analytics?.net_profit || 0)}</h3>
                 </div>
-                <div className="h-24 w-full mt-4">
+                <div className="h-24 w-full mt-4 min-h-[96px] min-w-[200px]">
                    <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={analytics?.profit_trend || []}>
                         <Area type="monotone" dataKey="value" stroke="#10b981" fill="#10b981" fillOpacity={0.1} strokeWidth={3} />
@@ -330,7 +330,7 @@ export default function Finance({ user }: FinanceProps) {
                         </div>
                     </div>
                 </div>
-                <div className="h-[300px] w-full">
+                <div className="h-[300px] w-full min-h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={analytics?.forecast_data || []}>
                       <defs>

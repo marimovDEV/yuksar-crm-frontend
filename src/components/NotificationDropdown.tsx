@@ -25,6 +25,9 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
   const [loading, setLoading] = useState(false);
 
   const fetchNotifications = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     setLoading(true);
     try {
       const response = await api.get('notifications/');
@@ -48,6 +51,9 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
   // Initial fetch for count
   useEffect(() => {
     const fetchCount = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+
       try {
         const response = await api.get('notifications/');
         const data = response.data.results || response.data;
