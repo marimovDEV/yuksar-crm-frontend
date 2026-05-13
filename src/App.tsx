@@ -432,7 +432,7 @@ export default function App() {
       case 'guide':
         return <UserGuide />;
       case 'exec-dashboard':
-        return <DirectorControlCenter />;
+        return <DirectorControlCenter onAction={setActiveTab} />;
       case 'profit-analytics':
         return <ProfitabilityDashboard />;
       case 'recipes':
