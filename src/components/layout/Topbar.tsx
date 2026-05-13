@@ -65,12 +65,18 @@ export default function Topbar({
         {/* Search - Desktop Only */}
         {!isMobile && (
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+              <Search className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+            </div>
             <input 
               type="text" 
               placeholder={t('Global qidiruv...')} 
-              className="bg-slate-100/50 border border-transparent focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl py-2.5 pl-11 pr-4 text-sm w-64 outline-none transition-all font-medium" 
+              className="bg-slate-100/80 border border-slate-200/50 focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl py-2.5 pl-11 pr-12 text-sm w-72 outline-none transition-all font-medium shadow-inner" 
             />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded-lg opacity-40 group-focus-within:opacity-100 transition-opacity">
+               <span className="text-[10px] font-bold text-slate-400 tracking-tighter">⌘</span>
+               <span className="text-[10px] font-bold text-slate-400">K</span>
+            </div>
           </div>
         )}
 

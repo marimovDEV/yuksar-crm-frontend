@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   QrCode,
   LayoutGrid,
-  List,
   Target,
   Users,
   TrendingUp,
@@ -25,7 +24,9 @@ import {
   BarChart,
   ArrowUpRight,
   Sparkles,
-  Activity
+  Activity,
+  Eye,
+  List as ListIcon
 } from 'lucide-react';
 import { User, Invoice, Product, Client } from '../types';
 import api from '../lib/api';
@@ -33,17 +34,21 @@ import { uiStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
 import MobileCard from './common/MobileCard';
 import { useI18n } from '../i18n';
+import ProductCatalog from './sales/ProductCatalog';
+import ProductDetailDrawer from './sales/ProductDetailDrawer';
 
-type ViewMode = 'KANBAN' | 'LIST';
+type ViewMode = 'KANBAN' | 'LIST' | 'CATALOG';
 
 export default function Sales({ user }: { user: User }) {
   const { locale, t } = useI18n();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [viewMode, setViewMode] = useState<ViewMode>(window.innerWidth < 768 ? 'LIST' : 'KANBAN');
+  const [viewMode, setViewMode] = useState<ViewMode>(window.innerWidth < 768 ? 'CATALOG' : 'KANBAN');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // New Order Wizard State
   const [step, setStep] = useState(1);
@@ -74,14 +79,29 @@ export default function Sales({ user }: { user: User }) {
         api.get('clients/'),
         api.get('products/'),
       ]);
-      setInvoices(invRes.data);
-      setClients(clientsRes.data);
-      setProducts(productsRes.data);
+      setInvoices(invRes.data.results || invRes.data);
+      setClients(clientsRes.data.results || clientsRes.data);
       
+      // Add mock visual data to products for demonstration
+      const enhancedProducts = (productsRes.data.results || productsRes.data).map((p: Product) => ({
+        ...p,
+        images: [
+           `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`,
+           `https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80`
+        ],
+        pattern_type: ['Classic', 'Modern', 'Premium'][Math.floor(Math.random() * 3)],
+        dimensions: "1000x500mm",
+        density: "15-20kg/m³",
+        product_class: ['A_CLASS', 'B_CLASS'][Math.floor(Math.random() * 2)],
+        stock_quantity: Math.floor(Math.random() * 500),
+        description: "Yuqori zichlikdagi dekorativ penoplast paneli. Fasad va ichki qismlar uchun ideal."
+      }));
+      setProducts(enhancedProducts);
+
       // Warehouse fetch is optional — may 403 for non-admin roles
       try {
         const whRes = await api.get('warehouses/');
-        setWarehouses(whRes.data);
+        setWarehouses(whRes.data.results || whRes.data);
       } catch (e) {
         console.warn("Warehouses not accessible for this role");
       }
@@ -115,7 +135,7 @@ export default function Sales({ user }: { user: User }) {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
       if (mobile) {
-        setViewMode('LIST');
+        setViewMode('CATALOG');
       }
     };
     window.addEventListener('resize', onResize);
@@ -258,30 +278,48 @@ export default function Sales({ user }: { user: User }) {
             <button onClick={() => handleExport('PDF')} className="flex-1 sm:flex-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-slate-300">PDF</button>
             <button onClick={() => handleExport('EXCEL')} className="flex-1 sm:flex-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:border-slate-300">Excel</button>
           </div>
-          {!isMobile && (
           <div className="flex bg-slate-100 p-1.5 rounded-[22px] border border-slate-200">
             <button 
-              onClick={() => setViewMode('KANBAN')}
-              className={`p-2.5 rounded-2xl transition-all ${viewMode === 'KANBAN' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}
+              onClick={() => setViewMode('CATALOG')}
+              className={`p-2.5 rounded-2xl transition-all ${viewMode === 'CATALOG' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}
+              title={t("Katalog Mode")}
             >
               <LayoutGrid className="w-5 h-5" />
             </button>
-            <button 
-              onClick={() => setViewMode('LIST')}
-              className={`p-2.5 rounded-2xl transition-all ${viewMode === 'LIST' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}
-            >
-              <List className="w-5 h-5" />
-            </button>
+            {!isMobile && (
+              <>
+                <button 
+                  onClick={() => setViewMode('KANBAN')}
+                  className={`p-2.5 rounded-2xl transition-all ${viewMode === 'KANBAN' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}
+                  title={t("Kanban Mode")}
+                >
+                  <ListIcon className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => setViewMode('LIST')}
+                  className={`p-2.5 rounded-2xl transition-all ${viewMode === 'LIST' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400'}`}
+                  title={t("List Mode")}
+                >
+                  <ListIcon className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
-          )}
+
+          <button 
+            onClick={() => setPreviewMode(!previewMode)}
+            className={`flex items-center gap-2 px-6 py-4 rounded-[22px] font-black text-[10px] uppercase tracking-widest transition-all ${previewMode ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100' : 'bg-white text-slate-400 border border-slate-200'}`}
+          >
+            <Eye className="w-5 h-5" />
+            {previewMode ? t('Preview ON') : t('Client Mode')}
+          </button>
 
           <button 
             onClick={() => setIsAddingOrder(true)}
-            className="flex w-full md:w-auto items-center justify-center gap-2 md:gap-3 bg-slate-900 text-white px-5 md:px-10 py-3 md:py-4.5 rounded-2xl md:rounded-[26px] font-black text-[11px] md:text-[12px] uppercase tracking-widest hover:bg-black shadow-2xl shadow-slate-200 active:scale-95 transition-all touch-target"
+            className="flex w-full md:w-auto items-center justify-center gap-2 md:gap-3 bg-slate-900 text-white px-5 md:px-10 py-4.5 rounded-2xl md:rounded-[26px] font-black text-[11px] md:text-[12px] uppercase tracking-widest hover:bg-black shadow-2xl shadow-slate-200 active:scale-95 transition-all touch-target"
           >
             <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">{t('Yangi Buyurtma')}</span>
-            <span className="sm:hidden">{t('Buyurtma')}</span>
+            <span>{t('Yangi Buyurtma')}</span>
           </button>
         </div>
       </div>
@@ -354,8 +392,20 @@ export default function Sales({ user }: { user: User }) {
         </div>
       </div>
 
-      {/* Kanban Board */}
-      {viewMode === 'KANBAN' ? (
+      {viewMode === 'CATALOG' && (
+        <ProductCatalog 
+          products={products}
+          onAddToCart={(p) => {
+            setIsAddingOrder(true);
+            setStep(2);
+            setCurrentItem({ productId: String(p.id), quantity: 1, price: p.price || 0 });
+          }}
+          onViewDetail={(p) => setSelectedProduct(p)}
+          previewMode={previewMode}
+        />
+      )}
+
+      {viewMode === 'KANBAN' && (
         <div className="flex gap-6 overflow-x-auto pb-6 custom-scrollbar min-h-[600px]">
           {columns.map((col) => (
             <div key={col.id} className="flex-shrink-0 w-[350px]">
@@ -419,7 +469,9 @@ export default function Sales({ user }: { user: User }) {
             </div>
           ))}
         </div>
-      ) : (
+      )}
+
+      {viewMode === 'LIST' && (
         <>
           {!isMobile && (
             <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
@@ -502,6 +554,18 @@ export default function Sales({ user }: { user: User }) {
           )}
         </>
       )}
+
+      {/* Product Detail Drawer */}
+      <ProductDetailDrawer 
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={(p) => {
+          setIsAddingOrder(true);
+          setStep(2);
+          setCurrentItem({ productId: String(p.id), quantity: 1, price: p.price || 0 });
+        }}
+        previewMode={previewMode}
+      />
 
       {/* New Order Modal Wizard */}
       <AnimatePresence>

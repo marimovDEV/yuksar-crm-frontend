@@ -64,7 +64,7 @@ export default function Clients({ user }: { user: User }) {
     try {
       setLoading(true);
       const response = await api.get('clients/');
-      setClients(response.data);
+      setClients(response.data.results || response.data);
     } catch (err) {
       console.error("Failed to fetch clients", err);
     } finally {
@@ -75,9 +75,10 @@ export default function Clients({ user }: { user: User }) {
   const fetchCashboxes = async () => {
     try {
       const res = await api.get('finance/cashboxes/');
-      setCashboxes(res.data);
-      if (res.data.length > 0) {
-        setPaymentData(prev => ({ ...prev, cashbox_id: res.data[0].id }));
+      const boxes = res.data.results || res.data;
+      setCashboxes(boxes);
+      if (boxes.length > 0) {
+        setPaymentData(prev => ({ ...prev, cashbox_id: boxes[0].id }));
       }
     } catch (err) {
       console.error("Failed to fetch cashboxes", err);

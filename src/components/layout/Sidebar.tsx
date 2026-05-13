@@ -68,7 +68,7 @@ export default function Sidebar({
               className="flex-1"
             >
               <h1 className="font-black text-xl leading-none tracking-tighter bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Yuksar</h1>
-              <p className="text-[10px] font-black text-indigo-400/80 uppercase tracking-[0.3em] mt-1">Industrial ERP</p>
+              <p className="text-[10px] font-black text-indigo-400/80 uppercase tracking-[0.3em] mt-1">Sanoat ERP</p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -15,10 +15,20 @@ import {
   RotateCcw,
   Clock,
   FlaskConical,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  ShieldCheck,
+  TrendingUp,
+  Cpu,
+  MonitorDot,
+  QrCode,
+  MapPin,
+  Activity
 } from 'lucide-react';
 import api from '../lib/api';
-import { User, Zames, Bunker, Recipe, RawMaterialBatch, Material, ProductionOrder, ProductionOrderStage, BlockProduction } from '../types';
+import { User, Zames, Bunker, Recipe, RawMaterialBatch, Material, ProductionOrder, ProductionOrderStage, BlockProduction, FinishedBlock } from '../types';
+import BlockPassport from './production/BlockPassport';
+import BlockQCModal from './production/BlockQCModal';
 import { uiStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
@@ -35,8 +45,13 @@ export default function ProductionFloor({ user }: { user: User }) {
   const [bunkers, setBunkers] = useState<Bunker[]>([]);
   const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>([]);
   const [blockProductions, setBlockProductions] = useState<BlockProduction[]>([]);
+  const [finishedBlocks, setFinishedBlocks] = useState<FinishedBlock[]>([]);
   
   const [loading, setLoading] = useState(true);
+
+  // Detail / Passport States
+  const [selectedBlockForPassport, setSelectedBlockForPassport] = useState<FinishedBlock | null>(null);
+  const [selectedBlockForQC, setSelectedBlockForQC] = useState<FinishedBlock | null>(null);
 
   // Modals
   const [isZamesModalOpen, setIsZamesModalOpen] = useState(false);
@@ -77,7 +92,7 @@ export default function ProductionFloor({ user }: { user: User }) {
     setSelectedRecipeId(recipeId);
     const recipe = recipes.find(r => r.id === Number(recipeId));
     if (recipe) {
-      setZamesBatchItems(recipe.items.map(item => ({
+      setZamesBatchItems((recipe.items || []).map(item => ({
         material: item.material,
         material_name: item.material_name,
         batch: '',
@@ -97,9 +112,10 @@ export default function ProductionFloor({ user }: { user: User }) {
         api.get('materials/'),
         api.get('production/bunkers/'),
         api.get('production/orders/'),
-        api.get('production/blocks/')
+        api.get('production/blocks/'),
+        api.get('production/finished-blocks/')
       ]);
-      const [zamesRes, recipesRes, batchesRes, materialsRes, bunkersRes, ordersRes, blockRes] = results;
+      const [zamesRes, recipesRes, batchesRes, materialsRes, bunkersRes, ordersRes, blockRes, finishedBlockRes] = results;
       setZamesy(zamesRes.data);
       setRecipes(recipesRes.data);
       setBatches(batchesRes.data);
@@ -107,6 +123,7 @@ export default function ProductionFloor({ user }: { user: User }) {
       setBunkers(bunkersRes.data);
       setProductionOrders(ordersRes.data);
       setBlockProductions(blockRes.data);
+      setFinishedBlocks(finishedBlockRes.data);
     } catch (err) {
       console.error("Failed to fetch production data", err);
     } finally {
@@ -357,9 +374,10 @@ export default function ProductionFloor({ user }: { user: User }) {
 
   const tabs = [
     { id: 'zames', name: t('Zames Jurnali') },
-    { id: 'bunker', name: t('Bunkerlar') },
+    { id: 'bunker', name: t('Bunkerlar Holati') },
     { id: 'formovka', name: t('Blok Formovka') },
-    { id: 'orders', name: t('Buyurtmalar (MTO)') },
+    { id: 'traceability', name: t('Bloklar Kuzatuvi') },
+    { id: 'orders', name: t('Ishlab Chiqarish Buyurtmalari') },
   ];
 
   if (currentRole === 'Bosh Admin' || currentRole === 'Admin' || currentRole === 'Ishlab chiqarish ustasi') {
@@ -371,6 +389,51 @@ export default function ProductionFloor({ user }: { user: User }) {
   return (
     <>
       <div className="space-y-6">
+        {/* Real-time Machine Status Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+           <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                 <MonitorDot className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Mashina Holati")}</p>
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-black text-slate-900 uppercase tracking-tight">{t("Barchasi Aktiv")}</span>
+                 </div>
+              </div>
+           </div>
+           
+           <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                 <Activity className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Ishlab chiqarish (Bugun)")}</p>
+                 <span className="text-sm font-black text-slate-900 uppercase tracking-tight">{finishedBlocks.length} {t("Blok")}</span>
+              </div>
+           </div>
+
+           <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+                 <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Sifat Ko'rsatkichi")}</p>
+                 <span className="text-sm font-black text-slate-900 uppercase tracking-tight">98.4% A-Class</span>
+              </div>
+           </div>
+
+           <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-inner">
+                 <Cpu className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Energiya Sarfi")}</p>
+                 <span className="text-sm font-black text-slate-900 uppercase tracking-tight">2.4 kWh/m³</span>
+              </div>
+           </div>
+        </div>
         <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit border border-slate-200 shadow-inner">
           {tabs.map(tab => (
             <button
@@ -706,6 +769,111 @@ export default function ProductionFloor({ user }: { user: User }) {
             </div>
           )}
 
+          {subTab === 'traceability' && (
+            <div className="space-y-8 animate-in slide-in-from-right duration-500">
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                      <History className="w-8 h-8 text-blue-600" />
+                      {t('Bloklar Kuzatuvi va Pasporti')}
+                    </h3>
+                    <p className="text-slate-500 font-medium">{t('Har bir blokning hayotiy sikli va sifat nazorati')}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t("Tayyor")}: {finishedBlocks.filter(b => b.status === 'READY').length}</span>
+                     </div>
+                     <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t("QC Kutilmoqda")}: {finishedBlocks.filter(b => b.status === 'QC_PENDING').length}</span>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="bg-slate-50/50 rounded-[40px] border border-slate-100 p-2 overflow-hidden shadow-inner">
+                  <table className="w-full text-left border-separate border-spacing-y-2">
+                    <thead>
+                       <tr className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                          <th className="px-8 py-4">{t("Blok ID")}</th>
+                          <th className="px-6 py-4">{t("Sinf (Class)")}</th>
+                          <th className="px-6 py-4">{t("Holati")}</th>
+                          <th className="px-6 py-4">{t("Vazn / Zichlik")}</th>
+                          <th className="px-6 py-4">{t("Manzil")}</th>
+                          <th className="px-6 py-4 text-right">{t("Harakatlar")}</th>
+                       </tr>
+                    </thead>
+                    <tbody className="space-y-2">
+                       {finishedBlocks.map((block) => (
+                         <motion.tr 
+                           layout
+                           key={block.id}
+                           className="bg-white group hover:bg-blue-50/30 transition-all"
+                         >
+                            <td className="px-8 py-5 rounded-l-[32px] border-y border-l border-slate-50 group-hover:border-blue-100">
+                               <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                     <QrCode className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                     <p className="text-sm font-black text-slate-900">{block.block_id}</p>
+                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{block.recipe_name}</p>
+                                  </div>
+                               </div>
+                            </td>
+                            <td className="px-6 py-5 border-y border-slate-50 group-hover:border-blue-100">
+                               <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                 block.classification === 'A_CLASS' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                 block.classification === 'B_CLASS' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                 'bg-amber-50 text-amber-600 border-amber-100'
+                               }`}>
+                                  {t(block.classification_display)}
+                               </span>
+                            </td>
+                            <td className="px-6 py-5 border-y border-slate-50 group-hover:border-blue-100">
+                               <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${
+                                    block.status === 'READY' ? 'bg-emerald-500' : 
+                                    block.status === 'QC_PENDING' ? 'bg-amber-500 animate-pulse' : 'bg-blue-500'
+                                  }`} />
+                                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">{t(block.status_display)}</span>
+                               </div>
+                            </td>
+                            <td className="px-6 py-5 border-y border-slate-50 group-hover:border-blue-100">
+                               <p className="text-sm font-black text-slate-900">{block.actual_weight || '—'} kg</p>
+                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{block.actual_density || '—'} kg/m³</p>
+                            </td>
+                            <td className="px-6 py-5 border-y border-slate-50 group-hover:border-blue-100">
+                               <div className="flex items-center gap-2 text-slate-500">
+                                  <MapPin className="w-4 h-4" />
+                                  <span className="text-xs font-bold">{block.warehouse_name || '—'}</span>
+                               </div>
+                            </td>
+                            <td className="px-8 py-5 rounded-r-[32px] border-y border-r border-slate-50 text-right group-hover:border-blue-100">
+                               <div className="flex items-center justify-end gap-2">
+                                  <button 
+                                    onClick={() => setSelectedBlockForQC(block)}
+                                    className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
+                                    title={t("Sifat nazoratini o'tkazish")}
+                                  >
+                                     <ShieldCheck className="w-5 h-5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => setSelectedBlockForPassport(block)}
+                                    className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-lg shadow-slate-200"
+                                  >
+                                     {t("Pasport")}
+                                  </button>
+                               </div>
+                            </td>
+                         </motion.tr>
+                       ))}
+                    </tbody>
+                  </table>
+               </div>
+            </div>
+          )}
+
           {subTab === 'orders' && (
             <div className="space-y-8 animate-in fade-in duration-500">
               <div className="flex items-center justify-between">
@@ -869,6 +1037,28 @@ export default function ProductionFloor({ user }: { user: User }) {
       </div>
 
       {/* Modals Section */}
+
+      <AnimatePresence>
+        {selectedBlockForPassport && (
+          <BlockPassport 
+            block={selectedBlockForPassport} 
+            onClose={() => setSelectedBlockForPassport(null)} 
+            onQC={() => {
+              setSelectedBlockForQC(selectedBlockForPassport);
+              setSelectedBlockForPassport(null);
+            }}
+          />
+        )}
+        
+        {selectedBlockForQC && (
+          <BlockQCModal 
+            block={selectedBlockForQC} 
+            onClose={() => setSelectedBlockForQC(null)} 
+            onSuccess={fetchProductionData}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {isZamesModalOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">

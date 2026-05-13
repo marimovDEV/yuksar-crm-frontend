@@ -32,7 +32,8 @@ import {
   AlertOctagon,
   FileWarning,
   Target,
-  BookOpen
+  BookOpen,
+  LayoutGrid
 } from 'lucide-react';
 import { User, UserRole } from './types';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -82,6 +83,36 @@ const DealerManagement = lazy(() => import('./components/DealerManagement'));
 const DynamicPricing = lazy(() => import('./components/DynamicPricing'));
 const Payroll = lazy(() => import('./components/Payroll'));
 const UserGuide = lazy(() => import('./components/UserGuide'));
+const POS = lazy(() => import('./components/sales/POS'));
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
+  state = { hasError: false, error: null as any };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  declare props: Readonly<{ children: any }>;
+  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-20 text-center gap-6 bg-rose-50 rounded-[40px] border-2 border-rose-100 m-8 shadow-2xl">
+          <div className="w-24 h-24 bg-rose-500 rounded-[32px] flex items-center justify-center shadow-xl shadow-rose-200">
+            <FileWarning className="w-12 h-12 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Tizimda xatolik yuz berdi</h2>
+            <p className="text-slate-500 font-medium max-w-md">Kechirasiz, ushbu sahifani yuklashda muammo paydo bo'ldi. Iltimos, boshqa bo'limga o'ting yoki sahifani yangilang.</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-10 py-4 bg-slate-900 text-white rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
+          >
+            Sahifani yangilash
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const { t } = useI18n();
@@ -146,6 +177,7 @@ export default function App() {
         { id: 'leads', name: t('Leadlar & CRM'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
         { id: 'dealers', name: t('Dilerlar'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
         { id: 'pricing', name: t('Narx Siyosati'), icon: Target, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'pos-catalog', name: t('POS & Katalog'), icon: LayoutGrid, roles: ['Bosh Admin', 'Sotuv menejeri'] },
       ]
     },
     {
@@ -193,7 +225,7 @@ export default function App() {
       id: 'user-guide',
       title: null,
       items: [
-        { id: 'guide', name: t('Rukavodstvo'), icon: BookOpen, roles: ['Bosh Admin', 'Admin', 'Sotuv menejeri', 'Omborchi', 'Ishlab chiqarish ustasi'] },
+        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['Bosh Admin', 'Admin', 'Sotuv menejeri', 'Omborchi', 'Ishlab chiqarish ustasi'] },
       ]
     }
   ];
@@ -222,11 +254,18 @@ export default function App() {
         setGlobalLoading(false);
         if (uiStore.isLoading) {
           uiStore.setLoading(false);
-          uiStore.showNotification("Tizim javobi kechikmoqda...", "warning");
+          uiStore.showNotification("Tizim javobi kechikmoqda...", "info");
         }
       }, 8000);
     }
 
+    return () => {
+      unsub();
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [globalLoading]);
+
+  useEffect(() => {
     const initAuth = async () => {
       try {
         const { access } = authService.getTokens();
@@ -273,12 +312,7 @@ export default function App() {
       }
     };
     initAuth();
-
-    return () => {
-      unsub();
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [globalLoading]);
+  }, []);
 
   // Auth Form State
   const [username, setUsername] = useState('');
@@ -302,13 +336,6 @@ export default function App() {
     
     console.log("🔑 Attempting login for:", cleanUsername);
     
-    // In demo mode, any password 'admin' works for known users
-    if (password !== 'admin' && cleanUsername !== 'admin') {
-      setAuthError('Xato login yoki parol');
-      setGlobalLoading(false);
-      return;
-    }
-
     try {
       const { user } = await authService.login(cleanUsername, password);
       setUser(user);
@@ -334,37 +361,6 @@ export default function App() {
       </div>
     </div>
   );
-
-// Error Boundary Component
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center p-20 text-center gap-6 bg-rose-50 rounded-[40px] border-2 border-rose-100 m-8 shadow-2xl">
-          <div className="w-24 h-24 bg-rose-500 rounded-[32px] flex items-center justify-center shadow-xl shadow-rose-200">
-            <FileWarning className="w-12 h-12 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 mb-2">Tizimda xatolik yuz berdi</h2>
-            <p className="text-slate-500 font-medium max-w-md">Kechirasiz, ushbu sahifani yuklashda muammo paydo bo'ldi. Iltimos, boshqa bo'limga o'ting yoki sahifani yangilang.</p>
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-10 py-4 bg-slate-900 text-white rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
-          >
-            Sahifani yangilash
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -432,6 +428,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
       case 'dealers': return user ? <DealerManagement user={user} /> : null;
       case 'pricing': return <DynamicPricing />;
       case 'payroll': return user ? <Payroll user={user} /> : null;
+      case 'pos-catalog': return <POS user={user!} />;
       default:
         return <Dashboard user={user} onAction={setActiveTab} />;
     }

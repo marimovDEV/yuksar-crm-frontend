@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import api from '../../lib/api';
 
 interface AreaConfig {
   dataKey: string;
@@ -18,13 +19,28 @@ interface AreaConfig {
 }
 
 interface AreaTrendChartProps {
-  data: any[];
+  data?: any[];
   height?: number;
   xKey?: string;
-  areas: AreaConfig[];
-  gradientId: string;
-  gradientColor: string;
+  areas?: AreaConfig[];
+  gradientId?: string;
+  gradientColor?: string;
+  period?: string;
 }
+
+const DEFAULT_AREAS: AreaConfig[] = [
+  { dataKey: 'value', stroke: '#4f46e5', name: 'Sotuv', fill: 'url(#defaultGrad)', fillOpacity: 1 },
+];
+
+const DEMO_DATA = [
+  { name: 'Du', value: 0 },
+  { name: 'Se', value: 0 },
+  { name: 'Ch', value: 0 },
+  { name: 'Pa', value: 0 },
+  { name: 'Ju', value: 0 },
+  { name: 'Sh', value: 0 },
+  { name: 'Ya', value: 0 },
+];
 
 export default function AreaTrendChart({
   data,
@@ -32,13 +48,36 @@ export default function AreaTrendChart({
   xKey = 'name',
   areas,
   gradientId,
-  gradientColor,
+  gradientColor = '#4f46e5',
+  period,
 }: AreaTrendChartProps) {
+  const [chartData, setChartData] = useState<any[]>(data ?? DEMO_DATA);
+
+  useEffect(() => {
+    if (data !== undefined) {
+      setChartData(data);
+      return;
+    }
+    if (!period) return;
+
+    api.get('sales/kpi/')
+      .then(res => {
+        const trend = res.data?.weekly_trend;
+        if (Array.isArray(trend) && trend.length > 0) {
+          setChartData(trend.map((d: any) => ({ name: d.day ?? d.name, value: d.value ?? 0 })));
+        }
+      })
+      .catch(() => {});
+  }, [period, data]);
+
+  const resolvedAreas = areas ?? DEFAULT_AREAS;
+  const resolvedGradientId = gradientId ?? 'defaultGrad';
+
   return (
     <ResponsiveContainer width="99%" height={height} debounce={50}>
-      <AreaChart data={data}>
+      <AreaChart data={chartData}>
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={resolvedGradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={gradientColor} stopOpacity={0.1} />
             <stop offset="95%" stopColor={gradientColor} stopOpacity={0} />
           </linearGradient>
@@ -78,7 +117,7 @@ export default function AreaTrendChart({
             fontSize: '12px',
           }}
         />
-        {areas.map((area) => (
+        {resolvedAreas.map((area) => (
           <Area
             key={area.dataKey}
             type="monotone"

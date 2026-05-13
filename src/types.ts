@@ -13,6 +13,52 @@ export interface ERPRole {
   permissions_detail: ERPPermission[];
 }
 
+export interface Supplier {
+  id: number;
+  name: string;
+  inn?: string;
+  contact_info: string;
+  manager_name?: string;
+  address?: string;
+  material_type?: string;
+  rating: number;
+  total_debt: number;
+  status: 'ACTIVE' | 'BLOCKED' | 'INACTIVE';
+  status_display?: string;
+  contract_number?: string;
+  contract_expiry?: string;
+  created_at: string;
+}
+
+export interface PurchaseOrderItem {
+  id: number;
+  order: number;
+  material: number;
+  material_name: string;
+  material_unit: string;
+  quantity: number;
+  price_per_unit: number;
+  total_price: number;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  po_number: string;
+  supplier: number;
+  supplier_name: string;
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'ORDERED' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELLED';
+  status_display: string;
+  total_amount: number;
+  currency: string;
+  expected_delivery?: string;
+  received_at?: string;
+  created_by: number;
+  created_by_name: string;
+  notes: string;
+  items: PurchaseOrderItem[];
+  created_at: string;
+}
+
 export interface Material {
   id: number;
   name: string;
@@ -45,6 +91,18 @@ export interface Product {
   unit: string;
   type?: string;
   price?: number;
+  sku?: string;
+  images?: string[];
+  pattern_type?: 'Classic' | 'Modern' | 'Premium' | string;
+  dimensions?: string;
+  density?: string;
+  colors?: string[];
+  product_class?: 'A_CLASS' | 'B_CLASS' | 'C_CLASS' | string;
+  stock_quantity?: number;
+  description?: string;
+  suitable_objects?: string[];
+  qc_certified?: boolean;
+  category?: string;
 }
 
 export interface User {
@@ -196,38 +254,50 @@ export interface ProductionOrderStage {
   order: number;
   stage_type: 'ZAMES' | 'DRYING' | 'BUNKER' | 'FORMOVKA' | 'BLOK' | 'CNC' | 'DEKOR';
   stage_type_display: string;
-  status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'PAUSED';
+  status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'PAUSED' | 'FAILED';
   status_display: string;
   sequence: number;
   started_at: string | null;
   completed_at: string | null;
   responsible: number | null;
+  responsible_name?: string;
+  current_operator?: number | null;
+  current_operator_name?: string;
   related_id: number | null;
+  actual_quantity: number;
+  waste_amount: number;
+  shift?: 'DAY' | 'NIGHT';
+  machine_status?: 'ACTIVE' | 'MAINTENANCE' | 'OFFLINE';
+  notes?: string;
 }
 
 export interface ProductionOrder {
   id: number | string;
   order_number: string;
-  orderNumber?: string; // Alias for backward compatibility
+  orderNumber?: string;
   product: number | string;
   product_name: string;
-  productName?: string; // Alias
+  product_sku?: string;
   quantity: number;
-  quantityNeeded?: number; // Alias
-  quantityProduced?: number; // Alias
-  status: 'PENDING' | 'PLANNED' | 'IN_PROGRESS' | 'QC_PENDING' | 'REPAIR' | 'DELAYED' | 'COMPLETED' | 'CANCELLED' | 'InProduction' | 'Pending' | 'Overdue';
+  status: 'PENDING' | 'PLANNED' | 'IN_PROGRESS' | 'QC_PENDING' | 'REPAIR' | 'DELAYED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
   status_display?: string;
   progress: number;
-  current_stage?: ProductionStage | string;
-  currentStage?: ProductionStage | string; // Alias
+  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW';
   start_date: string | null;
   deadline: string | null;
-  endDate?: string | null; // Alias
   responsible: number | null;
   responsible_name?: string;
   source_order?: string;
-  orderId?: string; // Alias
-  stages?: ProductionOrderStage[];
+  stages: ProductionOrderStage[];
+  quality_checks?: QualityCheck[];
+  action_logs?: {
+    id: number;
+    action: string;
+    stage: string;
+    user: string;
+    timestamp: string;
+    notes: string;
+  }[];
   created_at?: string;
   updated_at?: string;
 }
@@ -300,10 +370,49 @@ export interface BlockProduction {
   density: number;
   volume: number;
   weight_per_block: number;
-  status: 'DRYING' | 'READY' | 'DEFECT' | 'RESERVED' | 'SOLD';
+  status: 'COOLING' | 'READY' | 'DEFECT' | 'RESERVED' | 'SOLD';
   status_display?: string;
   warehouse: number | null;
   date: string;
+  operator_name?: string;
+  shift_display?: string;
+}
+
+export interface BlockTimeline {
+  id: number;
+  block: number;
+  status: string;
+  notes: string;
+  user_name: string;
+  timestamp: string;
+}
+
+export interface FinishedBlock {
+  id: number;
+  block_id: string;
+  lot: number;
+  classification: 'A_CLASS' | 'B_CLASS' | 'C_CLASS' | 'REJECT';
+  classification_display: string;
+  status: 'COOLING' | 'QC_PENDING' | 'READY' | 'RESERVED' | 'SOLD' | 'RECYCLE';
+  status_display: string;
+  actual_weight?: number;
+  actual_density?: number;
+  warehouse?: number;
+  warehouse_name?: string;
+  zone?: string;
+  rack?: string;
+  qr_code_data?: string;
+  recipe_name?: string;
+  operator_name?: string;
+  shift_display?: string;
+  produced_date?: string;
+  length?: number;
+  width?: number;
+  height?: number;
+  density?: number;
+  moisture?: number;
+  visual_defects?: string[];
+  timeline?: BlockTimeline[];
 }
 
 export interface Block {
