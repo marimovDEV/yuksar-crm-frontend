@@ -149,6 +149,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                <div className="flex items-center gap-2 p-1.5 bg-slate-100/50 rounded-2xl w-fit border border-slate-200/50">
                   {[
                     { id: 'queue', label: t('QC Queue (Navbat)'), icon: Activity },
+                    { id: 'gallery', label: t('Reject Gallery'), icon: ClipboardList },
                     { id: 'history', label: t('QC History (Tarix)'), icon: History },
                     { id: 'analytics', label: t('Analytics (Tahlil)'), icon: BarChart3 }
                   ].map(tab => (
@@ -287,6 +288,57 @@ export default function QualityControl({ user }: { user: UserType }) {
                           {t('Eksport (PDF)')}
                        </button>
                     </div>
+                 </div>
+              </div>
+            ) : activeTab === 'gallery' ? (
+              <div className="p-10 space-y-10 animate-in slide-in-from-bottom duration-700">
+                 <div className="flex items-center justify-between">
+                    <div>
+                       <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('Reject & Defect Gallery')}</h3>
+                       <p className="text-slate-500 text-sm font-medium">{t('Sifat talablariga javob bermagan mahsulotlar arxivi')}</p>
+                    </div>
+                    <div className="flex gap-2">
+                       <button className="px-5 py-2.5 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100">{t('Hammasini Chiqarish')}</button>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {blocks.filter(b => b.classification === 'REJECT').length === 0 ? (
+                       <div className="col-span-full py-24 text-center border-4 border-dashed border-slate-100 rounded-[48px]">
+                          <ShieldCheck className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                          <p className="text-slate-400 font-bold">{t('Hozircha brak mahsulotlar yo\'q')}</p>
+                       </div>
+                    ) : (
+                       blocks.filter(b => b.classification === 'REJECT').map((b, i) => (
+                         <motion.div 
+                           key={b.id} 
+                           initial={{ opacity: 0, scale: 0.9 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           transition={{ delay: i * 0.05 }}
+                           className="bg-white border border-slate-100 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all group"
+                         >
+                            <div className="h-48 bg-slate-900 relative flex items-center justify-center">
+                               <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+                               <XCircle className="w-16 h-16 text-rose-500/20 group-hover:scale-125 transition-transform duration-700" />
+                               <div className="absolute top-4 left-4 px-3 py-1 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg">REJECTED</div>
+                               <div className="absolute bottom-4 left-4">
+                                  <p className="text-white font-black text-xs">{b.block_id}</p>
+                                  <p className="text-white/40 text-[9px] font-bold uppercase">{b.recipe_name}</p>
+                               </div>
+                            </div>
+                            <div className="p-6 space-y-4">
+                               <div className="flex items-center gap-2">
+                                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                                  <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">{t('Sabab')}: {t('Zichlik Noto\'g\'ri')}</p>
+                               </div>
+                               <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                  <span className="text-[10px] font-bold text-slate-400">{new Date(b.created_at).toLocaleDateString()}</span>
+                                  <button onClick={() => setSelectedBlockForPassport(b)} className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">{t('Batafsil')}</button>
+                               </div>
+                            </div>
+                         </motion.div>
+                       ))
+                    )}
                  </div>
               </div>
             ) : (
