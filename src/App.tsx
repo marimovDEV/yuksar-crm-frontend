@@ -680,7 +680,6 @@ export default function App() {
               </motion.div>
             </AnimatePresence>
           </div>
-        )}
       </main>
 
       {/* =========== FLOATING ACTION BUTTON (Desktop/Mobile) =========== */}
