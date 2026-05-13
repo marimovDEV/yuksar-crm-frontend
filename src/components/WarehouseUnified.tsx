@@ -16,7 +16,7 @@ import ScannerModal from './ScannerModal';
 
 interface WarehouseUnifiedProps { user: User; }
 
-type WTab = 'RAW' | 'WIP' | 'FINISHED' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE';
+type WTab = 'MAP' | 'RAW' | 'WIP' | 'FINISHED' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE';
 
 const MOVEMENT_TYPES: Record<string, { label: string; color: string; bg: string }> = {
   RECEIPT:    { label: 'Kirim',        color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -63,7 +63,7 @@ const DEMO_STOCKTAKE = [
 
 export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   const { t, locale } = useI18n();
-  const [activeTab, setActiveTab] = useState<WTab>('RAW');
+  const [activeTab, setActiveTab] = useState<WTab>('MAP');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [movFilter, setMovFilter] = useState<string>('ALL');
@@ -236,6 +236,115 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
       return <span className="text-amber-600 bg-amber-50 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">{t('Kamaymoqda')}</span>;
     return <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">{t('OK')}</span>;
   };
+
+  // ─── TAB: MAP ──────────────────────────────────────────────────────────
+  const renderWarehouseMap = () => (
+    <div className="space-y-8 animate-in fade-in zoom-in duration-700">
+       {/* 🏭 WAREHOUSE DIGITAL TWIN VIEWPORT */}
+       <div className="relative bg-slate-900 rounded-[56px] border-8 border-white shadow-2xl overflow-hidden min-h-[650px] flex items-center justify-center">
+          <div className="absolute inset-0 opacity-10 pointer-events-none" 
+               style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+          
+          <svg viewBox="0 0 1000 600" className="w-full h-full max-w-5xl">
+             {/* Warehouse Perimeter */}
+             <rect x="50" y="50" width="900" height="500" rx="32" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+
+             {/* ZONES GRID */}
+             {[
+               { id: 'A-01', x: 100, y: 100, w: 200, h: 180, name: 'RM Zone A1', fill: 'bg-blue-500', cap: 78 },
+               { id: 'A-02', x: 100, y: 320, w: 200, h: 180, name: 'RM Zone A2', fill: 'bg-blue-500', cap: 45 },
+               { id: 'B-01', x: 350, y: 100, w: 150, h: 400, name: 'WIP Buffer B1', fill: 'bg-amber-500', cap: 60 },
+               { id: 'D-01', x: 550, y: 100, w: 350, h: 180, name: 'FG Main D1', fill: 'bg-emerald-500', cap: 85 },
+               { id: 'D-02', x: 550, y: 320, w: 350, h: 180, name: 'QC / Loading D2', fill: 'bg-rose-500', cap: 15 },
+             ].map((z, i) => (
+               <motion.g 
+                 key={z.id}
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: i * 0.1 }}
+                 className="cursor-pointer group/zone"
+               >
+                  {/* Zone Base */}
+                  <rect 
+                    x={z.x} y={z.y} width={z.w} height={z.h} rx="24" 
+                    className="fill-slate-800/50 stroke-white/5 stroke-2 group-hover/zone:stroke-white/20 transition-all duration-500" 
+                  />
+                  
+                  {/* Capacity Bar */}
+                  <rect 
+                    x={z.x + 15} y={z.y + z.h - 30} width={(z.w - 30) * (z.cap / 100)} height="12" rx="6"
+                    className={`${z.fill} opacity-40 group-hover/zone:opacity-80 transition-all`}
+                  />
+                  
+                  {/* Rack Indicators */}
+                  {Array.from({ length: 4 }).map((_, ri) => (
+                    <rect 
+                      key={ri}
+                      x={z.x + 25 + (ri * (z.w - 50) / 4)} y={z.y + 40}
+                      width={(z.w - 100) / 4} height={z.h - 100} rx="4"
+                      className="fill-white/5"
+                    />
+                  ))}
+
+                  <text x={z.x + 20} y={z.y + 30} className="fill-white/40 text-[12px] font-black uppercase tracking-widest">{z.id}</text>
+                  <text x={z.x + 20} y={z.y + 50} className="fill-white/20 text-[10px] font-bold">{z.name}</text>
+                  <text x={z.x + z.w - 20} y={z.y + z.h - 18} textAnchor="end" className="fill-white/60 text-[14px] font-black">{z.cap}%</text>
+               </motion.g>
+             ))}
+
+             {/* FLOW ARROWS */}
+             <g className="opacity-20">
+                <path d="M 50 200 H 100" stroke="white" strokeWidth="2" strokeDasharray="5,5" fill="none" className="animate-flow-dash" />
+                <path d="M 300 200 H 350" stroke="white" strokeWidth="2" strokeDasharray="5,5" fill="none" className="animate-flow-dash" />
+                <path d="M 500 300 H 550" stroke="white" strokeWidth="2" strokeDasharray="5,5" fill="none" className="animate-flow-dash" />
+                <path d="M 900 400 H 950" stroke="white" strokeWidth="2" strokeDasharray="5,5" fill="none" className="animate-flow-dash" />
+             </g>
+          </svg>
+
+          {/* HUD OVERLAY */}
+          <div className="absolute top-10 right-10 flex flex-col gap-3">
+             <div className="bg-slate-800/80 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] shadow-2xl">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('Bugun Kirim')}</p>
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center">
+                      <ArrowUpRight className="w-6 h-6" />
+                   </div>
+                   <h4 className="text-2xl font-black text-white">1,240 <span className="text-xs text-slate-500 font-bold">kg</span></h4>
+                </div>
+             </div>
+             <div className="bg-slate-800/80 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] shadow-2xl">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('Bugun Chiqim')}</p>
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center">
+                      <ArrowRightLeft className="w-6 h-6" />
+                   </div>
+                   <h4 className="text-2xl font-black text-white">840 <span className="text-xs text-slate-500 font-bold">kg</span></h4>
+                </div>
+             </div>
+          </div>
+
+          <div className="absolute bottom-10 left-10">
+             <div className="flex items-center gap-2 px-6 py-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[11px] font-black text-white uppercase tracking-widest">{t('Live Monitoring Aktiv')}</span>
+             </div>
+          </div>
+       </div>
+
+       {/* ZONE QUICK STATS */}
+       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {ZONES.map(z => (
+            <div key={z.id} className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm">
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{z.id}</p>
+               <h4 className="text-lg font-black text-slate-900 leading-none">{z.items} <span className="text-[10px] text-slate-400">{t('pozitsiya')}</span></h4>
+               <div className="w-full h-1 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-indigo-500" style={{ width: `${z.capacity}%` }} />
+               </div>
+            </div>
+          ))}
+       </div>
+    </div>
+  );
 
   // ─── TAB: RAW / FINISHED ──────────────────────────────────────────────────
   const renderInventory = (type: 'RAW' | 'FINISHED') => (
@@ -676,6 +785,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   // TABS CONFIG
   // ─────────────────────────────────────────────────────────────────────────
   const TABS: { id: WTab; name: string; icon: any }[] = [
+    { id: 'MAP',       name: t('Live Xarita'),    icon: MapPin         },
     { id: 'RAW',       name: t('Xom Ashyo'),      icon: Database       },
     { id: 'WIP',       name: t('WIP'),             icon: Layers         },
     { id: 'FINISHED',  name: t('Tayyor'),           icon: Package        },
@@ -693,6 +803,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 pb-24">
+      {activeTab === 'MAP' && renderWarehouseMap()}
 
       {/* ── Alert Banner ──────────────────────────────────────────────── */}
       {alerts.length > 0 && (
