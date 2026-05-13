@@ -79,6 +79,7 @@ const BudgetManager = lazy(() => import('./components/BudgetManager'));
 const Compliance = lazy(() => import('./components/Compliance'));
 const Alerts = lazy(() => import('./components/Alerts'));
 const ExecutiveDashboard = lazy(() => import('./components/ExecutiveDashboard'));
+const DirectorControlCenter = lazy(() => import('./components/DirectorControlCenter'));
 const ProfitabilityDashboard = lazy(() => import('./components/ProfitabilityDashboard'));
 const MasterData = lazy(() => import('./components/MasterData'));
 const InternalTransfers = lazy(() => import('./components/InternalTransfers'));
@@ -431,7 +432,7 @@ export default function App() {
       case 'guide':
         return <UserGuide />;
       case 'exec-dashboard':
-        return <ExecutiveDashboard onAction={setActiveTab} />;
+        return <DirectorControlCenter />;
       case 'profit-analytics':
         return <ProfitabilityDashboard />;
       case 'recipes':
