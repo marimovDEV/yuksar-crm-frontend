@@ -21,7 +21,8 @@ import {
   Truck,
   Layers,
   Settings2,
-  Maximize2
+  Maximize2,
+  Clock
 } from 'lucide-react';
 import api from '../lib/api';
 import { useI18n } from '../i18n';
