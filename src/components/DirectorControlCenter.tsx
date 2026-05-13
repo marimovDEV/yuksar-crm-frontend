@@ -22,7 +22,7 @@ const SC: Record<Status, string> = {
 function LiveClock() {
   const [t, setT] = useState(new Date());
   useEffect(() => { const iv = setInterval(() => setT(new Date()), 1000); return () => clearInterval(iv); }, []);
-  return <span className="tabular-nums font-mono text-slate-700 text-sm tracking-widest">{t.toLocaleTimeString('uz-UZ', { hour12: false })}</span>;
+  return <span className="tabular-nums font-mono text-slate-300 text-sm tracking-widest">{t.toLocaleTimeString('uz-UZ', { hour12: false })}</span>;
 }
 
 function PulseDot({ status }: { status: Status }) {
@@ -61,19 +61,19 @@ const TAB_LABELS: Record<string, string> = {
 
 function TopBar({ user, activeTab, unread }: { user: User; activeTab: string; unread: number }) {
   return (
-    <div className="flex items-center gap-4 px-4 py-2.5 border-b border-slate-200/70 shrink-0">
+    <div className="flex items-center gap-4 px-4 py-2.5 border-b border-slate-800/70 shrink-0">
       <span className="relative inline-flex h-2.5 w-2.5">
         <span className="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-50"/>
         <span className="relative rounded-full h-2.5 w-2.5 bg-emerald-400"/>
       </span>
-      <span className="text-sm font-semibold text-slate-900 tracking-wide">{TAB_LABELS[activeTab] ?? 'Direktor Paneli'}</span>
+      <span className="text-sm font-semibold text-slate-100 tracking-wide">{TAB_LABELS[activeTab] ?? 'Direktor Paneli'}</span>
       <div className="flex-1"/>
       <LiveClock/>
       <div className="relative">
         <Bell className="w-4 h-4 text-slate-400"/>
         {unread > 0 && <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-bold">{unread}</span>}
       </div>
-      <div className="flex items-center gap-2 pl-3 border-l border-slate-300">
+      <div className="flex items-center gap-2 pl-3 border-l border-slate-700">
         <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold">{user.username[0].toUpperCase()}</div>
         <span className="text-xs text-slate-400">{user.username}</span>
       </div>
@@ -83,7 +83,7 @@ function TopBar({ user, activeTab, unread }: { user: User; activeTab: string; un
 
 function StatusBar() {
   return (
-    <div className="flex items-center gap-4 px-4 py-1.5 border-t border-slate-200/60 text-[10px] text-slate-600 shrink-0 bg-slate-100">
+    <div className="flex items-center gap-4 px-4 py-1.5 border-t border-slate-800/60 text-[10px] text-slate-600 shrink-0 bg-[#07101c]">
       <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"/>Server: Ulangan</span>
       <span>Smena: Kunduzgi (08:00–20:00)</span>
       <span className="ml-auto">v1.2.0</span>
@@ -98,10 +98,10 @@ function SiloSVG({ cx, cy, c, level }: { cx: number; cy: number; c: string; leve
   const bh = 66, bw = 48, fillH = Math.max(2, (bh - 4) * (level / 100));
   return (
     <g>
-      <rect x={cx-bw/2} y={cy-bh/2} width={bw} height={bh} rx="3" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-bw/2} y={cy-bh/2} width={bw} height={bh} rx="3" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <rect x={cx-bw/2+2} y={cy+bh/2-2-fillH} width={bw-4} height={fillH} fill={c} opacity="0.22"/>
       <line x1={cx-bw/2+3} x2={cx+bw/2-3} y1={cy+bh/2-2-fillH} y2={cy+bh/2-2-fillH} stroke={c} strokeWidth="0.8" strokeDasharray="3,2" opacity="0.7"/>
-      <path d={`M ${cx-bw/2} ${cy+bh/2} L ${cx-8} ${cy+bh/2+20} L ${cx+8} ${cy+bh/2+20} L ${cx+bw/2} ${cy+bh/2}Z`} fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <path d={`M ${cx-bw/2} ${cy+bh/2} L ${cx-8} ${cy+bh/2+20} L ${cx+8} ${cy+bh/2+20} L ${cx+bw/2} ${cy+bh/2}Z`} fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <line x1={cx} x2={cx} y1={cy+bh/2+20} y2={cy+bh/2+28} stroke={c} strokeWidth="2.5"/>
     </g>
   );
@@ -109,31 +109,31 @@ function SiloSVG({ cx, cy, c, level }: { cx: number; cy: number; c: string; leve
 function ExpanderSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <ellipse cx={cx} cy={cy} rx="28" ry="44" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
-      <ellipse cx={cx} cy={cy-44} rx="28" ry="8" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <ellipse cx={cx} cy={cy} rx="28" ry="44" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
+      <ellipse cx={cx} cy={cy-44} rx="28" ry="8" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <line x1={cx} y1={cy-46} x2={cx} y2={cy+38} stroke={c} strokeWidth="0.9" opacity="0.4"/>
       {[-15, 0, 15].map(dy => <line key={dy} x1={cx-18} y1={cy+dy} x2={cx+18} y2={cy+dy} stroke={c} strokeWidth="1.5" opacity="0.6"/>)}
-      <line x1={cx} y1={cy-52} x2={cx} y2={cy-64} stroke="#94a3b8" strokeWidth="2"/>
-      <path d={`M ${cx-5} ${cy-62} Q ${cx} ${cy-72} ${cx+5} ${cy-62}`} fill="none" stroke="#94a3b8" strokeWidth="1" opacity="0.5"/>
+      <line x1={cx} y1={cy-52} x2={cx} y2={cy-64} stroke="#475569" strokeWidth="2"/>
+      <path d={`M ${cx-5} ${cy-62} Q ${cx} ${cy-72} ${cx+5} ${cy-62}`} fill="none" stroke="#475569" strokeWidth="1" opacity="0.5"/>
     </g>
   );
 }
 function ChamberSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <rect x={cx-38} y={cy-44} width={76} height={88} rx="4" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-38} y={cy-44} width={76} height={88} rx="4" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       {[0,1,2,3].map(row=>[0,1,2].map(col=>(
         <rect key={`${row}-${col}`} x={cx-30+col*21} y={cy-36+row*21} width="17" height="17" rx="2" fill={c} opacity="0.09" stroke={c} strokeWidth="0.5" strokeOpacity="0.3"/>
       )))}
-      <line x1={cx+38} y1={cy-16} x2={cx+46} y2={cy-16} stroke="#94a3b8" strokeWidth="1.5"/>
-      <circle cx={cx+49} cy={cy-16} r="4" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.2"/>
+      <line x1={cx+38} y1={cy-16} x2={cx+46} y2={cy-16} stroke="#475569" strokeWidth="1.5"/>
+      <circle cx={cx+49} cy={cy-16} r="4" fill="#060e1e" stroke="#475569" strokeWidth="1.2"/>
     </g>
   );
 }
 function PressSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <rect x={cx-32} y={cy-50} width={64} height={100} rx="3" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-32} y={cy-50} width={64} height={100} rx="3" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <rect x={cx-26} y={cy-42} width={52} height={9} rx="2" fill={c} opacity="0.4"/>
       <rect x={cx-7} y={cy-33} width={14} height={40} rx="2" fill={c} opacity="0.18"/>
       <polygon points={`${cx-6},${cy+5} ${cx+6},${cy+5} ${cx},${cy+16}`} fill={c} opacity="0.55"/>
@@ -144,7 +144,7 @@ function PressSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
 function CutterSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <rect x={cx-32} y={cy-42} width={64} height={84} rx="3" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-32} y={cy-42} width={64} height={84} rx="3" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <rect x={cx-26} y={cy-35} width={52} height={7} rx="1" fill={c} opacity="0.55"/>
       {[-16,-2,12,26].map(dy=><line key={dy} x1={cx-24} y1={cy+dy} x2={cx+24} y2={cy+dy} stroke={c} strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>)}
     </g>
@@ -153,7 +153,7 @@ function CutterSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
 function PackerSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <rect x={cx-30} y={cy-42} width={60} height={84} rx="3" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-30} y={cy-42} width={60} height={84} rx="3" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <rect x={cx-18} y={cy-18} width={36} height={30} rx="2" fill={c} opacity="0.16" stroke={c} strokeWidth="0.9"/>
       <line x1={cx-18} y1={cy-4} x2={cx+18} y2={cy-4} stroke={c} strokeWidth="0.8" opacity="0.5"/>
       <line x1={cx} y1={cy-18} x2={cx} y2={cy+12} stroke={c} strokeWidth="0.8" opacity="0.5"/>
@@ -164,8 +164,8 @@ function PackerSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
 function WarehouseSVG({ cx, cy, c }: { cx: number; cy: number; c: string }) {
   return (
     <g>
-      <rect x={cx-42} y={cy-24} width={84} height={58} rx="3" fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
-      <path d={`M ${cx-48} ${cy-24} L ${cx} ${cy-54} L ${cx+48} ${cy-24}Z`} fill="#f1f5f9" stroke={c} strokeWidth="1.5"/>
+      <rect x={cx-42} y={cy-24} width={84} height={58} rx="3" fill="#060e1e" stroke={c} strokeWidth="1.5"/>
+      <path d={`M ${cx-48} ${cy-24} L ${cx} ${cy-54} L ${cx+48} ${cy-24}Z`} fill="#060e1e" stroke={c} strokeWidth="1.5"/>
       <rect x={cx-13} y={cy+4} width={26} height={30} rx="2" fill={c} opacity="0.15" stroke={c} strokeWidth="0.9"/>
       {[-24,14].map(dx=>(
         <g key={dx}>
@@ -191,7 +191,7 @@ function AnimPipe({ x1, x2, y, active, label }: { x1:number;x2:number;y:number;a
 function SBadge({ cx,cy,val,unit,color }: { cx:number;cy:number;val:string;unit:string;color:string }) {
   return (
     <g>
-      <rect x={cx-22} y={cy-9} width={44} height={18} rx="3" fill="#f1f5f9" stroke={color} strokeWidth="0.8" opacity="0.95"/>
+      <rect x={cx-22} y={cy-9} width={44} height={18} rx="3" fill="#060e1e" stroke={color} strokeWidth="0.8" opacity="0.95"/>
       <text x={cx} y={cy+4.5} textAnchor="middle" fill={color} fontSize="9.5" fontFamily="monospace" fontWeight="bold">{val}{unit}</text>
     </g>
   );
@@ -199,7 +199,7 @@ function SBadge({ cx,cy,val,unit,color }: { cx:number;cy:number;val:string;unit:
 function EqLabel({ cx,y,name,status }: { cx:number;y:number;name:string;status:Status }) {
   return (
     <g>
-      <rect x={cx-34} y={y} width={68} height={15} rx="2.5" fill="#f1f5f9" stroke={SC[status]} strokeWidth="0.7" opacity="0.9"/>
+      <rect x={cx-34} y={y} width={68} height={15} rx="2.5" fill="#060e1e" stroke={SC[status]} strokeWidth="0.7" opacity="0.9"/>
       <text x={cx} y={y+10.5} textAnchor="middle" fill={SC[status]} fontSize="8.5" fontFamily="monospace" fontWeight="600">{name}</text>
     </g>
   );
