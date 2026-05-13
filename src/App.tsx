@@ -92,7 +92,6 @@ const DynamicPricing = lazy(() => import('./components/DynamicPricing'));
 const Payroll = lazy(() => import('./components/Payroll'));
 const UserGuide = lazy(() => import('./components/UserGuide'));
 const POS = lazy(() => import('./components/sales/POS'));
-const DirectorControlCenter = lazy(() => import('./components/DirectorControlCenter'));
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
   state = { hasError: false, error: null as any };
@@ -145,23 +144,6 @@ export default function App() {
       items: [
         { id: 'dashboard', name: t('Boshqaruv Paneli'), icon: LayoutDashboard, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori', 'Sotuv menejeri', 'Kuryer'] },
         { id: 'exec-dashboard', name: t('Direktor Paneli'), icon: Target, roles: ['Bosh Admin'] },
-      ]
-    },
-    {
-      id: 'director-monitoring',
-      title: t('9. Direktor Monitoring'),
-      icon: MonitorDot,
-      items: [
-        { id: 'director-control',    name: t('Nazorat Markazi'),             icon: MonitorDot,    roles: ['Bosh Admin'] },
-        { id: 'director-production', name: t('Ishlab Chiqarish Monitoring'), icon: Factory,       roles: ['Bosh Admin'] },
-        { id: 'director-live',       name: t('Jonli Jarayon'),               icon: Radio,         roles: ['Bosh Admin'] },
-        { id: 'director-qc',         name: t('QC Monitoring'),               icon: Gauge,         roles: ['Bosh Admin'] },
-        { id: 'director-equipment',  name: t('Uskunalar Holati'),            icon: Timer,         roles: ['Bosh Admin'] },
-        { id: 'director-energy',     name: t('Energiya Monitoring'),         icon: Zap,           roles: ['Bosh Admin'] },
-        { id: 'director-shift',      name: t('Smena Monitoring'),            icon: Users,         roles: ['Bosh Admin'] },
-        { id: 'director-alerts',     name: t('Ogohlantirishlar (Real-Time)'),icon: AlertTriangle, roles: ['Bosh Admin'] },
-        { id: 'director-stats',      name: t('Ishlab Chiqarish Statistikasi'),icon: BarChart3,    roles: ['Bosh Admin'] },
-        { id: 'director-reports',    name: t('Hisobotlar'),                  icon: FileText,      roles: ['Bosh Admin'] },
       ]
     },
     {
@@ -461,17 +443,6 @@ export default function App() {
       case 'pricing': return <DynamicPricing />;
       case 'payroll': return user ? <Payroll user={user} /> : null;
       case 'pos-catalog': return <POS user={user!} />;
-      case 'director-control':
-      case 'director-production':
-      case 'director-live':
-      case 'director-qc':
-      case 'director-equipment':
-      case 'director-energy':
-      case 'director-shift':
-      case 'director-alerts':
-      case 'director-stats':
-      case 'director-reports':
-        return <Suspense fallback={pageLoader}><DirectorControlCenter user={user!} activeTab={activeTab} /></Suspense>;
       default:
         return <Dashboard user={user} onAction={setActiveTab} />;
     }
@@ -692,27 +663,7 @@ export default function App() {
         />
 
         {/* ===== SCROLLABLE CONTENT ===== */}
-        {activeTab.startsWith('director-') ? (
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                className="flex-1 min-h-0 flex flex-col"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ErrorBoundary>
-                  <Suspense fallback={pageLoader}>
-                    {renderActiveTab()}
-                  </Suspense>
-                </ErrorBoundary>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className={`flex-1 p-3 md:p-8 overflow-y-auto overflow-x-hidden relative min-h-0 custom-scrollbar ${isMobile ? 'pb-24' : 'pb-10'}`}>
+        <div className={`flex-1 p-3 md:p-8 overflow-y-auto overflow-x-hidden relative min-h-0 custom-scrollbar ${isMobile ? 'pb-24' : 'pb-10'}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
