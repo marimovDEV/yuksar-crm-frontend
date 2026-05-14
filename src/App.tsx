@@ -149,7 +149,7 @@ export default function App() {
     },
     {
       id: 'warehouse-unified',
-      title: t('1. Ombor Tizimi'),
+      title: t('1. Ombor (WMS)'),
       icon: Database,
       items: [
         { id: 'warehouse', name: t('Ombor Boshqaruvi'), icon: Database, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Sotuv menejeri'] },
@@ -158,7 +158,7 @@ export default function App() {
     },
     {
       id: 'production-main',
-      title: t('2. Ishlab Chiqarish'),
+      title: t('2. Ishlab Chiqarish (MES)'),
       icon: Factory,
       items: [
         { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },

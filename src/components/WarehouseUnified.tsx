@@ -16,7 +16,7 @@ import ScannerModal from './ScannerModal';
 
 interface WarehouseUnifiedProps { user: User; }
 
-type WTab = 'MAP' | 'RAW' | 'WIP' | 'FINISHED' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE';
+type WTab = 'MAP' | 'RAW' | 'FINISHED' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE' | 'LOADING';
 
 const MOVEMENT_TYPES: Record<string, { label: string; color: string; bg: string }> = {
   RECEIPT:    { label: 'Kirim',        color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -70,7 +70,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
 
   // Data
   const [stocks, setStocks]         = useState<any[]>([]);
-  const [blocks, setBlocks]         = useState<any[]>([]);
+
   const [transfers, setTransfers]   = useState<any[]>([]);
   const [movements, setMovements]   = useState<any[]>(DEMO_MOVEMENTS);
   const [stocktake, setStocktake]   = useState<any[]>(DEMO_STOCKTAKE);
@@ -103,9 +103,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
       if (activeTab === 'RAW') {
         const res = await api.get('stocks/', { params: { warehouse_name: 'Sklad №1' } });
         setStocks(res.data.results || res.data);
-      } else if (activeTab === 'WIP') {
-        const res = await api.get('production/blocks/');
-        setBlocks(res.data.results || res.data);
+
       } else if (activeTab === 'FINISHED') {
         const res = await api.get('stocks/', { params: { warehouse: 3 } });
         setStocks(res.data.results || res.data);
@@ -454,57 +452,76 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
     </div>
   );
 
-  // ─── TAB: WIP ─────────────────────────────────────────────────────────────
-  const renderWIP = () => (
+  // ─── TAB: LOADING (Yuklash Zonasi) ─────────────────────────────────────────
+  const renderLoading = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Quritilmoqda', val: `${blocks.filter(b => b.status === 'DRYING').length} dona`, color: 'amber'   },
-          { label: 'Tayyor Bloklar', val: `${blocks.filter(b => b.status === 'READY').length} dona`,  color: 'emerald' },
-          { label: 'QC Kutmoqda',   val: `${blocks.filter(b => b.status === 'QC_PENDING').length} dona`, color: 'indigo' },
-          { label: 'Jami WIP',      val: `${blocks.length} dona`,                                      color: 'blue'    },
+          { label: 'Bugungi jo\'natmalar', val: '8', icon: Truck, color: 'blue' },
+          { label: 'Yuklanmoqda',           val: '3', icon: Package, color: 'amber' },
+          { label: 'Tayyor / Kutmoqda',     val: '5', icon: CheckCircle2, color: 'emerald' },
+          { label: 'Kechikkan',             val: '1', icon: AlertTriangle, color: 'rose' },
         ].map((k) => (
-          <div key={k.label} className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t(k.label)}</p>
-            <h4 className={`text-xl font-black text-${k.color}-600`}>{k.val}</h4>
+          <div key={k.label} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center gap-4">
+            <div className={`w-12 h-12 bg-${k.color}-50 text-${k.color}-600 rounded-2xl flex items-center justify-center shrink-0`}>
+              <k.icon className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{t(k.label)}</p>
+              <h4 className={`text-xl font-black text-${k.color}-600`}>{k.val}</h4>
+            </div>
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blocks.length === 0 && (
-          <div className="col-span-3 py-24 text-center text-slate-400 font-bold">{t('WIP ma\'lumoti yo\'q')}</div>
-        )}
-        {blocks.map(item => (
-          <motion.div
-            key={item.id}
-            layoutId={String(item.id)}
-            className="bg-white p-8 rounded-[48px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-            <div className="flex justify-between items-start mb-6 relative z-10">
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-                <Box className="w-7 h-7" />
-              </div>
-              {item.quantity < (item.min_quantity || 10) && (
-                <span className="bg-rose-50 text-rose-500 text-[9px] font-black uppercase px-3 py-1.5 rounded-xl border border-rose-100 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />{t('Kam Qoldi')}
-                </span>
-              )}
-            </div>
-            <h3 className="text-lg font-black text-slate-900 mb-1">{t('Zames')}: {item.zames_number}</h3>
-            <p className="text-xs font-bold text-slate-400 mb-1">{item.density} kg/m³ | {item.block_count} dona</p>
-            <p className="text-[10px] font-bold text-slate-300 mb-4">Batch: B-{String(item.id).padStart(3,'0')} | Zona: B-01</p>
-            <div className="flex gap-2">
-              <button onClick={() => setDetailItem(item)} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all">{t('Batafsil')}</button>
-              <button className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all" title="Kesish">
-                <Scissors className="w-4 h-4" />
-              </button>
-              <button className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all" title="O'tkazma">
-                <ArrowRightLeft className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        ))}
+
+      <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
+          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">{t('Yuklash Navbati')}</h3>
+          <span className="text-[10px] font-black text-slate-400">8 ta jo'natma</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="bg-slate-50/60">
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Jo'natma ID</th>
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Mijoz</th>
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Mahsulot</th>
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Miqdor</th>
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Transport</th>
+                <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Holat</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {[
+                { id: 'SHP-001', client: 'Tashkent Stroy', product: 'EPS-20 Blok', qty: '12 m³', transport: 'ISUZU #04', status: 'loading' },
+                { id: 'SHP-002', client: 'Samarkand Build', product: 'EPS-25 Blok', qty: '8 m³', transport: 'MAN #02', status: 'loading' },
+                { id: 'SHP-003', client: 'Fergana Insaat', product: 'EPS-15 Blok', qty: '15 m³', transport: 'ISUZU #01', status: 'loading' },
+                { id: 'SHP-004', client: 'Navoiy Qurilish', product: 'EPS-35 Blok', qty: '6 m³', transport: '—', status: 'waiting' },
+                { id: 'SHP-005', client: 'Buxoro Stroy', product: 'EPS-20 Blok', qty: '10 m³', transport: '—', status: 'waiting' },
+                { id: 'SHP-006', client: 'Jizzax Insaat', product: 'EPS-25 Blok', qty: '5 m³', transport: 'MAN #03', status: 'waiting' },
+                { id: 'SHP-007', client: 'Andijon Build', product: 'EPS-15 Blok', qty: '20 m³', transport: '—', status: 'waiting' },
+                { id: 'SHP-008', client: 'Xorazm Stroy', product: 'EPS-20 Blok', qty: '9 m³', transport: '—', status: 'delayed' },
+              ].map((s) => (
+                <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-black text-blue-600">{s.id}</td>
+                  <td className="px-6 py-4 text-sm font-black text-slate-800">{s.client}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-600">{s.product}</td>
+                  <td className="px-6 py-4 text-right font-black text-slate-900">{s.qty}</td>
+                  <td className="px-6 py-4 text-center text-sm font-bold text-slate-500">{s.transport}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest ${
+                      s.status === 'loading' ? 'bg-amber-50 text-amber-600' :
+                      s.status === 'waiting' ? 'bg-blue-50 text-blue-600' :
+                      'bg-rose-50 text-rose-600'
+                    }`}>
+                      {s.status === 'loading' ? t('Yuklanmoqda') : s.status === 'waiting' ? t('Navbatda') : t('Kechikkan')}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -785,14 +802,14 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   // TABS CONFIG
   // ─────────────────────────────────────────────────────────────────────────
   const TABS: { id: WTab; name: string; icon: any }[] = [
-    { id: 'MAP',       name: t('Live Xarita'),    icon: MapPin         },
-    { id: 'RAW',       name: t('Xom Ashyo'),      icon: Database       },
-    { id: 'WIP',       name: t('WIP'),             icon: Layers         },
-    { id: 'FINISHED',  name: t('Tayyor'),           icon: Package        },
-    { id: 'MOVEMENTS', name: t('Harakatlar'),       icon: Activity       },
+    { id: 'MAP',       name: t('Live Xarita'),      icon: MapPin         },
+    { id: 'RAW',       name: t('Xom Ashyo'),        icon: Database       },
+    { id: 'FINISHED',  name: t('Tayyor'),            icon: Package        },
+    { id: 'MOVEMENTS', name: t('Harakatlar'),        icon: Activity       },
     { id: 'ZONES',     name: t('Zonalar'),           icon: MapPin         },
+    { id: 'LOADING',   name: t('Yuklash'),           icon: Truck          },
     { id: 'ANALYTICS', name: t('Tahlil'),            icon: BarChart3      },
-    { id: 'STOCKTAKE', name: t('Inventarizatsiya'), icon: ClipboardList  },
+    { id: 'STOCKTAKE', name: t('Inventarizatsiya'),  icon: ClipboardList  },
   ];
 
   const inputCls = 'w-full px-5 py-3.5 rounded-2xl border border-slate-200 text-sm font-bold text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all bg-slate-50/50';
@@ -848,7 +865,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
               {[
                 { label: 'Xom-ashyo', val: '84%', color: 'blue'    },
                 { label: 'Tayyor',    val: '92%', color: 'indigo'  },
-                { label: 'WIP',       val: '45%', color: 'amber'   },
+                { label: 'Yuklash',   val: '45%', color: 'amber'   },
                 { label: 'Chiqindi',  val: '2%',  color: 'rose'    },
               ].map((s) => (
                 <div key={s.label} className="space-y-2">
@@ -956,10 +973,10 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
               <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
             </div>
           ) : activeTab === 'RAW'       ? renderInventory('RAW')
-            : activeTab === 'WIP'       ? renderWIP()
             : activeTab === 'FINISHED'  ? renderInventory('FINISHED')
             : activeTab === 'MOVEMENTS' ? renderMovements()
             : activeTab === 'ZONES'     ? renderZones()
+            : activeTab === 'LOADING'   ? renderLoading()
             : activeTab === 'ANALYTICS' ? renderAnalytics()
             : renderStocktake()}
         </motion.div>
