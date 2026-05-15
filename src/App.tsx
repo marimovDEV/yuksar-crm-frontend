@@ -163,7 +163,10 @@ export default function App() {
       items: [
         { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
         { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori'] },
+        { id: 'cnc', name: t('CNC Kesish Sexi'), icon: Scissors, roles: ['Bosh Admin', 'CNC operatori', 'Ishlab chiqarish ustasi'] },
+        { id: 'finishing', name: t('Finishing Sexi'), icon: Brush, roles: ['Bosh Admin', 'Pardozlovchi', 'Ishlab chiqarish ustasi'] },
         { id: 'qc', name: t('Sifat Nazorati (QC)'), icon: CheckCircle2, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
+        { id: 'waste', name: t('Chiqindi Boshqaruvi'), icon: Trash2, roles: ['Bosh Admin', 'Chiqindi operatori', 'Ishlab chiqarish ustasi'] },
       ]
     },
     {
