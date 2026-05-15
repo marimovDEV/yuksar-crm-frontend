@@ -16,7 +16,7 @@ import ScannerModal from './ScannerModal';
 
 interface WarehouseUnifiedProps { user: User; }
 
-type WTab = 'MAP' | 'RAW' | 'FINISHED' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE' | 'LOADING';
+type WTab = 'MAP' | 'SK1' | 'SK2' | 'SK3' | 'SK4' | 'MOVEMENTS' | 'ZONES' | 'ANALYTICS' | 'STOCKTAKE';
 
 const MOVEMENT_TYPES: Record<string, { label: string; color: string; bg: string }> = {
   RECEIPT:    { label: 'Kirim',        color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -100,12 +100,14 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      if (activeTab === 'RAW') {
+      if (activeTab === 'SK1') {
         const res = await api.get('stocks/', { params: { warehouse_name: 'Sklad №1' } });
         setStocks(res.data.results || res.data);
 
-      } else if (activeTab === 'FINISHED') {
-        const res = await api.get('stocks/', { params: { warehouse: 3 } });
+      } else if (activeTab === 'SK2' || activeTab === 'SK3') {
+        // Ombor №2 - Bloklar ombori, Ombor №3 - Dekorativ/Finishing
+        const warehouseId = activeTab === 'SK2' ? 2 : 3;
+        const res = await api.get('stocks/', { params: { warehouse: warehouseId } });
         setStocks(res.data.results || res.data);
       } else if (activeTab === 'MOVEMENTS') {
         try {
@@ -803,11 +805,12 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   // ─────────────────────────────────────────────────────────────────────────
   const TABS: { id: WTab; name: string; icon: any }[] = [
     { id: 'MAP',       name: t('Live Xarita'),      icon: MapPin         },
-    { id: 'RAW',       name: t('Xom Ashyo'),        icon: Database       },
-    { id: 'FINISHED',  name: t('Tayyor'),            icon: Package        },
+    { id: 'SK1',       name: t('SK-1 Xom Ashyo'),   icon: Database       },
+    { id: 'SK2',       name: t('SK-2 Bloklar'),     icon: Box            },
+    { id: 'SK3',       name: t('SK-3 Dekorativ'),   icon: Package        },
+    { id: 'SK4',       name: t('SK-4 Jo\'natish'),  icon: Truck          },
     { id: 'MOVEMENTS', name: t('Harakatlar'),        icon: Activity       },
     { id: 'ZONES',     name: t('Zonalar'),           icon: MapPin         },
-    { id: 'LOADING',   name: t('Yuklash'),           icon: Truck          },
     { id: 'ANALYTICS', name: t('Tahlil'),            icon: BarChart3      },
     { id: 'STOCKTAKE', name: t('Inventarizatsiya'),  icon: ClipboardList  },
   ];
@@ -972,11 +975,12 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
             <div className="flex items-center justify-center py-40">
               <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
             </div>
-          ) : activeTab === 'RAW'       ? renderInventory('RAW')
-            : activeTab === 'FINISHED'  ? renderInventory('FINISHED')
+          ) : activeTab === 'SK1'       ? renderInventory('RAW') // SK1 shows Raw Materials
+            : activeTab === 'SK2'       ? renderInventory('FINISHED') // Assuming SK2 also shows products like FINISHED did
+            : activeTab === 'SK3'       ? renderInventory('FINISHED') // Assuming SK3 also shows products like FINISHED did
+            : activeTab === 'SK4'       ? renderLoading() // SK4 is for loading/shipping
             : activeTab === 'MOVEMENTS' ? renderMovements()
             : activeTab === 'ZONES'     ? renderZones()
-            : activeTab === 'LOADING'   ? renderLoading()
             : activeTab === 'ANALYTICS' ? renderAnalytics()
             : renderStocktake()}
         </motion.div>
