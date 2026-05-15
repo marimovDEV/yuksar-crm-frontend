@@ -232,8 +232,15 @@ export default function Finishing({ user }: { user: User }) {
                     </button>
                     {activeJob.current_stage !== 'READY' && (
                        <button 
-                        onClick={() => handleAction(activeJob.id, 'advance')}
-                        className="flex-1 min-w-[200px] py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3"
+                        onClick={() => {
+                          if (activeJob.current_stage === 'DRYING' && activeTimer < 21600) {
+                            uiStore.showNotification('Quritish tugallanmagan (kamida 6 soat kutish kerak)', 'error');
+                            return;
+                          }
+                          handleAction(activeJob.id, 'advance')
+                        }}
+                        disabled={activeJob.current_stage === 'DRYING' && activeTimer < 21600}
+                        className={`flex-1 min-w-[200px] py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${activeJob.current_stage === 'DRYING' && activeTimer < 21600 ? 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/20'}`}
                       >
                         <ArrowRight className="w-5 h-5" />
                         KEYINGI BOSQICHGA O'TISH
@@ -241,10 +248,15 @@ export default function Finishing({ user }: { user: User }) {
                     )}
                     <button 
                       onClick={() => {
+                        if (activeJob.current_stage === 'DRYING' && activeTimer < 21600) {
+                          uiStore.showNotification('Quritish tugallanmagan (kamida 6 soat kutish kerak)', 'error');
+                          return;
+                        }
                         setSelectedJob(activeJob);
                         setIsFinishModalOpen(true);
                       }}
-                      className="flex-1 min-w-[200px] py-6 bg-emerald-500 hover:bg-emerald-400 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3"
+                      disabled={activeJob.current_stage === 'DRYING' && activeTimer < 21600}
+                      className={`flex-1 min-w-[200px] py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${activeJob.current_stage === 'DRYING' && activeTimer < 21600 ? 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600' : 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-xl shadow-emerald-500/20'}`}
                     >
                       <CheckCircle2 className="w-5 h-5" />
                       ISHNI YAKUNLASH

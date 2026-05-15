@@ -26,7 +26,9 @@ import {
   Activity,
   Maximize2,
   Wind,
-  Zap
+  Zap,
+  Sun,
+  Moon
 } from 'lucide-react';
 import api from '../lib/api';
 import { User, Zames, Bunker, Recipe, RawMaterialBatch, Material, ProductionOrder, ProductionOrderStage, BlockProduction, FinishedBlock } from '../types';
@@ -389,9 +391,38 @@ export default function ProductionFloor({ user }: { user: User }) {
 
   const availableZames = zamesy.filter(z => z.status === 'DONE' && !bunkers.some(b => b.batchNumber === `EXP-${z.zames_number}`));
 
+  const now = new Date();
+  const isDayShift = now.getHours() >= 8 && now.getHours() < 20;
+  const shiftName = isDayShift ? t('Kunlik Smena') : t('Tungi Smena');
+  const shiftTime = isDayShift ? '08:00 - 20:00' : '20:00 - 08:00';
+
   return (
     <>
       <div className="space-y-6">
+        {/* ── Smena Boshqaruvi (TZ §6.9) ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 rounded-[32px] p-6 text-white shadow-xl shadow-slate-200 border border-slate-800">
+           <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center">
+                 {isDayShift ? <Sun className="w-7 h-7 text-amber-400" /> : <Moon className="w-7 h-7 text-indigo-400" />}
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">{t('Joriy Smena')}</p>
+                 <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-black tracking-tight">{shiftName}</h2>
+                    <span className="px-3 py-1 bg-white/10 text-white/80 rounded-xl text-xs font-black tracking-widest uppercase">{shiftTime}</span>
+                 </div>
+              </div>
+           </div>
+           <div className="mt-4 md:mt-0 flex items-center gap-3">
+              <button 
+                onClick={() => uiStore.showNotification(t("Smena yopildi va hisobot yaratildi"), "success")}
+                className="px-6 py-4 bg-rose-600 hover:bg-rose-500 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 shadow-lg shadow-rose-900/20"
+              >
+                 <CheckCircle2 className="w-4 h-4" /> {t("Smenani Yakunlash")}
+              </button>
+           </div>
+        </div>
+
         {/* Real-time Machine Status Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
            <div className="p-4 bg-white rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
