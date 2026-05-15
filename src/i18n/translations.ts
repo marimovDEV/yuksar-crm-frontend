@@ -62,6 +62,30 @@ const ENTERPRISE_KEYS: Record<string, Record<AppLanguage, string>> = {
   'ui.cancel': { uz: 'Bekor qilish', ru: 'Отмена' },
   'ui.search': { uz: 'Qidirish...', ru: 'Поиск...' },
   'ui.loading': { uz: 'Yuklanmoqda...', ru: 'Загрузка...' },
+
+  // Industrial Terminology Overrides
+  'Progress': { uz: 'Jarayon', ru: 'Прогресс' },
+  'Target': { uz: 'Reja', ru: 'План' },
+  'OFF': { uz: 'O‘chiq', ru: 'Отключен' },
+  'READY': { uz: 'Tayyor', ru: 'Готов' },
+  'ACTIVE': { uz: 'Faol', ru: 'Активен' },
+  'PENDING': { uz: 'Kutilmoqda', ru: 'Ожидается' },
+  'COMPLETED': { uz: 'Yakunlangan', ru: 'Завершено' },
+  'Dashboard': { uz: 'Boshqaruv paneli', ru: 'Панель управления' },
+  'Production': { uz: 'Ishlab chiqarish', ru: 'Производство' },
+  'Inventory': { uz: 'Ombor qoldig‘i', ru: 'Остаток' },
+  'Delivery': { uz: 'Yetkazib berish', ru: 'Доставка' },
+  'Invoice': { uz: 'Hisob-faktura', ru: 'Счет-фактура' },
+  'Cooling': { uz: 'Sovutish bosqichi', ru: 'Этап охлаждения' },
+  'Finishing': { uz: 'Yakuniy ishlov', ru: 'Финишная обработка' },
+  'Waste': { uz: 'Chiqindi', ru: 'Отход' },
+  'Driver': { uz: 'Haydovchi', ru: 'Водитель' },
+  'Alert': { uz: 'Ogohlantirish', ru: 'Предупреждение' },
+  'Machine': { uz: 'Stanok', ru: 'Станок' },
+  'System': { uz: 'Tizim', ru: 'Система' },
+  'Refresh': { uz: 'Yangilash', ru: 'Обновить' },
+  'CNC-2: ⚠ OFF': { uz: 'CNC-2: To‘xtagan', ru: 'CNC-2: Отключен' },
+  'Alert!': { uz: 'Ogohlantirish', ru: 'Предупреждение' },
 };
 
 const EXACT_RU_TRANSLATIONS: Record<string, string> = {
@@ -2049,7 +2073,7 @@ function translateTrimmedText(text: string, language: AppLanguage): string {
 }
 
 export function translateText(text: string, language: AppLanguage): string {
-  if (!text || language === 'uz') {
+  if (!text) {
     return text;
   }
 

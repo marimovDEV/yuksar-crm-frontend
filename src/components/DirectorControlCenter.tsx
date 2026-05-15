@@ -89,7 +89,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
       id: 'production', icon: Factory, label: t('Ishlab Chiqarish'), color: 'blue',
       stats: [
         { key: 'Bugun', val: `${data?.production_status?.today_count || 82} m³` },
-        { key: 'Target', val: '140 m³' },
+        { key: t('Target'), val: '140 m³' },
       ],
       progress: Math.round(((data?.production_status?.today_count || 82) / 140) * 100),
       badges: [
@@ -107,7 +107,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
       progress: 65,
       badges: [
         { text: 'CNC-1: ● 70%', color: 'text-emerald-600' },
-        { text: 'CNC-2: ⚠ OFF', color: 'text-amber-600' },
+        { text: t('CNC-2: ⚠ OFF'), color: 'text-amber-600' },
       ],
     },
     {
