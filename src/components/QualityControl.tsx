@@ -41,6 +41,7 @@ export default function QualityControl({ user }: { user: UserType }) {
   const [selectedBlockForPassport, setSelectedBlockForPassport] = useState<FinishedBlock | null>(null);
   const [selectedBatchForQC, setSelectedBatchForQC] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'DONE'>('ALL');
 
   const fetchData = async () => {
     try {
@@ -65,18 +66,55 @@ export default function QualityControl({ user }: { user: UserType }) {
   const filteredBlocks = blocks.filter(b => {
     const matchesSearch = (b.block_id || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                          (b.recipe_name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeTab === 'queue') return matchesSearch && b.status === 'QC_PENDING';
-    if (activeTab === 'history') return matchesSearch && b.status !== 'QC_PENDING';
-    return matchesSearch;
+    const matchesStatus = statusFilter === 'ALL' ? true : statusFilter === 'PENDING' ? b.status === 'QC_PENDING' : b.status !== 'QC_PENDING';
+    if (activeTab === 'queue') return matchesSearch && b.status === 'QC_PENDING' && matchesStatus;
+    if (activeTab === 'history') return matchesSearch && b.status !== 'QC_PENDING' && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const filteredBatches = batches.filter(b => {
     const matchesSearch = (b.batch_number || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                          (b.material_name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeTab === 'queue') return matchesSearch && b.status === 'INSPECTION';
-    if (activeTab === 'history') return matchesSearch && b.status !== 'INSPECTION' && b.status !== 'RECEIVED';
-    return matchesSearch;
+    const matchesStatus = statusFilter === 'ALL' ? true : statusFilter === 'PENDING' ? b.status === 'INSPECTION' : b.status !== 'INSPECTION' && b.status !== 'RECEIVED';
+    if (activeTab === 'queue') return matchesSearch && b.status === 'INSPECTION' && matchesStatus;
+    if (activeTab === 'history') return matchesSearch && b.status !== 'INSPECTION' && b.status !== 'RECEIVED' && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
+
+  const downloadCsv = (rows: Record<string, any>[], fileName: string) => {
+    const keys = Object.keys(rows[0] || {});
+    const csv = [keys.join(','), ...rows.map((row) => keys.map((key) => JSON.stringify(row[key] ?? '')).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportCurrentData = () => {
+    const rows = (qcType === 'BLOCKS' ? filteredBlocks : filteredBatches).map((item: any) => ({
+      id: qcType === 'BLOCKS' ? item.block_id : item.batch_number,
+      name: qcType === 'BLOCKS' ? item.recipe_name : item.material_name,
+      status: item.status_display || item.status,
+      responsible: item.operator_name || item.responsible_user_name || '',
+      date: item.created_at || item.date || '',
+    }));
+    downloadCsv(rows, `qc-${qcType.toLowerCase()}-${Date.now()}.csv`);
+    uiStore.showNotification("QC eksport tayyorlandi", 'success');
+  };
+
+  const exportRejects = () => {
+    const rows = blocks.filter(b => b.classification === 'REJECT').map((block) => ({
+      block_id: block.block_id,
+      recipe: block.recipe_name,
+      status: block.status_display,
+      classification: block.classification_display,
+    }));
+    downloadCsv(rows, `reject-gallery-${Date.now()}.csv`);
+    uiStore.showNotification("Reject gallery eksport qilindi", 'success');
+  };
 
   const stats = qcType === 'BLOCKS' ? [
     { label: 'Bugun Tekshirildi', val: blocks.filter(b => b.status !== 'QC_PENDING').length, color: 'blue', icon: ClipboardList },
@@ -114,7 +152,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                 className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl outline-none text-xs font-bold w-64 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all shadow-sm"
               />
            </div>
-           <button className="p-4 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+           <button onClick={() => setStatusFilter(statusFilter === 'ALL' ? 'PENDING' : statusFilter === 'PENDING' ? 'DONE' : 'ALL')} className="p-4 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm" title={t('Filtr')}>
               <Filter className="w-5 h-5" />
            </button>
         </div>
@@ -284,7 +322,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('Actual')}</p>
                           <p className="text-2xl font-black text-emerald-400">97.2%</p>
                        </div>
-                       <button className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-slate-50 transition-all">
+                       <button onClick={exportCurrentData} className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-slate-50 transition-all">
                           {t('Eksport (PDF)')}
                        </button>
                     </div>
@@ -298,7 +336,7 @@ export default function QualityControl({ user }: { user: UserType }) {
                        <p className="text-slate-500 text-sm font-medium">{t('Sifat talablariga javob bermagan mahsulotlar arxivi')}</p>
                     </div>
                     <div className="flex gap-2">
-                       <button className="px-5 py-2.5 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100">{t('Hammasini Chiqarish')}</button>
+                       <button onClick={exportRejects} className="px-5 py-2.5 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100">{t('Hammasini Chiqarish')}</button>
                     </div>
                  </div>
 

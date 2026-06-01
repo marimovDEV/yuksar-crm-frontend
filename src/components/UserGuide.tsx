@@ -1,284 +1,243 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  BookOpen, 
-  ChevronRight, 
-  PlayCircle, 
-  ShieldCheck, 
-  Zap, 
-  Clock, 
-  HelpCircle,
-  FileText,
-  Search,
-  Layout,
-  Database,
-  Factory,
-  ShoppingCart,
-  Users,
-  Wallet,
-  Calculator,
-  Shield,
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  Printer,
-  QrCode,
-  Download,
-  Settings,
-  Truck,
-  Layers,
-  Scissors,
-  UserCheck,
-  ClipboardList,
-  Target,
-  BarChart,
-  HardDrive,
-  Cpu,
-  Feather
+  BookOpen, Database, Factory, Wallet, ShieldCheck, 
+  ChevronRight, PlayCircle, Info, CheckCircle2, ShoppingCart, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
-import api from '../lib/api';
+import erpTourVideo from '../assets/images/erp_grand_tour.webp';
 
-const ICON_MAP: Record<string, any> = {
-  'Layout': Layout,
-  'Database': Database,
-  'Factory': Factory,
-  'ShoppingBag': ShoppingCart,
-  'BarChart3': BarChart,
-  'UserCheck': UserCheck,
-  'Settings': Settings,
-  'BookOpen': BookOpen,
-  'ShieldCheck': ShieldCheck,
-  'Zap': Zap
-};
+interface GuideStep {
+  step: string;
+  desc: string;
+}
 
 interface GuideContent {
-  id: number;
-  title_uz: string;
-  title_ru: string;
-  body_uz: string;
-  body_ru: string;
-  order: number;
+  title: string;
+  description: string;
+  steps: GuideStep[];
+  outcome: string;
 }
 
-interface GuideSection {
-  id: number;
-  title_uz: string;
-  title_ru: string;
-  icon: string;
-  order: number;
-  contents: GuideContent[];
-}
+const GUIDE_DATA_UZ: Record<string, GuideContent> = {
+  warehouse: {
+    title: "1. Omborda Xom-ashyo Kirimi",
+    description: "Yangi xom-ashyo kelganda uni tizimga kirim qilish va ombor balansini oshirish jarayoni.",
+    steps: [
+      { step: "Tizimga kirish", desc: "Chap menyudan 'Ombor (WMS)' -> 'Ombor Boshqaruvi' bo'limini tanlang." },
+      { step: "Kirimni boshlash", desc: "Yuqoridagi 'Kirim qilish' (+) tugmasini bosing." },
+      { step: "Ma'lumotlarni kiritish", desc: "Ta'minotchi ismini tanlang, material turini (masalan, Granula) va tarozidagi haqiqiy og'irlikni (kg) kiriting." },
+      { step: "Saqlash", desc: "'Saqlash' tugmasini bosing. Tizim avtomatik ravishda yangi xom-ashyo partiyasini (Batch) yaratadi va omborga qo'shadi." }
+    ],
+    outcome: "Ombordagi xom-ashyo qoldig'i real vaqtda yangilanadi va moliya balansida ta'minotchiga qarz yoziladi."
+  },
+  production: {
+    title: "2. Ishlab Chiqarish (MES Flow)",
+    description: "Xom-ashyodan tayyor aralashma (zames) qilish va undan bloklar quyish jarayoni.",
+    steps: [
+      { step: "Zames boshlash", desc: "'Ishlab Chiqarish (MES)' -> 'Ishlab Chiqarish Poligoni'ga o'ting va 'Yangi zames' tugmasini bosing." },
+      { step: "Retsept tanlash", desc: "Kerakli retseptni (masalan, D20) tanlang. Tizim avtomatik granula miqdorini hisoblaydi va ombordan yechadi." },
+      { step: "Bunker kutish vaqti", desc: "Zamesni bunkerga yuklang. Bunker taymeri (4-6 soat) tugagach, yashil rangga kiradi." },
+      { step: "Blok quyish va QR", desc: "Bunkerdan aralashmani olib, formaga quying va 'Blok quyish'ni bosing. Tizim yaratgan QR-kodni chop etib, blokka yopishtiring." }
+    ],
+    outcome: "Ishlab chiqarilgan blok avtomatik ravishda 'Sovutilmoqda (Cooling)' holatida zaxiraga kiradi."
+  },
+  sales: {
+    title: "3. Sotuv va Yetkazib Berish",
+    description: "Mijozga tovar sotish, pulini hisoblash va yuk mashinasida yuborish jarayoni.",
+    steps: [
+      { step: "Buyurtma ochish", desc: "'Sotuvlar' bo'limidan mijozni tanlang va mahsulot hamda uning miqdorini qo'shib 'Saqlash'ni bosing." },
+      { step: "Zaxira tekshiruvi", desc: "Agar omborda tayyor mahsulot bo'lsa buyurtma 'Confirmed' bo'ladi, agar yo'q bo'lsa avtomatik ishlab chiqarishga navbatga turadi." },
+      { step: "Yukni jo'natish", desc: "Mahsulot tayyor bo'lgach, holatni 'Shipped' qiling. Bu kuryer ilovasida yetkazib berish ro'yxatini shakllantiradi." },
+      { step: "Yetkazish", desc: "Kuryer yukni manzilga topshirgach, telefondan 'Yetkazildi' tugmasini bosadi va buyurtma yakunlanadi." }
+    ],
+    outcome: "Mahsulot ombordan chiqib ketadi va kassa yoki mijoz qarz balansi avtomatik tarzda shakllanadi."
+  },
+  finance: {
+    title: "4. Moliya va Kassa Nazorati",
+    description: "Kassadagi pullar, tushumlar va zavod xarajatlarining 100% shaffof hisobi.",
+    steps: [
+      { step: "Kassa aylanmasi", desc: "Barcha savdolar to'lov usuliga qarab (Naqd, Karta, Bank) tegishli kassa balansiga tushadi." },
+      { step: "Xarajatlarni yozish", desc: "Ish haqi, elektr, ijara kabi barcha chiqimlarni o'z vaqtida tegishli toifa bilan chiqim qiling." },
+      { step: "Direktor tahlili", desc: "Bosh sahifadagi grafiklar va tushum ko'rsatkichlari orqali zavodning sof foydasini kuzatib boring." }
+    ],
+    outcome: "Zavodning moliya va buxgalteriya balansi har doim tiyin-tiyinigacha to'g'ri chiqadi."
+  }
+};
+
+const GUIDE_DATA_RU: Record<string, GuideContent> = {
+  warehouse: {
+    title: "1. Приемка сырья на Склад",
+    description: "Процесс оприходования нового сырья при поступлении на завод и увеличения баланса склада.",
+    steps: [
+      { step: "Вход в систему", desc: "В левом меню выберите 'Склад (WMS)' -> 'Управление складом'." },
+      { step: "Начало приемки", desc: "Нажмите кнопку 'Приемка' (+) в верхней части экрана." },
+      { step: "Ввод данных", desc: "Выберите поставщика, тип сырья (например, Гранулы) и укажите точный вес (кг) с весов." },
+      { step: "Сохранение", desc: "Нажмите кнопку 'Сохранить'. Система автоматически создаст новую партию (Batch) и добавит ее на склад." }
+    ],
+    outcome: "Остаток сырья на складе обновляется в реальном времени, а в финансовом балансе фиксируется долг перед поставщиком."
+  },
+  production: {
+    title: "2. Производство (MES Flow)",
+    description: "Процесс создания готовой смеси (замеса) из сырья и формования блоков.",
+    steps: [
+      { step: "Запуск замеса", desc: "Перейдите в 'Производство (MES)' -> 'Производственный полигон' и нажмите 'Новый замес'." },
+      { step: "Выбор рецепта", desc: "Выберите нужный рецепт (например, D20). Система автоматически рассчитает и спишет необходимое сырье со склада." },
+      { step: "Выдержка в бункере", desc: "Загрузите смесь в бункер. Когда таймер бункера (4-6 часов) истечет, его индикатор загорится зеленым." },
+      { step: "Формовка и QR-код", desc: "Вылейте смесь из бункера в форму, сформируйте блок и нажмите 'Литье блока'. Распечатайте созданный QR-код и наклейте на блок." }
+    ],
+    outcome: "Произведенный блок автоматически поступает на склад в статусе 'Охлаждение (Cooling)'."
+  },
+  sales: {
+    title: "3. Продажи и Доставка",
+    description: "Продажа товара клиенту, расчет стоимости и отправка грузовым транспортом.",
+    steps: [
+      { step: "Создание заказа", desc: "В разделе 'Продажи' выберите клиента, добавьте товары, укажите их количество и нажмите 'Сохранить'." },
+      { step: "Проверка наличия", desc: "Если товар есть на складе, заказ подтверждается. Если товара нет, он автоматически становится в очередь на производство." },
+      { step: "Отгрузка", desc: "Когда товар готов, измените статус на 'Отгружен (Shipped)'. Это добавит заказ в список доставки в приложении курьера." },
+      { step: "Вручение", desc: "После доставки курьер нажимает кнопку 'Доставлено' в приложении, и заказ завершается." }
+    ],
+    outcome: "Товар списывается со склада, а баланс кассы и долг клиента обновляются автоматически."
+  },
+  finance: {
+    title: "4. Финансы и Касса",
+    description: "100% прозрачный учет всех касс, поступлений и расходов завода.",
+    steps: [
+      { step: "Обороты кассы", desc: "Все продажи автоматически поступают на баланс соответствующей кассы в зависимости от метода оплаты (Наличные, Карта, Банк)." },
+      { step: "Фиксация расходов", desc: "Своевременно оформляйте расходы на зарплату, электричество, аренду и другие нужды с указанием категории." },
+      { step: "Анализ директора", desc: "Следите за чистой прибылью завода с помощью графиков и финансовых показателей на главной странице." }
+    ],
+    outcome: "Финансовый и бухгалтерский баланс завода всегда сходится до копейки."
+  }
+};
 
 export default function UserGuide() {
-  const { t, language } = useI18n();
-  const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
-  const [sections, setSections] = useState<GuideSection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { language, t } = useI18n();
+  const [activeTab, setActiveTab] = useState<'warehouse' | 'production' | 'sales' | 'finance'>('warehouse');
 
-  useEffect(() => {
-    const fetchGuide = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('user-guide/');
-        const data = response.data;
-        
-        if (data && data.length > 0) {
-          setSections(data);
-          setActiveSectionId(data[0].id);
-        } else {
-          // Professional Fallback Data
-          const fallback: GuideSection[] = [
-            {
-              id: 1, title_uz: 'Boshqaruv Paneli', title_ru: 'Панель управления', icon: 'Layout', order: 1,
-              contents: [
-                { id: 101, title_uz: 'Direktor Paneli', title_ru: 'Панель директора', body_uz: 'Zavodning barcha operatsion ko\'rsatkichlarini real vaqtda kuzatish. KPI kartalari bugungi ishlab chiqarish, sotuv va moliyaviy holatni ko\'rsatib turadi.', body_ru: 'Мониторинг всех операционных показателей завода в реальном времени. Карты KPI показывают сегодняшнее производство, продажи и финансовое состояние.', order: 1 },
-                { id: 102, title_uz: 'Monitoring', title_ru: 'Мониторинг', body_uz: 'Uskunalar holati va aktiv liniyalarni "Monitoring" bo\'limida kuzatishingiz mumkin. Har bir uskuna o\'zining texnik ko\'rsatkichlarini (bosim, harorat, yuklama) ko\'rsatadi.', body_ru: 'Состояние оборудования и активные линии можно отслеживать в разделе «Мониторинг». Каждое оборудование показывает свои технические показатели (давление, температура, нагрузка).', order: 2 }
-              ]
-            },
-            {
-              id: 2, title_uz: 'Ishlab Chiqarish', title_ru: 'Производство', icon: 'Factory', order: 2,
-              contents: [
-                { id: 201, title_uz: 'Zames va Bunkerlar', title_ru: 'Замесы и Бункеры', body_uz: 'Xom-ashyoni ko\'pirtirish (zames) va ularni saqlash bunkerlariga yuklash jarayoni. Har bir zamesga mahsulot pasporti biriktiriladi.', body_ru: 'Процесс вспенивания сырья (замес) и их загрузка в бункеры хранения. К каждому замесу прилагается паспорт изделия.', order: 1 },
-                { id: 202, title_uz: 'Blok Formovka', title_ru: 'Формовка блоков', body_uz: 'Bunkerlardagi tayyor materialdan bloklar quyish. Har bir blok o\'zining QR kodi va pasportiga ega bo\'ladi.', body_ru: 'Литье блоков из готового материала в бункерах. Каждый блок будет иметь свой QR-код и паспорт.', order: 2 }
-              ]
-            },
-            {
-              id: 3, title_uz: 'Ombor va Logistika', title_ru: 'Склад и Логистика', icon: 'Database', order: 3,
-              contents: [
-                { id: 301, title_uz: 'Xom-ashyo Qabuli', title_ru: 'Прием сырья', body_uz: 'Kutilayotgan xom-ashyo partiyalarini qabul qilish va Sifat Nazorati (QC) dan o\'tkazish.', body_ru: 'Прием ожидаемых партий сырья и прохождение контроля качества (QC).', order: 1 },
-                { id: 302, title_uz: 'Tayyor Mahsulot', title_ru: 'Готовая продукция', body_uz: 'Tayyor bloklarni mijozlarga yuklash va logistika nazorati.', body_ru: 'Погрузка готовых блоков заказчикам и логистический контроль.', order: 2 }
-              ]
-            },
-            {
-              id: 4, title_uz: 'Moliya va Hisobotlar', title_ru: 'Финансы и Отчеты', icon: 'Wallet', order: 4,
-              contents: [
-                { id: 401, title_uz: 'Pul Oqimi', title_ru: 'Движение денежных средств', body_uz: 'Kassalar va bank hisoblaridagi barcha tranzaksiyalar nazorati. Daromad va xarajatlarni toifalash.', body_ru: 'Контроль всех операций по кассам и банковским счетам. Классификация доходов и расходов.', order: 1 },
-                { id: 402, title_uz: 'Buxgalteriya', title_ru: 'Бухгалтерия', body_uz: 'Double-entry tizimi asosidagi buxgalteriya hisobi, balans va P&L hisobotlari.', body_ru: 'Бухгалтерский учет на основе системы двойной записи, балансовые отчеты и отчеты о прибылях и убытках.', order: 2 }
-              ]
-            }
-          ];
-          setSections(fallback);
-          setActiveSectionId(1);
-        }
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch user guide:', err);
-        setError(t('Ma\'lumotlarni yuklashda xatolik yuz berdi'));
-      } finally {
-        setLoading(false);
-      }
-    };
+  const guideData = language === 'ru' ? GUIDE_DATA_RU : GUIDE_DATA_UZ;
+  const currentGuide = guideData[activeTab];
 
-    fetchGuide();
-  }, [t]);
-
-  const activeSection = sections.find(s => s.id === activeSectionId);
-  const ActiveIcon = activeSection ? (ICON_MAP[activeSection.icon] || HelpCircle) : Layout;
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[600px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[600px] space-y-4">
-        <AlertTriangle className="w-16 h-16 text-rose-500" />
-        <p className="text-slate-600 font-bold">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold"
-        >
-          {t('Qayta urinish')}
-        </button>
-      </div>
-    );
-  }
+  const TABS = [
+    { id: 'warehouse', label: language === 'ru' ? "Склад" : "Ombor", icon: Database },
+    { id: 'production', label: language === 'ru' ? "Производство" : "Ishlab chiqarish", icon: Factory },
+    { id: 'sales', label: language === 'ru' ? "Продажи" : "Sotuv", icon: ShoppingCart },
+    { id: 'finance', label: language === 'ru' ? "Финансы" : "Moliya", icon: Wallet }
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 pb-20">
-      {/* Hero Header */}
-      <div className="bg-slate-900 rounded-[56px] p-12 md:p-20 text-white relative overflow-hidden shadow-2xl">
-         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] -mr-20 -mt-20" />
-         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
-            <div className="text-center md:text-left space-y-6 max-w-xl">
-               <div className="inline-flex items-center gap-3 bg-white/10 px-6 py-2.5 rounded-full border border-white/10 backdrop-blur-md">
-                  <BookOpen className="w-5 h-5 text-indigo-400" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('Yuksar ERP Qo\'llanmasi')} v2.4</span>
-               </div>
-               <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-none">
-                 {t('Tizimdan foydalanish')} <span className="text-indigo-400">{t('to\'liq instruksiyasi')}</span>
-               </h1>
-               <p className="text-slate-400 text-sm md:text-lg font-medium leading-relaxed">
-                 {t("Barcha modullar, xodimlar rollari va tizim imkoniyatlari bo'yicha batafsil qo'llanma.")}
-               </p>
+    <div className="max-w-6xl mx-auto space-y-6 pb-20 px-4">
+      
+      {/* Video Grand Tour Block */}
+      <div className="bg-white rounded-[32px] p-6 border border-slate-200 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div className="md:col-span-7 space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" />
+              {language === 'ru' ? "Официальное руководство" : "Rasmiy Yo'riqnoma"}
             </div>
-            <div className="w-full md:w-80 h-80 bg-white/5 rounded-[48px] border border-white/10 backdrop-blur-xl flex items-center justify-center relative group">
-               <PlayCircle className="w-20 h-20 text-white opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all cursor-pointer" />
-               <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl whitespace-nowrap">
-                 {t('Video Kursni Ko\'rish')}
-               </div>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+              {language === 'ru' ? "Как работает система YUKSAR ERP?" : "YUKSAR ERP tizimi qanday ishlaydi?"}
+            </h2>
+            <p className="text-slate-500 font-medium text-sm leading-relaxed">
+              {language === 'ru' 
+                ? "Посмотрите краткий видео-обзор завода и системы, чтобы понять основной рабочий процесс за 2 минуты."
+                : "2 daqiqada asosiy ish jarayonini tushunish uchun zavod va tizimning qisqa video-sharhini tomosha qiling."}
+            </p>
+          </div>
+          
+          <div className="md:col-span-5 rounded-[24px] overflow-hidden border border-slate-200 bg-slate-900 relative group aspect-video">
+            <img 
+              src={erpTourVideo} 
+              alt="ERP Tour Video Preview" 
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity" 
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform cursor-pointer text-indigo-600">
+                <PlayCircle className="w-8 h-8" />
+              </div>
             </div>
-         </div>
-      </div>
-
-      {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Navigation Sidebar */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm sticky top-10">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 ml-4">{t('Mundarija')}</h3>
-            <div className="space-y-2">
-              {sections.map((section) => {
-                const IconComp = ICON_MAP[section.icon] || FileText;
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSectionId(section.id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-[24px] transition-all group ${activeSectionId === section.id ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'hover:bg-slate-50 text-slate-600'}`}
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${activeSectionId === section.id ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-900 group-hover:shadow-sm'}`}>
-                      <IconComp className="w-5 h-5" />
-                    </div>
-                    <span className="font-bold text-sm truncate">
-                      {language === 'ru' ? section.title_ru : section.title_uz}
-                    </span>
-                    <ChevronRight className={`w-4 h-4 ml-auto transition-transform ${activeSectionId === section.id ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`} />
-                  </button>
-                );
-              })}
-            </div>
-            
-            <div className="mt-10 p-8 bg-slate-50 rounded-[40px] border border-slate-100 text-center">
-               <QrCode className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('Mobil versiya uchun skanerlang')}</p>
-               <button className="w-full py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-sm">
-                 {t('PDF Hujjatni Yuklash')}
-               </button>
+            <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-white text-[10px] font-bold tracking-wider">
+              {language === 'ru' ? "ВИДЕО-ОБЗОР" : "VIDEO-SHARH"}
             </div>
           </div>
         </div>
-
-        {/* Content Area */}
-        <div className="lg:col-span-8">
-           <AnimatePresence mode="wait">
-             <motion.div
-               key={activeSectionId}
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               transition={{ duration: 0.3 }}
-               className="bg-white p-10 md:p-16 rounded-[48px] border border-slate-100 shadow-premium min-h-[700px]"
-             >
-                <div className="flex items-center gap-6 mb-12">
-                   <div className="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center shadow-2xl">
-                     <ActiveIcon className="w-8 h-8" />
-                   </div>
-                   <div>
-                      <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                        {activeSection ? (language === 'ru' ? activeSection.title_ru : activeSection.title_uz) : ''}
-                      </h2>
-                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{t('Yuksar ERP Professional Guide')}</p>
-                   </div>
-                </div>
-
-                <div className="space-y-12">
-                  {activeSection?.contents.map((content) => (
-                    <div key={content.id} className="space-y-4">
-                      <h3 className="text-xl font-black text-slate-900">
-                        {language === 'ru' ? content.title_ru : content.title_uz}
-                      </h3>
-                      <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100">
-                        <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-                          {language === 'ru' ? content.body_ru : content.body_uz}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-20 pt-10 border-t border-slate-50 flex items-center justify-between">
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-                         <ShieldCheck className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Xavfsizlik tasdiqlangan')}</span>
-                   </div>
-                   <div className="flex gap-4">
-                     <button className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
-                        {t('Chop etish')} <Printer className="w-4 h-4" />
-                     </button>
-                   </div>
-                </div>
-             </motion.div>
-           </AnimatePresence>
-        </div>
       </div>
+
+      {/* Tabs Switcher */}
+      <div className="bg-slate-100/80 p-2 rounded-3xl border border-slate-200 flex flex-wrap gap-2 justify-center md:justify-start">
+        {TABS.map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
+                isActive 
+                  ? 'bg-white text-indigo-600 shadow-md border border-slate-200/50' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active Tab Content Card */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="bg-white p-6 md:p-10 rounded-[32px] border border-slate-200 shadow-sm space-y-8"
+        >
+          <div className="space-y-2">
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+              {currentGuide.title}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-3xl">
+              {currentGuide.description}
+            </p>
+          </div>
+
+          {/* Steps list */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentGuide.steps.map((step, idx) => (
+              <div key={idx} className="flex gap-4 p-5 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-indigo-100 hover:shadow-md transition-all group">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  {idx + 1}
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm text-slate-900">{step.step}</h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Outcome Alert */}
+          <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl flex gap-4 items-start">
+            <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 flex-shrink-0">
+              <Info className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <h5 className="font-bold text-xs text-emerald-800 uppercase tracking-widest">
+                {language === 'ru' ? "РЕЗУЛЬТАТ ЭТОГО ПРОЦЕССА" : "JARAYONNING YAKUNIY NATIJASI"}
+              </h5>
+              <p className="text-emerald-700 font-medium text-xs leading-relaxed">
+                {currentGuide.outcome}
+              </p>
+            </div>
+          </div>
+
+        </motion.div>
+      </AnimatePresence>
+
     </div>
   );
 }

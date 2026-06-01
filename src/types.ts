@@ -74,7 +74,10 @@ export interface RawMaterialBatch {
   id: number;
   invoice_number: string;
   supplier_name: string;
+  supplier?: number | null;
+  material?: number | null;
   date: string;
+  expiry_date?: string | null;
   quantity_kg: number;
   remaining_quantity: number;
   reserved_quantity: number;
@@ -83,6 +86,55 @@ export interface RawMaterialBatch {
   status: 'RECEIVED' | 'INSPECTION' | 'IN_STOCK' | 'RESERVED' | 'DEPLETED' | 'CANCELLED';
   responsible_user_name?: string;
   material_name?: string;
+  qr_code?: string;
+}
+
+export interface Warehouse {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface Stock {
+  id: number;
+  warehouse: number;
+  warehouse_name: string;
+  material: number;
+  material_name: string;
+  material_unit?: string;
+  quantity: number;
+  min_level: number;
+  reserved_quantity?: number;
+  available_quantity?: number;
+  total_value?: number;
+  status?: 'CRITICAL' | 'LOW' | 'OK';
+  updated_at: string;
+}
+
+export interface InventoryAuditLine {
+  id: number;
+  audit: number;
+  material: number;
+  material_name: string;
+  system_qty: number;
+  actual_qty: number | null;
+  variance: number;
+}
+
+export interface InventoryAudit {
+  id: number;
+  warehouse: number;
+  warehouse_name: string;
+  date: string;
+  status: 'DRAFT' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED';
+  status_display?: string;
+  auditor?: number | null;
+  auditor_name?: string;
+  approved_by?: number | null;
+  approved_by_name?: string;
+  remarks?: string;
+  created_at: string;
+  lines: InventoryAuditLine[];
 }
 
 export interface Product {
@@ -120,7 +172,7 @@ export interface User {
   all_permissions?: string[];
   responsibility_summary?: string;
   task_scope?: string[];
-  status?: 'ACTIVE' | 'BLOCKED' | 'PENDING';
+  status?: 'ACTIVE' | 'BLOCKED' | 'PENDING' | 'RESIGNED' | 'VACATION';
   start_date?: string;
   pin_code?: string;
   telegram_id?: string;
@@ -135,6 +187,10 @@ export interface User {
   assignedWarehouses?: (number | string)[];
   assigned_warehouse_names?: string[];
   is_superuser?: boolean;
+  shift?: 'DAY' | 'NIGHT';
+  assigned_machine?: string;
+  must_change_password?: boolean;
+  custom_permissions?: string[];
 }
 
 export type DocumentType = 
@@ -393,7 +449,7 @@ export interface FinishedBlock {
   lot: number;
   classification: 'A_CLASS' | 'B_CLASS' | 'C_CLASS' | 'REJECT';
   classification_display: string;
-  status: 'COOLING' | 'QC_PENDING' | 'READY' | 'RESERVED' | 'SOLD' | 'RECYCLE';
+  status: 'CREATED' | 'COOLING' | 'QC_PENDING' | 'READY' | 'TRANSFERRED' | 'CUTTING' | 'FINISHING' | 'PACKAGED' | 'SHIPPED' | 'RESERVED' | 'SOLD' | 'RECYCLE';
   status_display: string;
   actual_weight?: number;
   actual_density?: number;
@@ -403,6 +459,17 @@ export interface FinishedBlock {
   rack?: string;
   qr_code_data?: string;
   recipe_name?: string;
+  recipe_id?: number;
+  zames_number?: string;
+  production_batch_number?: string;
+  form_number?: string;
+  machine_id?: string;
+  bunker_name?: string | null;
+  product_id?: number;
+  product_name?: string;
+  lot_density?: number;
+  lot_volume?: number;
+  cooling_time_hours?: number | null;
   operator_name?: string;
   shift_display?: string;
   produced_date?: string;
@@ -411,7 +478,58 @@ export interface FinishedBlock {
   height?: number;
   density?: number;
   moisture?: number;
-  visual_defects?: string[];
+  visual_defects?: string;
+  defect_list?: string[];
+  current_location?: {
+    warehouse_id?: number | null;
+    warehouse_name?: string | null;
+    zone?: string;
+    rack?: string;
+    location_code?: string | null;
+  };
+  transfer_history?: {
+    id: number;
+    transfer_number: string;
+    status: string;
+    from_warehouse_name?: string | null;
+    to_warehouse_name?: string | null;
+    reason?: string;
+    notes?: string;
+    created_at?: string;
+    approved_at?: string | null;
+    shipped_at?: string | null;
+    received_at?: string | null;
+    created_by_name?: string | null;
+  }[];
+  commercial_info?: {
+    reserved: boolean;
+    sold: boolean;
+    invoice?: string | null;
+    customer?: string | null;
+    invoice_number?: string;
+    invoice_date?: string;
+    sell_price?: number;
+    payment_status?: string;
+  };
+  financial_analysis?: {
+    eps_cost: number;
+    gas_cost: number;
+    electricity_cost: number;
+    labor_cost: number;
+    finishing_cost: number;
+    total_cost: number;
+    sell_price: number;
+    margin: number;
+    margin_percent: number;
+  };
+  quality_metrics?: {
+    density: number;
+    moisture: number;
+    dimensions: { length: number; width: number; height: number };
+    defect_percent: number;
+    classification: string;
+    operator_score: number;
+  };
   timeline?: BlockTimeline[];
 }
 
@@ -603,6 +721,9 @@ export interface ExpenseCategory {
   id: string | number;
   name: string;
   description?: string;
+  parent?: number | string | null;
+  type?: 'INCOME' | 'EXPENSE';
+  children?: ExpenseCategory[];
 }
 
 export interface FinancialTransaction {
@@ -639,15 +760,34 @@ export interface InternalTransfer {
 
 export interface WarehouseTransfer {
   id: number;
+  transfer_number?: string;
+  transfer_type?: 'PRODUCTION' | 'WAREHOUSE' | 'QC' | 'RETURN' | 'WASTE';
+  transfer_type_display?: string;
+  priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
   from_warehouse: number;
   to_warehouse: number;
   from_warehouse_name?: string;
   to_warehouse_name?: string;
   material: number;
   material_name?: string;
+  material_sku?: string;
+  material_unit?: string;
+  block?: number | null;
+  block_id?: string | null;
+  batch?: number | null;
+  batch_number?: string;
   quantity: number;
-  date: string;
-  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+  created_at?: string;
+  approved_at?: string | null;
+  shipped_at?: string | null;
+  received_at?: string | null;
+  created_by_name?: string;
+  approved_by?: number | null;
+  shipped_by?: number | null;
+  received_by?: number | null;
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'IN_TRANSIT' | 'SHIPPED' | 'RECEIVED' | 'COMPLETED' | 'CANCELLED';
+  status_display?: string;
+  reason?: string;
   notes?: string;
 }
 
@@ -674,6 +814,9 @@ export interface FinishingJob {
   id: number;
   job_number: string;
   cnc_job: number | null;
+  input_finished_block?: number;
+  input_finished_block_status?: string;
+  input_finished_block_code?: string;
   product: number;
   product_name: string;
   quantity: number;

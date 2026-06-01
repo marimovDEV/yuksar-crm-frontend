@@ -188,7 +188,7 @@ export default function POSCheckoutModal({ cart, clients, total, onClose, onComp
               </div>
 
               <div className="flex gap-4">
-                 <button className="p-5 bg-white border border-slate-200 text-slate-400 rounded-3xl hover:text-blue-600 transition-all">
+                 <button onClick={() => window.print()} className="p-5 bg-white border border-slate-200 text-slate-400 rounded-3xl hover:text-blue-600 transition-all">
                     <Printer className="w-6 h-6" />
                  </button>
                  <button 

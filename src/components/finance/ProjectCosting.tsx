@@ -106,7 +106,7 @@ export default function ProjectCosting() {
                      className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm w-full md:w-64"
                    />
                 </div>
-                <button className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-slate-900">
+                <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-slate-900">
                    <Filter className="w-5 h-5" />
                 </button>
              </div>

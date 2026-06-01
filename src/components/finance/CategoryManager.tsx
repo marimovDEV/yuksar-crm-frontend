@@ -86,10 +86,10 @@ export default function CategoryManager({ categories, onRefresh }: CategoryManag
              >
                 <Plus className="w-4 h-4" />
              </button>
-             <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
+             <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
                 <Edit3 className="w-4 h-4" />
              </button>
-             <button className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg">
+             <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg">
                 <Trash2 className="w-4 h-4" />
              </button>
           </div>

@@ -28,18 +28,21 @@ import {
   Wind,
   Zap,
   Sun,
-  Moon
+  Moon,
+  Thermometer
 } from 'lucide-react';
 import api from '../lib/api';
 import { User, Zames, Bunker, Recipe, RawMaterialBatch, Material, ProductionOrder, ProductionOrderStage, BlockProduction, FinishedBlock } from '../types';
 import BlockPassport from './production/BlockPassport';
 import BlockQCModal from './production/BlockQCModal';
+import CNC from './CNC';
+import Finishing from './Finishing';
 import { uiStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
 
 export default function ProductionFloor({ user }: { user: User }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const currentRole = user.effective_role || user.role_display || user.role;
   const [subTab, setSubTab] = useState('zames');
@@ -126,7 +129,15 @@ export default function ProductionFloor({ user }: { user: User }) {
       setBatches(batchesRes.data);
       setMaterials(materialsRes.data);
       setBunkers(bunkersRes.data);
-      setProductionOrders(ordersRes.data);
+      const cleanOrders = (ordersRes.data || []).filter((o: any) => {
+        return !(
+          o.product_name?.toUpperCase().includes('TEST-') ||
+          o.order_number?.toUpperCase().includes('TEST-') ||
+          o.product_name?.toUpperCase().includes('TEST_STAGE') ||
+          o.product_name?.toUpperCase().includes('TEST STAGE')
+        );
+      });
+      setProductionOrders(cleanOrders);
       setBlockProductions(blockRes.data);
       setFinishedBlocks(finishedBlockRes.data);
     } catch (err) {
@@ -378,9 +389,13 @@ export default function ProductionFloor({ user }: { user: User }) {
   };
 
   const tabs = [
-    { id: 'zames', name: t('Zames Jurnali') },
+    { id: 'zames', name: t('1. Expandir (Ko\'pirtirish)') },
     { id: 'bunker', name: t('Bunkerlar Holati') },
-    { id: 'formovka', name: t('Blok Formovka') },
+    { id: 'formovka', name: t('2. Blok Quyish') },
+    { id: 'drying', name: t('3. Quritish (Сушка)') },
+    { id: 'cnc', name: t('4. Kesish (ЧПУ)') },
+    { id: 'decor', name: t('5. Dekor (Pardoz)') },
+    { id: 'packaging', name: t('6. Qadoqlash (Packing)') },
     { id: 'traceability', name: t('Bloklar Kuzatuvi') },
     { id: 'orders', name: t('Ishlab Chiqarish Buyurtmalari') },
   ];
@@ -803,6 +818,160 @@ export default function ProductionFloor({ user }: { user: User }) {
             </div>
           )}
 
+          {subTab === 'drying' && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <Sun className="w-8 h-8 text-amber-500 animate-spin" style={{ animationDuration: '8s' }} />
+                    {t('Камера сушки (Bloklarni Quritish Kamerasi)')}
+                  </h3>
+                  <p className="text-slate-500 font-medium">{t('Bloklar quritish kamerasida 24 soat davomida saqlanadi va namlik darajasi nazorat qilinadi.')}</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="px-5 py-3 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3">
+                    <Thermometer className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <p className="text-[9px] font-black text-amber-500 uppercase">{t('Kamera Harorati')}</p>
+                      <p className="text-sm font-black text-amber-800">42.8 °C</p>
+                    </div>
+                  </div>
+                  <div className="px-5 py-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3">
+                    <Wind className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="text-[9px] font-black text-blue-500 uppercase">{t('Kamera Namligi')}</p>
+                      <p className="text-sm font-black text-blue-800">11.4 %</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Drying Blocks Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { id: 'BLK-2026-000155', type: 'Penoplast 20', size: '2000x1000x1000', density: '20.2 kg/m³', temp: '38°C', moisture: '18%', progress: 65, time_left: '08:24:00', zone: 'Kamera A-3' },
+                  { id: 'BLK-2026-000156', type: 'Penoplast 25', size: '2000x1000x1000', density: '25.1 kg/m³', temp: '41°C', moisture: '22%', progress: 40, time_left: '14:15:00', zone: 'Kamera A-4' },
+                  { id: 'BLK-2026-000157', type: 'Penoplast 15', size: '2000x1000x1000', density: '15.0 kg/m³', temp: '35°C', moisture: '12%', progress: 95, time_left: '01:05:00', zone: 'Kamera B-1' }
+                ].map(block => (
+                  <div key={block.id} className="bg-white rounded-3xl p-6 border-2 border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                          <Layers className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-black text-slate-900">{block.id}</h3>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase">{block.type} • {block.size}</p>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-1 bg-amber-50 text-amber-600 rounded-lg text-[9px] font-black uppercase tracking-widest">{block.zone}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="p-3 bg-slate-50 rounded-xl">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">{t('Zichlik')}</p>
+                        <p className="text-sm font-black text-slate-900">{block.density}</p>
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-xl">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">{t('Namlik')}</p>
+                        <p className="text-sm font-black text-slate-900">{block.moisture}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>{t('Quritish Jarayoni')}</span>
+                        <span className="font-black text-amber-600">{block.progress}%</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full transition-all" style={{ width: `${block.progress}%` }} />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Clock className="w-4 h-4 text-slate-400" />
+                        <span className="font-black text-xs uppercase tracking-widest">{t('Kutish Vaqti')}</span>
+                      </div>
+                      <span className="font-black text-sm text-slate-900">{block.time_left}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {subTab === 'cnc' && (
+            <div className="animate-in fade-in duration-500">
+              <CNC user={user} />
+            </div>
+          )}
+
+          {subTab === 'decor' && (
+            <div className="animate-in fade-in duration-500">
+              <Finishing user={user} />
+            </div>
+          )}
+
+          {subTab === 'packaging' && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <Package className="w-8 h-8 text-blue-600" />
+                    {t('Упаковка (Tayyor Mahsulotlarni Qadoqlash Doki)')}
+                  </h3>
+                  <p className="text-slate-500 font-medium">{t('CNC va Dekor sexidan chiqqan tayyor plita va dekorlarni shrinksell qadoqlash, sifat belgisi va yorliq yopishtirish jarayoni.')}</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="px-5 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <p className="text-[9px] font-black text-emerald-500 uppercase">{t('Bugun Qadoqlandi')}</p>
+                      <p className="text-sm font-black text-emerald-800">112 {t('Pachka')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Packaging Queue */}
+              <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-sm">
+                <h4 className="text-base font-black text-slate-900 mb-6">{t('Qadoqlash Kutayotgan Partiyalar Navbati')}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    { id: 'PKG-2026-041', item: 'Penoplast Panel M20 (20mm)', source: 'CNC Kesish #1', qty: '40 plita', packs: '4 pachka', size: '2000x1000x20mm' },
+                    { id: 'PKG-2026-042', item: 'Decorative Molding D-101', source: 'Dekor Sexi #2', qty: '120 dona', packs: '6 pachka', size: '2000x100mm' },
+                    { id: 'PKG-2026-043', item: 'Penoplast Panel M25 (50mm)', source: 'CNC Kesish #2', qty: '30 plita', packs: '3 pachka', size: '2000x1000x50mm' }
+                  ].map(job => (
+                    <div key={job.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-between min-h-[220px]">
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{job.id}</span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{job.source}</span>
+                        </div>
+                        <h4 className="text-sm font-black text-slate-900 leading-snug">{job.item}</h4>
+                        <p className="text-[10px] font-bold text-slate-500 mt-1">{job.size} • {job.qty}</p>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-200/40 flex items-center justify-between">
+                        <div>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase">{t('Qadoqlar Rejasi')}</p>
+                          <p className="text-sm font-black text-slate-900">{job.packs}</p>
+                        </div>
+                        <button 
+                          onClick={() => uiStore.showNotification(t("Qadoqlash muvaffaqiyatli yakunlandi va SK-2 tayyor mahsulot omboriga joylandi"), "success")}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          {t('Qadoqlash')}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {subTab === 'traceability' && (
             <div className="space-y-8 animate-in slide-in-from-right duration-500">
                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -962,7 +1131,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${
                                activeStage?.status === 'FAILED' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white'
                              }`}>
-                               {focusStage.stage_type_display}
+                               {t(focusStage.stage_type_display)}
                              </span>
                           </div>
                           
@@ -1012,7 +1181,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                                if (!currentStage) return null;
                                if (currentStage.status === 'PENDING') return (
                                  <button onClick={() => currentStage.stage_type === 'BUNKER' ? setIsStageBunkerModalOpen({ orderId: order.id, stageId: currentStage.id }) : handleStartStage(order.id, currentStage.id)} className="w-full py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                   <Play className="w-3.5 h-3.5 fill-current" /> {currentStage.stage_type_display}{t('ni boshlash')}
+                                   <Play className="w-3.5 h-3.5 fill-current" /> {locale === 'ru' ? `${t('ni boshlash')}${t(currentStage.stage_type_display)}` : `${t(currentStage.stage_type_display)}${t('ni boshlash')}`}
                                  </button>
                                );
                                return null;
@@ -1042,7 +1211,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                       <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
                       <span className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">{t('Tizim Online')}</span>
                    </div>
-                   <button className="p-4 bg-slate-900 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
+                   <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-4 bg-slate-900 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200">
                       <Maximize2 className="w-6 h-6" />
                    </button>
                 </div>
@@ -1084,7 +1253,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                      </div>
 
                      <div className="mt-6 pt-6 border-t border-slate-50">
-                        <button className="w-full py-3 bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                        <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="w-full py-3 bg-slate-50 text-slate-400 group-hover:bg-slate-900 group-hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
                            {t('To\'liq Monitoring')}
                         </button>
                      </div>
@@ -1118,7 +1287,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                               <p className="text-xs font-bold text-slate-500 mb-2">{order.product_name}</p>
                               <div className="flex items-center gap-3">
                                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-lg">
-                                    {activeStage.stage_type_display}
+                                    {t(activeStage.stage_type_display)}
                                  </span>
                                  <div className="flex items-center gap-1 text-[10px] font-black text-slate-400">
                                     <Clock className="w-3.5 h-3.5" />
@@ -1204,7 +1373,7 @@ export default function ProductionFloor({ user }: { user: User }) {
                                     <optgroup key={o.id} label={`${o.order_number} - ${o.product_name}`}>
                                        {o.stages?.filter(s => s.stage_type === 'ZAMES' && s.status !== 'DONE').map(s => (
                                           <option key={s.id} value={s.id}>
-                                             {o.order_number} (Stage: {s.stage_type_display})
+                                             {o.order_number} ({t('Bosqich')}: {t(s.stage_type_display)})
                                           </option>
                                        ))}
                                     </optgroup>

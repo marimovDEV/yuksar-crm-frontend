@@ -90,7 +90,7 @@ export default function AccountLedger({ accountCode, accountName, onBack }: Prop
              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
                 className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold" />
              <div className="flex-1" />
-             <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">
+             <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">
                 <Download className="w-4 h-4" /> Excel
              </button>
         </div>

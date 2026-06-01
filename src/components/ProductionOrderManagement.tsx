@@ -147,7 +147,7 @@ function ProductionOrderDetailDrawer({ order, onClose, onUpdate }: DetailDrawerP
                             {qc.status === 'PASSED' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                          </div>
                          <div>
-                            <div className="text-sm font-black text-slate-900">{qc.status_display}</div>
+                            <div className="text-sm font-black text-slate-900">{t(qc.status_display)}</div>
                             <div className="text-[10px] font-medium text-slate-500">{new Date(qc.created_at).toLocaleString(locale)}</div>
                          </div>
                       </div>
@@ -244,9 +244,9 @@ function ProductionOrderDetailDrawer({ order, onClose, onUpdate }: DetailDrawerP
       <div className="p-8 border-t border-slate-50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${order.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-blue-500 animate-pulse'}`} />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Hozirgi holat")}: {order.status_display}</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("Hozirgi holat")}: {t(order.status_display)}</span>
         </div>
-        <button className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">
+        <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">
           {t("Hisobot yuklash")}
         </button>
       </div>
@@ -392,6 +392,14 @@ export default function ProductionOrderManagement() {
   };
 
   const filteredOrders = productionOrders.filter(po => {
+    if (
+      po.product_name.toUpperCase().includes('TEST-') || 
+      po.order_number.toUpperCase().includes('TEST-') ||
+      po.product_name.toUpperCase().includes('TEST_STAGE') ||
+      po.product_name.toUpperCase().includes('TEST STAGE')
+    ) {
+      return false;
+    }
     const searchStr = searchTerm.toLowerCase();
     const matchesSearch = po.order_number.toLowerCase().includes(searchStr) || 
                          po.product_name.toLowerCase().includes(searchStr);
@@ -511,66 +519,73 @@ export default function ProductionOrderManagement() {
                       <p className="text-slate-400 font-medium">{t("Tanlangan filtrlar bo'yicha hech qanday naryad mavjud emas")}</p>
                    </div>
                 ) : (
-                  filteredOrders.map(po => (
-                    <div key={po.id} className="bg-slate-50/50 rounded-[32px] border border-slate-100 p-8 hover:bg-white hover:shadow-xl transition-all duration-300 group cursor-pointer" onClick={() => { setSelectedOrder(po); setIsDetailDrawerOpen(true); }}>
-                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
-                        <div className="flex items-start gap-6 min-w-[300px]">
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all ${po.status === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-emerald-100' : 'bg-white text-slate-400 group-hover:bg-blue-600 group-hover:text-white shadow-slate-100'}`}>
-                            <Package className="w-7 h-7" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="text-xl font-black text-slate-900">{po.product_name}</h4>
-                              <div className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase shadow-sm ${getPriorityColor(po.priority)}`}>{t(po.priority)}</div>
-                              {po.status === 'DELAYED' && <div className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase bg-rose-100 text-rose-600 border border-rose-200 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{t("Kechikmoqda")}</div>}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Target className="w-3 h-3 text-blue-500" />{t("ID")}: {po.order_number}</p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><UserIcon className="w-3 h-3 text-amber-500" />{t("Mas'ul")}: {po.responsible_name || t("Tayinlanmagan")}</p>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Clock className="w-3 h-3 text-rose-500" />{t("Due")}: {po.deadline ? new Date(po.deadline).toLocaleDateString(locale) : t("Noma'lum")}</p>
-                            </div>
-                          </div>
-                        </div>
+                  filteredOrders.map(po => {
+                    const producedVolume = ((po.progress / 100) * po.quantity).toFixed(1);
+                    const activeStage = po.stages.find(s => s.status === 'ACTIVE');
+                    const activeStageName = activeStage ? t(activeStage.stage_type) : t("status.completed");
 
-                        <div className="flex-1 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
-                            <span className="text-slate-400">{t("Ish jarayoni")}</span>
-                            <span className="text-blue-600">{Math.round(po.progress)}%</span>
-                          </div>
-                          <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner mb-6 relative">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${po.progress}%` }} className={`h-full absolute left-0 top-0 transition-all duration-1000 ${po.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-blue-600'}`} />
-                          </div>
-
-                          <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
-                            {po.stages.map((stage) => (
-                              <div key={stage.id} className={`relative flex flex-col items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer group/stage ${stage.status === 'COMPLETED' ? 'bg-emerald-50 border-emerald-100 opacity-60' : stage.status === 'ACTIVE' ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-100' : stage.status === 'FAILED' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100'}`} onClick={() => { if (isMaster) { setSelectedOrder(po); setSelectedStage(stage); setIsAssignModalOpen(true); } }}>
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${stage.status === 'COMPLETED' ? 'bg-emerald-500 text-white' : stage.status === 'ACTIVE' ? 'bg-blue-600 text-white scale-110 shadow-lg' : stage.status === 'FAILED' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                  {stage.status === 'FAILED' ? <AlertTriangle className="w-4 h-4" /> : <Settings className={`w-4 h-4 ${stage.status === 'ACTIVE' ? 'animate-spin-slow' : ''}`} />}
-                                </div>
-                                <span className="text-[8px] font-black uppercase text-center leading-tight">{t(stage.stage_type)}</span>
-                                {stage.current_operator_name && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-sm"><UserIcon className="w-2.5 h-2.5" /></div>}
+                    return (
+                      <div key={po.id} className="bg-slate-50/50 rounded-[32px] border border-slate-100 p-8 hover:bg-white hover:shadow-xl transition-all duration-300 group cursor-pointer" onClick={() => { setSelectedOrder(po); setIsDetailDrawerOpen(true); }}>
+                        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-8">
+                          <div className="flex items-start gap-6 min-w-[300px]">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all ${po.status === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-emerald-100' : 'bg-white text-slate-400 group-hover:bg-blue-600 group-hover:text-white shadow-slate-100'}`}>
+                              <Package className="w-7 h-7" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="text-xl font-black text-slate-900">{po.product_name}</h4>
+                                <div className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase shadow-sm ${getPriorityColor(po.priority)}`}>{t(po.priority)}</div>
+                                {po.status === 'DELAYED' && <div className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase bg-rose-100 text-rose-600 border border-rose-200 flex items-center gap-1"><AlertCircle className="w-2.5 h-2.5" />{t("Kechikmoqda")}</div>}
                               </div>
-                            ))}
+                              <div className="flex flex-wrap items-center gap-4">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Target className="w-3 h-3 text-blue-500" />{t("ID")}: {po.order_number}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><UserIcon className="w-3 h-3 text-amber-500" />{t("Mas'ul")}: {po.responsible_name || t("Tayinlanmagan")}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Clock className="w-3 h-3 text-rose-500" />{t("Due")}: {po.deadline ? new Date(po.deadline).toLocaleDateString(locale) : t("Noma'lum")}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><ActivityIcon className="w-3 h-3 text-emerald-500" />{t("Joriy Bosqich")}: <span className="text-slate-800 font-extrabold">{activeStageName}</span></p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                           {po.stages.find(s => s.status === 'ACTIVE') && (
-                             <button onClick={() => handleAdvanceStage(po, po.stages.find(s => s.status === 'ACTIVE')!.id)} className="px-6 py-4 bg-slate-900 text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl active:scale-95 flex items-center gap-2">
-                               {t("Keyingi bosqich")}
-                               <ArrowRight className="w-4 h-4" />
-                             </button>
-                           )}
-                           <button className="px-6 py-4 bg-slate-100 text-slate-600 rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">{t("Batafsil")}</button>
+                          <div className="flex-1 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
+                              <span className="text-slate-400 whitespace-nowrap">{t("Ish jarayoni")}</span>
+                              <span className="text-blue-600 font-extrabold whitespace-nowrap">{producedVolume} m³ / {po.quantity} m³ ({Math.round(po.progress)}%)</span>
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner mb-6 relative">
+                              <motion.div initial={{ width: 0 }} animate={{ width: `${po.progress}%` }} className={`h-full absolute left-0 top-0 transition-all duration-1000 ${po.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-blue-600'}`} />
+                            </div>
+
+                            <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                              {[...po.stages].sort((a, b) => a.sequence - b.sequence).map((stage) => (
+                                <div key={stage.id} className={`relative flex flex-col items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer group/stage ${stage.status === 'COMPLETED' ? 'bg-emerald-50 border-emerald-100 opacity-60' : stage.status === 'ACTIVE' ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-100' : stage.status === 'FAILED' ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-100'}`} onClick={() => { if (isMaster) { setSelectedOrder(po); setSelectedStage(stage); setIsAssignModalOpen(true); } }}>
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${stage.status === 'COMPLETED' ? 'bg-emerald-500 text-white' : stage.status === 'ACTIVE' ? 'bg-blue-600 text-white scale-110 shadow-lg' : stage.status === 'FAILED' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                    {stage.status === 'FAILED' ? <AlertTriangle className="w-4 h-4" /> : <Settings className={`w-4 h-4 ${stage.status === 'ACTIVE' ? 'animate-spin-slow' : ''}`} />}
+                                  </div>
+                                  <span className="text-[8px] font-black uppercase text-center leading-tight">{t(`stage.short.${stage.stage_type}`)}</span>
+                                  {stage.current_operator_name && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-sm"><UserIcon className="w-2.5 h-2.5" /></div>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                             {po.stages.find(s => s.status === 'ACTIVE') && (
+                               <button onClick={() => handleAdvanceStage(po, po.stages.find(s => s.status === 'ACTIVE')!.id)} className="px-6 py-4 bg-slate-900 text-white rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl active:scale-95 flex items-center gap-2">
+                                 {t("Keyingi bosqich")}
+                                 <ArrowRight className="w-4 h-4" />
+                               </button>
+                             )}
+                             <button onClick={() => { setSelectedOrder(po); setIsDetailDrawerOpen(true); }} className="px-6 py-4 bg-slate-100 text-slate-600 rounded-[20px] text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">{t("Batafsil")}</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </motion.div>
             ) : (
               <motion.div key="kanban" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex gap-6 overflow-x-auto pb-6">
-                 {['ZAMES', 'DRYING', 'BUNKER', 'FORMOVKA', 'BLOK', 'CNC', 'DEKOR'].map(stageType => (
+                 {['BUNKER', 'ZAMES', 'FORMOVKA', 'DRYING', 'CNC', 'DEKOR', 'BLOK'].map(stageType => (
                    <div key={stageType} className="min-w-[320px] bg-slate-50/50 rounded-[32px] p-6 border border-slate-100">
                       <div className="flex items-center justify-between mb-6">
                          <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" />{t(stageType)}</h3>

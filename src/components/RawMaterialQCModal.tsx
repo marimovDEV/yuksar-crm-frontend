@@ -37,7 +37,7 @@ export default function RawMaterialQCModal({ batch, onClose, onSuccess, t }: Raw
 
   useEffect(() => {
     // Fetch warehouses for receiving the batch
-    api.get('warehouse/warehouses/').then(res => setWarehouses(res.data.results || res.data));
+    api.get('warehouses/').then(res => setWarehouses(res.data.results || res.data));
   }, []);
 
   const handleQC = async () => {
@@ -62,7 +62,7 @@ export default function RawMaterialQCModal({ batch, onClose, onSuccess, t }: Raw
       
       uiStore.showNotification(
         result === 'APPROVED' ? t("Xom-ashyo tasdiqlandi va omborga o'tkazildi") : t("Xom-ashyo rad etildi"), 
-        result === 'APPROVED' ? "success" : "warning"
+        result === 'APPROVED' ? "success" : "error"
       );
       onSuccess();
       onClose();

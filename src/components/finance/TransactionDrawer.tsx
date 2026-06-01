@@ -88,7 +88,7 @@ export default function TransactionDrawer({
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) data.append(key, value);
+        if (value) data.append(key, value as string);
       });
       data.append('type', type);
       if (attachment) data.append('attachment', attachment);

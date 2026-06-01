@@ -30,6 +30,7 @@ interface ProductDetailDrawerProps {
 export default function ProductDetailDrawer({ product, onClose, onAddToCart, previewMode }: ProductDetailDrawerProps) {
   const { t, locale } = useI18n();
   const [activeImage, setActiveImage] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!product) return null;
 
@@ -106,7 +107,7 @@ export default function ProductDetailDrawer({ product, onClose, onAddToCart, pre
                          {product.pattern_type || 'Classic'}
                       </div>
                    </div>
-                   <button className="w-12 h-12 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl">
+                   <button onClick={() => setIsExpanded(true)} className="w-12 h-12 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl">
                       <Maximize2 className="w-5 h-5" />
                    </button>
                 </div>
@@ -251,6 +252,21 @@ export default function ProductDetailDrawer({ product, onClose, onAddToCart, pre
              </div>
           </div>
         </motion.div>
+
+        {/* Fullscreen Image Modal */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[400] bg-black/90 backdrop-blur-2xl flex items-center justify-center"
+            >
+              <button onClick={() => setIsExpanded(false)} className="absolute top-10 right-10 text-white/50 hover:text-white transition-all"><X className="w-10 h-10" /></button>
+              <img src={images[activeImage]} className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl" />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AnimatePresence>
   );

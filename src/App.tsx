@@ -42,6 +42,8 @@ import {
   AlertTriangle,
   Timer,
   Radio,
+  Lock,
+  ShieldAlert,
 } from 'lucide-react';
 import { User, UserRole } from './types';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -55,6 +57,7 @@ import Sidebar from './components/layout/Sidebar';
 import Topbar from './components/layout/Topbar';
 import FAB from './components/layout/FAB';
 
+const SCADADashboard = lazy(() => import('./components/SCADADashboard'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const WarehouseUnified = lazy(() => import('./components/WarehouseUnified'));
 const ProductionFloor = lazy(() => import('./components/ProductionFloor'));
@@ -93,6 +96,15 @@ const DynamicPricing = lazy(() => import('./components/DynamicPricing'));
 const Payroll = lazy(() => import('./components/Payroll'));
 const UserGuide = lazy(() => import('./components/UserGuide'));
 const POS = lazy(() => import('./components/sales/POS'));
+const WarehouseWorkspace = lazy(() => import('./components/workspaces/WarehouseWorkspace'));
+const OperatorWorkspace = lazy(() => import('./components/workspaces/OperatorWorkspace'));
+const SalesWorkspace = lazy(() => import('./components/workspaces/SalesWorkspace'));
+const CNCWorkspace = lazy(() => import('./components/workspaces/CNCWorkspace'));
+const QCWorkspace = lazy(() => import('./components/workspaces/QCWorkspace'));
+const AccountingWorkspace = lazy(() => import('./components/workspaces/AccountingWorkspace'));
+const LogisticsWorkspace = lazy(() => import('./components/workspaces/LogisticsWorkspace'));
+const TechnologistWorkspace = lazy(() => import('./components/workspaces/TechnologistWorkspace'));
+const MaintenanceWorkspace = lazy(() => import('./components/workspaces/MaintenanceWorkspace'));
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
   state = { hasError: false, error: null as any };
@@ -101,20 +113,27 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
   render() {
     if (this.state.hasError) {
+      const isRu = (localStorage.getItem('yuksar-language') || 'uz') === 'ru';
+      const title = isRu ? 'Произошла ошибка в системе' : 'Tizimda xatolik yuz berdi';
+      const desc = isRu 
+        ? 'К сожалению, возникла проблема при загрузке этой страницы. Пожалуйста, перейдите в другой раздел или обновите страницу.' 
+        : 'Kechirasiz, ushbu sahifani yuklashda muammo paydo bo\'ldi. Iltimos, boshqa bo\'limga o\'ting yoki sahifani yangilang.';
+      const btnText = isRu ? 'Обновить страницу' : 'Sahifani yangilash';
+
       return (
         <div className="flex flex-col items-center justify-center p-20 text-center gap-6 bg-rose-50 rounded-[40px] border-2 border-rose-100 m-8 shadow-2xl">
           <div className="w-24 h-24 bg-rose-500 rounded-[32px] flex items-center justify-center shadow-xl shadow-rose-200">
             <FileWarning className="w-12 h-12 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900 mb-2">Tizimda xatolik yuz berdi</h2>
-            <p className="text-slate-500 font-medium max-w-md">Kechirasiz, ushbu sahifani yuklashda muammo paydo bo'ldi. Iltimos, boshqa bo'limga o'ting yoki sahifani yangilang.</p>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">{title}</h2>
+            <p className="text-slate-500 font-medium max-w-md">{desc}</p>
           </div>
           <button
             onClick={() => window.location.reload()}
             className="px-10 py-4 bg-slate-900 text-white rounded-[22px] font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
           >
-            Sahifani yangilash
+            {btnText}
           </button>
         </div>
       );
@@ -135,16 +154,41 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeGroup, setActiveGroup] = useState<string | null>(null); // Accordion state
+
+  const getSystemRole = (role: string): string => {
+    const r = (role || '').toUpperCase().trim();
+    if (['BOSH ADMIN', 'SUPERADMIN', 'ADMIN', 'АДМИН', 'СУПЕР АДМИН', 'BOSH_ADMIN'].includes(r)) return 'admin';
+    if (['DIREKTOR', 'ДИРЕКТOR', 'ДИРЕКТОР', 'DIRECTOR'].includes(r)) return 'director';
+    if (['SOTUV MENEJERI', 'МЕНЕДЖЕР ПО ПРОДАЖАМ', 'SALES MANAGER', 'SALES', 'SOTUV', 'SOTUV_MENEJERI'].includes(r)) return 'sales';
+    if (['OMBORCHI', 'КЛАДОВЩIK', 'КЛАДОВЩIK', 'КЛАДОВЩИК', 'WAREHOUSE KEEPER', 'WAREHOUSE', 'OMBOR', 'OMBORCHI_KLADOVSHIK'].includes(r)) return 'warehouse';
+    if (['OPERATOR', 'ОПЕРАТОР', 'ISHLAB CHIQARISH USTASI', 'МАСТЕР ПРОИЗВОДСТВА', 'PRODUCTION MASTER', 'OPERATOR_USTA'].includes(r)) return 'operator';
+    if (['CNC OPERATORI', 'ОПЕРАТОР ЧПУ', 'CNC OPERATOR', 'CNC'].includes(r)) return 'cnc';
+    if (['QC', 'QC INSPECTOR', 'QC_INSPECTOR', 'SIFAT NAZORATCHISI', 'SIFAT', 'ИНСПЕКТОР КАЧЕСТVA', 'ИНСПЕКТОР КАЧЕСТВА'].includes(r)) return 'qc';
+    if (['BUXGALTER', 'БУХГАЛТЕР', 'ACCOUNTANT', 'FINANCE', 'MOLIYA', 'MOLIYA BOSHQARUVCHI', 'BUXGALTERIYA'].includes(r)) return 'accounting';
+    if (['KURYER', 'КУРЬЕР', 'DELIVERY', 'LOGISTICS', 'LOGIST', 'LOGISTIKA', 'LOGISTICS MANAGER'].includes(r)) return 'logistics';
+    if (['TEXNOLOG', 'ТЕХНОЛОГ', 'TECHNOLOGIST'].includes(r)) return 'technologist';
+    if (['SERVIS MUHANDISI', 'СЕРВИСНЫЙ ИНЖЕНЕР', 'MAINTENANCE ENGINEER', 'MAINTENANCE', 'SERVICE ENGINEER', 'SERVIS_MUHANDISI'].includes(r)) return 'maintenance';
+    if (['PARDOZLOVCHI', 'ОТДЕLOCHHIK', 'ОТДЕLOCHNIK', 'ОТДЕЛОЧНИK', 'ОТДЕЛОЧНИK', 'ОТДЕЛОЧНИК', 'FINISHING OPERATOR', 'FINISHING', 'PARDOZ', 'PARDOZLOVCHI_FINISHING'].includes(r)) return 'finishing';
+    if (['CHIQINDI OPERATORI', 'ОПЕРАТОР ОТХОДОВ', 'WASTE OPERATOR', 'WASTE', 'CHIQINDI'].includes(r)) return 'waste';
+    return r.toLowerCase();
+  };
+
   const currentRole = user?.effective_role || user?.role_display || user?.role || '';
-  const isPrivilegedUser = !!(user?.is_superuser || ['Bosh Admin', 'SuperAdmin', 'Admin', 'SUPERADMIN', 'ADMIN'].includes(currentRole));
+  const systemRole = getSystemRole(currentRole);
+  const isPrivilegedUser = !!(user?.is_superuser || systemRole === 'admin' || systemRole === 'director');
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  useEffect(() => {
+    setIsImpersonating(!!localStorage.getItem('original_access_token'));
+  }, [user]);
 
   const navigationGroups = [
     {
       id: 'main',
       title: null,
       items: [
-        { id: 'dashboard', name: t('Boshqaruv Paneli'), icon: LayoutDashboard, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori', 'Sotuv menejeri', 'Kuryer'] },
-        { id: 'exec-dashboard', name: t('Direktor Paneli'), icon: Target, roles: ['Bosh Admin'] },
+        { id: 'dashboard', name: t('Boshqaruv Paneli'), icon: LayoutDashboard, roles: ['admin'] },
+        { id: 'exec-dashboard', name: t('Direktor Paneli'), icon: Target, roles: ['admin', 'director'] },
       ]
     },
     {
@@ -152,8 +196,8 @@ export default function App() {
       title: t('1. Ombor (WMS)'),
       icon: Database,
       items: [
-        { id: 'warehouse', name: t('Ombor Boshqaruvi'), icon: Database, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Sotuv menejeri'] },
-        { id: 'transfers', name: t('Ichki O\'tkazmalar'), icon: Truck, roles: ['Bosh Admin', 'Omborchi'] },
+        { id: 'warehouse-workspace', name: t('Ombor Boshqaruvi'), icon: Database, roles: ['admin', 'warehouse'] },
+        { id: 'transfers', name: t('Ichki O\'tkazmalar'), icon: Truck, roles: ['admin', 'warehouse'] },
       ]
     },
     {
@@ -161,12 +205,16 @@ export default function App() {
       title: t('2. Ishlab Chiqarish (MES)'),
       icon: Factory,
       items: [
-        { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-        { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi', 'CNC operatori', 'Pardozlovchi', 'Chiqindi operatori'] },
-        { id: 'cnc', name: t('CNC Kesish Sexi'), icon: Scissors, roles: ['Bosh Admin', 'CNC operatori', 'Ishlab chiqarish ustasi'] },
-        { id: 'finishing', name: t('Finishing Sexi'), icon: Brush, roles: ['Bosh Admin', 'Pardozlovchi', 'Ishlab chiqarish ustasi'] },
-        { id: 'qc', name: t('Sifat Nazorati (QC)'), icon: CheckCircle2, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-        { id: 'waste', name: t('Chiqindi Boshqaruvi'), icon: Trash2, roles: ['Bosh Admin', 'Chiqindi operatori', 'Ishlab chiqarish ustasi'] },
+        { id: 'operator-workspace', name: t('Operator Paneli'), icon: Radio, roles: ['admin', 'operator'] },
+        { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['admin', 'operator'] },
+        { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['admin', 'operator', 'cnc', 'finishing', 'waste'] },
+        { id: 'scada', name: t('SCADA Live Xaritasi'), icon: Radio, roles: ['admin', 'operator'] },
+        { id: 'cnc-workspace', name: t('CNC Boshqaruvi'), icon: Scissors, roles: ['admin', 'cnc', 'operator'] },
+        { id: 'finishing', name: t('Finishing Sexi'), icon: Brush, roles: ['admin', 'finishing', 'operator'] },
+        { id: 'qc-workspace', name: t('Sifat Boshqaruvi (QC)'), icon: CheckCircle2, roles: ['admin', 'qc', 'operator'] },
+        { id: 'technologist-workspace', name: t('Texnolog Paneli'), icon: Layers, roles: ['admin', 'technologist'] },
+        { id: 'maintenance-workspace', name: t('Texnik Xizmat (SCADA)'), icon: Settings, roles: ['admin', 'maintenance'] },
+        { id: 'waste', name: t('Chiqindi Boshqaruvi'), icon: Trash2, roles: ['admin', 'waste', 'operator'] },
       ]
     },
     {
@@ -174,8 +222,8 @@ export default function App() {
       title: t('3. Ta\'minot & Xarid'),
       icon: ShoppingCart,
       items: [
-        { id: 'suppliers', name: t('Ta\'minotchilar'), icon: UserIcon, roles: ['Bosh Admin', 'Omborchi'] },
-        { id: 'purchase-orders', name: t('Xarid Buyurtmalari'), icon: FileText, roles: ['Bosh Admin', 'Omborchi'] },
+        { id: 'suppliers', name: t('Ta\'minotchilar'), icon: UserIcon, roles: ['admin', 'warehouse'] },
+        { id: 'purchase-orders', name: t('Xarid Buyurtmalari'), icon: FileText, roles: ['admin', 'warehouse'] },
       ]
     },
     {
@@ -183,13 +231,13 @@ export default function App() {
       title: t('4. Sotuv & CRM'),
       icon: ShoppingCart,
       items: [
-        { id: 'sales', name: t('Sotuvlar'), icon: ShoppingCart, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'clients', name: t('Mijozlar & CRM'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'debtors', name: t('Qarzdorlar Nazorati'), icon: Wallet, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'leads', name: t('Leadlar & CRM'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'dealers', name: t('Dilerlar'), icon: UserIcon, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'pricing', name: t('Narx Siyosati'), icon: Target, roles: ['Bosh Admin', 'Sotuv menejeri'] },
-        { id: 'pos-catalog', name: t('POS & Katalog'), icon: LayoutGrid, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'sales-workspace', name: t('Sotuv Boshqaruvi'), icon: ShoppingCart, roles: ['admin', 'sales'] },
+        { id: 'clients', name: t('Mijozlar & CRM'), icon: UserIcon, roles: ['admin', 'sales'] },
+        { id: 'debtors', name: t('Qarzdorlar Nazorati'), icon: Wallet, roles: ['admin', 'sales'] },
+        { id: 'leads', name: t('Leadlar & CRM'), icon: UserIcon, roles: ['admin', 'sales'] },
+        { id: 'dealers', name: t('Dilerlar'), icon: UserIcon, roles: ['admin', 'sales'] },
+        { id: 'pricing', name: t('Narx Siyosati'), icon: Target, roles: ['admin', 'sales'] },
+        { id: 'pos-catalog', name: t('POS & Katalog'), icon: LayoutGrid, roles: ['admin', 'sales'] },
       ]
     },
     {
@@ -197,10 +245,10 @@ export default function App() {
       title: t('5. Moliya & Buxgalteriya'),
       icon: Wallet,
       items: [
-        { id: 'finance', name: t('Moliya & Kassa'), icon: Wallet, roles: ['Bosh Admin', 'Moliya boshqaruvchi'] },
-        { id: 'accounting', name: t('Buxgalteriya'), icon: CalculatorIcon, roles: ['Bosh Admin', 'Buxgalter'] },
-        { id: 'profit-analytics', name: t('Foyda Analitikasi'), icon: BarChart3, roles: ['Bosh Admin', 'Buxgalter'] },
-        { id: 'payroll', name: t('Ish Haqi'), icon: Wallet, roles: ['Bosh Admin', 'Moliya boshqaruvchi', 'Buxgalter'] },
+        { id: 'finance', name: t('Moliya & Kassa'), icon: Wallet, roles: ['admin', 'accounting'] },
+        { id: 'accounting-workspace', name: t('Buxgalteriya Terminali'), icon: CalculatorIcon, roles: ['admin', 'accounting'] },
+        { id: 'profit-analytics', name: t('Foyda Analitikasi'), icon: BarChart3, roles: ['admin', 'accounting'] },
+        { id: 'payroll', name: t('Ish Haqi'), icon: Wallet, roles: ['admin', 'accounting'] },
       ]
     },
     {
@@ -208,8 +256,8 @@ export default function App() {
       title: t('6. Master Data'),
       icon: Database,
       items: [
-        { id: 'recipes', name: t('Retseptlar & Normalar'), icon: Layers, roles: ['Bosh Admin', 'Ishlab chiqarish ustasi'] },
-        { id: 'products', name: t('Mahsulot Katalogi'), icon: Box, roles: ['Bosh Admin', 'Sotuv menejeri'] },
+        { id: 'recipes', name: t('Retseptlar & Normalar'), icon: Layers, roles: ['admin', 'operator', 'technologist'] },
+        { id: 'products', name: t('Mahsulot Katalogi'), icon: Box, roles: ['admin', 'sales'] },
       ]
     },
     {
@@ -217,8 +265,8 @@ export default function App() {
       title: t('7. Logistika'),
       icon: Truck,
       items: [
-        { id: 'logistics', name: t('Yetkazish'), icon: Truck, roles: ['Bosh Admin', 'Kuryer', 'Sotuv menejeri'] },
-        { id: 'fleet', name: t('Transport Parki'), icon: Truck, roles: ['Bosh Admin'] },
+        { id: 'logistics-workspace', name: t('Yetkazish Terminali'), icon: Truck, roles: ['admin', 'logistics', 'sales'] },
+        { id: 'fleet', name: t('Transport Parki'), icon: Truck, roles: ['admin'] },
       ]
     },
     {
@@ -226,30 +274,58 @@ export default function App() {
       title: t('8. Tizim Boshqaruvi'),
       icon: Settings,
       items: [
-        { id: 'staff', name: t('Xodimlar'), icon: UserIcon, roles: ['Bosh Admin'] },
-        { id: 'compliance', name: t('Hujjatlar & Soliq'), icon: FileText, roles: ['Bosh Admin'] },
-        { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['Bosh Admin', 'Omborchi', 'Ishlab chiqarish ustasi', 'Sotuv menejeri', 'Kuryer'] },
-        { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['Bosh Admin'] },
-        { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['Bosh Admin'] },
+        { id: 'staff', name: t('Xodimlar'), icon: UserIcon, roles: ['admin'] },
+        { id: 'compliance', name: t('Hujjatlar & Soliq'), icon: FileText, roles: ['admin'] },
+        { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['admin', 'warehouse', 'operator', 'sales', 'logistics'] },
+        { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['admin'] },
+        { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['admin'] },
       ]
     },
     {
       id: 'user-guide',
       title: null,
       items: [
-        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['Bosh Admin', 'Admin', 'Sotuv menejeri', 'Omborchi', 'Ishlab chiqarish ustasi'] },
+        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator'] },
       ]
     }
   ];
-  
-  // Security Guard: Reset tab if not authorized
+
+  const getDefaultTabForRole = (role: string): string => {
+    const sysRole = getSystemRole(role);
+    const mapping: Record<string, string> = {
+      'admin': 'dashboard',
+      'director': 'exec-dashboard',
+      'warehouse': 'warehouse-workspace',
+      'operator': 'operator-workspace',
+      'cnc': 'cnc-workspace',
+      'qc': 'qc-workspace',
+      'accounting': 'accounting-workspace',
+      'logistics': 'logistics-workspace',
+      'technologist': 'technologist-workspace',
+      'maintenance': 'maintenance-workspace',
+      'finishing': 'finishing',
+      'waste': 'waste',
+      'sales': 'sales-workspace'
+    };
+    return mapping[sysRole] || 'dashboard';
+  };
+
+  // Security Guard: Reset tab if not authorized or direct to dedicated operational workspace
   useEffect(() => {
-    if (user && activeTab !== 'dashboard') {
+    if (user) {
       const allItems = navigationGroups.flatMap(g => g.items);
-      const isAllowed = allItems.some(item => item.id === activeTab && (!item.roles || isPrivilegedUser || item.roles.includes(currentRole)));
+      const activeItem = allItems.find(item => item.id === activeTab);
+
+      const isAllowed = activeItem && (
+        !activeItem.roles ||
+        isPrivilegedUser ||
+        activeItem.roles.includes(systemRole)
+      );
+
       if (!isAllowed) {
-        console.warn(`Unauthorized tab access attempted: ${activeTab}. Redirecting to dashboard.`);
-        setActiveTab('dashboard');
+        const defaultTab = getDefaultTabForRole(currentRole);
+        console.warn(`Unauthorized tab access attempted: ${activeTab}. Redirecting to default role workspace: ${defaultTab}`);
+        setActiveTab(defaultTab);
       }
     }
   }, [user, activeTab, currentRole, isPrivilegedUser]);
@@ -315,6 +391,7 @@ export default function App() {
           finalUser.assignedWarehouses = ['*'];
         }
         setUser(finalUser);
+        setActiveTab(getDefaultTabForRole(normalizedRole));
       } catch (err) {
         console.error("Auth initialization failed:", err);
         authService.logout();
@@ -337,6 +414,49 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
+  // Force Password Change State
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  const handleForcePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    
+    if (newPassword.length < 6) {
+      setPasswordError(t("Parol kamida 6 ta belgidan iborat bo'lishi kerak"));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError(t("Parollar mos kelmadi"));
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await api.patch('users/me/', {
+        password: newPassword,
+        must_change_password: false
+      });
+      
+      uiStore.showNotification(t("Parol muvaffaqiyatli yangilandi"), "success");
+      
+      // Update local state so overlay is removed
+      setUser(prev => prev ? { ...prev, must_change_password: false } : null);
+      
+      // Clear inputs
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      console.error("❌ Failed to change temporary password:", err.response?.data || err.message);
+      const errDetail = err.response?.data?.detail || err.response?.data?.message || "Tizim xatoligi yuz berdi";
+      setPasswordError(t(errDetail));
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   // Mobile check
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -357,6 +477,7 @@ export default function App() {
     try {
       const { user } = await authService.login(cleanUsername, password);
       setUser(user);
+      setActiveTab(getDefaultTabForRole(user.effective_role || user.role_display || user.role));
     } catch (err: any) {
       const errorData = err.response?.data;
       console.error("❌ Login Error Details:", errorData || err.message);
@@ -371,6 +492,22 @@ export default function App() {
     setUser(null);
   };
 
+  const handleSwitchBack = () => {
+    const originalAccess = localStorage.getItem('original_access_token');
+    const originalRefresh = localStorage.getItem('original_refresh_token');
+    
+    if (originalAccess && originalRefresh) {
+      localStorage.setItem('access_token', originalAccess);
+      localStorage.setItem('refresh_token', originalRefresh);
+      
+      localStorage.removeItem('original_access_token');
+      localStorage.removeItem('original_refresh_token');
+      localStorage.removeItem('original_user');
+      
+      window.location.href = '/';
+    }
+  };
+
   const pageLoader = (
     <div className="flex min-h-[280px] items-center justify-center">
       <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
@@ -381,21 +518,66 @@ export default function App() {
   );
 
   const renderActiveTab = () => {
+    // Watertight Fallback Security Guard
+    const allItems = navigationGroups.flatMap(g => g.items);
+    const activeItem = allItems.find(item => item.id === activeTab);
+    const isAllowed = !activeItem || !activeItem.roles || isPrivilegedUser || activeItem.roles.includes(systemRole);
+
+    if (!isAllowed) {
+      const defaultTab = getDefaultTabForRole(currentRole);
+      switch (defaultTab) {
+        case 'warehouse-workspace':
+          return <WarehouseWorkspace user={user!} />;
+        case 'operator-workspace':
+          return <OperatorWorkspace user={user!} />;
+        case 'sales-workspace':
+          return <SalesWorkspace user={user!} />;
+        case 'cnc-workspace':
+          return <CNCWorkspace user={user!} />;
+        case 'qc-workspace':
+          return <QCWorkspace user={user!} />;
+        case 'accounting-workspace':
+          return <AccountingWorkspace user={user!} />;
+        case 'logistics-workspace':
+          return <LogisticsWorkspace user={user!} />;
+        case 'technologist-workspace':
+          return <TechnologistWorkspace user={user!} />;
+        case 'maintenance-workspace':
+          return <MaintenanceWorkspace user={user!} />;
+        case 'finishing':
+          return <Finishing user={user!} />;
+        default:
+          return <Dashboard user={user} onAction={setActiveTab} />;
+      }
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard user={user} onAction={setActiveTab} />;
       case 'warehouse':
-        return <WarehouseUnified user={user!} />;
+      case 'warehouse-workspace':
+      case 'sklad1':
+      case 'sklad2':
+      case 'sklad3':
+      case 'sklad4':
+        return <WarehouseWorkspace user={user!} />;
+      case 'production-master':
+      case 'operator-workspace':
+        return <OperatorWorkspace user={user!} />;
       case 'transfers':
         return <InternalTransfers />;
       case 'production':
         return <ProductionFloor user={user!} />;
+      case 'scada':
+        return <SCADADashboard user={user!} />;
       case 'sales':
-        return <Sales user={user!} />;
+      case 'sales-workspace':
+        return <SalesWorkspace user={user!} />;
       case 'clients':
         return user ? <Clients user={user} /> : null;
       case 'cnc':
-        return <CNC user={user!} />;
+      case 'cnc-workspace':
+        return <CNCWorkspace user={user!} />;
       case 'finishing':
         return <Finishing user={user!} />;
       case 'waste':
@@ -403,9 +585,15 @@ export default function App() {
       case 'reports':
         return <Reports user={user!} />;
       case 'qc':
-        return user ? <QualityControl user={user} /> : null;
+      case 'qc-workspace':
+        return <QCWorkspace user={user!} />;
       case 'logistics':
-        return user ? <CourierDashboard user={user} /> : null;
+      case 'logistics-workspace':
+        return <LogisticsWorkspace user={user!} />;
+      case 'technologist-workspace':
+        return <TechnologistWorkspace user={user!} />;
+      case 'maintenance-workspace':
+        return <MaintenanceWorkspace user={user!} />;
       case 'production-orders':
         return <ProductionOrderManagement />;
       case 'suppliers':
@@ -425,7 +613,8 @@ export default function App() {
       case 'debtors':
         return <DebtorsManagement user={user!} />;
       case 'accounting':
-        return <Accounting user={user!} />;
+      case 'accounting-workspace':
+        return <AccountingWorkspace user={user!} />;
       case 'budgets':
         return <BudgetManager />;
       case 'compliance':
@@ -448,7 +637,31 @@ export default function App() {
       case 'payroll': return user ? <Payroll user={user} /> : null;
       case 'pos-catalog': return <POS user={user!} />;
       default:
-        return <Dashboard user={user} onAction={setActiveTab} />;
+        const def = getDefaultTabForRole(currentRole);
+        switch (def) {
+          case 'warehouse-workspace':
+            return <WarehouseWorkspace user={user!} />;
+          case 'operator-workspace':
+            return <OperatorWorkspace user={user!} />;
+          case 'sales-workspace':
+            return <SalesWorkspace user={user!} />;
+          case 'cnc-workspace':
+            return <CNCWorkspace user={user!} />;
+          case 'qc-workspace':
+            return <QCWorkspace user={user!} />;
+          case 'accounting-workspace':
+            return <AccountingWorkspace user={user!} />;
+          case 'logistics-workspace':
+            return <LogisticsWorkspace user={user!} />;
+          case 'technologist-workspace':
+            return <TechnologistWorkspace user={user!} />;
+          case 'maintenance-workspace':
+            return <MaintenanceWorkspace user={user!} />;
+          case 'finishing':
+            return <Finishing user={user!} />;
+          default:
+            return <Dashboard user={user} onAction={setActiveTab} />;
+        }
     }
   };
 
@@ -565,55 +778,82 @@ export default function App() {
 
   // Mobile Bottom Nav tabs — role-aware
   const getBottomNavItems = () => {
-    const role = currentRole;
-    const base = [
-      { id: 'dashboard', name: 'Asosiy', icon: LayoutDashboard },
-    ];
+    const isPrivileged = isPrivilegedUser;
+    const base = [];
+
+    if (isPrivileged || systemRole === 'director') {
+      base.push({ id: 'dashboard', name: t('Asosiy'), icon: LayoutDashboard });
+    } else {
+      const defaultTab = getDefaultTabForRole(currentRole);
+      let icon = LayoutDashboard;
+      if (systemRole === 'sales') icon = ShoppingCart;
+      else if (systemRole === 'warehouse') icon = Database;
+      else if (systemRole === 'operator') icon = Radio;
+      else if (systemRole === 'cnc') icon = Scissors;
+      else if (systemRole === 'qc') icon = CheckCircle2;
+      else if (systemRole === 'accounting') icon = CalculatorIcon;
+      else if (systemRole === 'logistics') icon = Truck;
+      else if (systemRole === 'technologist') icon = Layers;
+      else if (systemRole === 'maintenance') icon = Settings;
+      else if (systemRole === 'finishing') icon = Brush;
+      
+      base.push({ id: defaultTab, name: t('Asosiy'), icon });
+    }
 
     // Role-specific tabs
-    if (['Bosh Admin', 'Admin'].includes(role)) {
+    if (isPrivileged) {
       base.push(
-        { id: 'sklad1', name: 'Ombor', icon: Database },
-        { id: 'production', name: 'Ishlab ch.', icon: Factory },
-        { id: 'sales', name: 'Sotuv', icon: ShoppingCart },
+        { id: 'warehouse-workspace', name: t('Ombor'), icon: Database },
+        { id: 'production', name: t('Ishlab ch.'), icon: Factory },
+        { id: 'sales-workspace', name: t('Sotuv'), icon: ShoppingCart },
       );
-    } else if (['Sotuv menejeri'].includes(role)) {
+    } else if (systemRole === 'sales') {
       base.push(
-        { id: 'sales', name: 'Sotuv', icon: ShoppingCart },
-        { id: 'clients', name: 'Mijozlar', icon: UserIcon },
-        { id: 'finance', name: 'Moliya', icon: Wallet },
+        { id: 'sales-workspace', name: t('Sotuv'), icon: ShoppingCart },
+        { id: 'clients', name: t('Mijozlar'), icon: UserIcon },
       );
-    } else if (['Omborchi'].includes(role)) {
+    } else if (systemRole === 'warehouse') {
       base.push(
-        { id: 'sklad1', name: 'Xom ashyo', icon: Database },
+        { id: 'warehouse-workspace', name: t('Ombor'), icon: Database },
+        { id: 'transfers', name: t('O\'tkazmalar'), icon: Truck },
       );
-    } else if (['Ishlab chiqarish ustasi'].includes(role)) {
+    } else if (systemRole === 'operator') {
       base.push(
-        { id: 'production', name: 'Ishlab ch.', icon: Factory },
-        { id: 'production-master', name: 'Nazorat', icon: Activity },
-        { id: 'sklad2', name: 'Bloklar', icon: Layers },
+        { id: 'operator-workspace', name: t('Operator'), icon: Radio },
+        { id: 'production', name: t('Ishlab ch.'), icon: Factory },
       );
-    } else if (['CNC operatori'].includes(role)) {
+    } else if (systemRole === 'cnc') {
       base.push(
-        { id: 'cnc', name: 'CNC', icon: Scissors },
-        { id: 'sklad3', name: 'Sklad', icon: Truck },
+        { id: 'cnc-workspace', name: t('CNC'), icon: Scissors },
       );
-    } else if (['Pardozlovchi'].includes(role)) {
+    } else if (systemRole === 'qc') {
       base.push(
-        { id: 'finishing', name: 'Pardoz', icon: Brush },
+        { id: 'qc-workspace', name: t('Nazorat'), icon: CheckCircle2 },
       );
-    } else if (['Chiqindi operatori'].includes(role)) {
+    } else if (systemRole === 'accounting') {
       base.push(
-        { id: 'waste', name: 'Chiqindi', icon: Trash2 },
+        { id: 'accounting-workspace', name: t('Buxgalteriya'), icon: CalculatorIcon },
       );
-    } else if (['Kuryer'].includes(role)) {
+    } else if (systemRole === 'logistics') {
       base.push(
-        { id: 'logistics', name: 'Yetkazish', icon: Truck },
+        { id: 'logistics-workspace', name: t('Yetkazish'), icon: Truck },
+      );
+    } else if (systemRole === 'technologist') {
+      base.push(
+        { id: 'technologist-workspace', name: t('Texnolog'), icon: Layers },
+      );
+    } else if (systemRole === 'maintenance') {
+      base.push(
+        { id: 'maintenance-workspace', name: t('Servis'), icon: Settings },
+      );
+    } else if (systemRole === 'finishing') {
+      base.push(
+        { id: 'finishing', name: t('Pardozlash'), icon: Brush },
       );
     }
 
     // "More" always last
-    base.push({ id: '__more__', name: 'Yana', icon: Menu });
+    base.push({ id: '__more__', name: t('Yana'), icon: Menu });
     return base.slice(0, 5); // Max 5 tabs
   };
 
@@ -655,6 +895,31 @@ export default function App() {
       {/* =========== MAIN CONTENT AREA =========== */}
       <main className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isMobile ? (isSidebarOpen ? 'ml-72' : 'ml-[88px]') : ''}`}>
         
+        {isImpersonating && (
+          <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-white px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl relative z-40 animate-in fade-in slide-in-from-top duration-300">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0 shadow-inner">
+                <ShieldAlert className="w-5 h-5 text-white animate-pulse" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider leading-none mb-1">
+                  {t("Siz hozirda boshqa xodim sifatida tizimdasiz")}
+                </p>
+                <p className="text-sm font-bold text-white/90 truncate leading-none">
+                  {user?.name || user?.username} — <span className="underline decoration-indigo-400 font-extrabold uppercase text-[11px] tracking-wider">{t(currentRole)}</span>
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleSwitchBack}
+              className="bg-white hover:bg-rose-50 text-rose-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-rose-700 active:scale-95 transition-all shadow-md flex items-center gap-1.5 shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              {t("Asosiy adminga qaytish")}
+            </button>
+          </div>
+        )}
+
         {/* ===== TOPBAR (Integrated utilities) ===== */}
         <Topbar 
           user={user}
@@ -767,7 +1032,7 @@ export default function App() {
                 {navigationGroups.map((group) => {
                   const visibleItems = group.items.filter(item => {
                     const isPrivileged = isPrivilegedUser;
-                    return isPrivileged || item.roles?.includes(currentRole);
+                    return isPrivileged || item.roles?.includes(systemRole);
                   });
                   if (visibleItems.length === 0) return null;
 
@@ -809,6 +1074,117 @@ export default function App() {
                   {t('Chiqish')}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* =========== FORCE PASSWORD CHANGE OVERLAY =========== */}
+      <AnimatePresence>
+        {user && user.must_change_password && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[20000] bg-slate-900/60 backdrop-blur-2xl flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="bg-white p-8 rounded-[40px] shadow-2xl max-w-md w-full border border-slate-100/80 relative overflow-hidden"
+            >
+              {/* Decorative gradient corner */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+              
+              <div className="text-center mb-8 relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-800 rounded-[24px] flex items-center justify-center mx-auto mb-5 shadow-2xl shadow-indigo-500/20 text-white animate-pulse">
+                  <Lock className="w-7 h-7" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3">
+                  {t("Birinchi kirishda parolni almashtirish majburiy")}
+                </h2>
+                <p className="text-slate-500 font-bold text-xs max-w-xs mx-auto leading-relaxed">
+                  {t("Tizim xavfsizligi uchun vaqtinchalik parolni yangi, xavfsiz parolga o'zgartirishingiz shart.")}
+                </p>
+              </div>
+
+              <form onSubmit={handleForcePasswordChange} className="space-y-6 relative">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 ml-1">
+                    {t("Yangi parol")}
+                  </label>
+                  <div className="relative group">
+                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full pl-14 pr-6 py-4.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all bg-slate-50/50 font-bold text-slate-900"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 ml-1">
+                    {t("Yangi parolni tasdiqlash")}
+                  </label>
+                  <div className="relative group">
+                    <ShieldAlert className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-14 pr-6 py-4.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all bg-slate-50/50 font-bold text-slate-900"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Validation checklist */}
+                {newPassword && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="flex flex-col gap-2 bg-slate-50/80 p-4 rounded-2xl border border-slate-100"
+                  >
+                    <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-wider transition-colors ${newPassword.length >= 6 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 6 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                      <span>{t("Kamida 6 ta belgi")}</span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-wider transition-colors ${(confirmPassword && newPassword === confirmPassword) ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${(confirmPassword && newPassword === confirmPassword) ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                      <span>{t("Parollar mos kelishi")}</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {passwordError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-2xl border border-rose-100 flex items-center gap-3"
+                  >
+                    <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                    {passwordError}
+                  </motion.div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword || newPassword.length < 6 || newPassword !== confirmPassword}
+                  className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-black active:scale-[0.98] transition-all shadow-2xl shadow-slate-200 mt-4 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isUpdatingPassword ? t("Parol yangilanmoqda...") : t("Tasdiqlash")}
+                  {!isUpdatingPassword && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                </button>
+              </form>
             </motion.div>
           </motion.div>
         )}

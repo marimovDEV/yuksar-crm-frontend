@@ -77,10 +77,32 @@ export default function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto no-scrollbar scroll-smooth">
         {navigationGroups.map((group) => {
+          const getSystemRole = (role: string): string => {
+            const r = (role || '').toUpperCase().trim();
+            if (['BOSH ADMIN', 'SUPERADMIN', 'ADMIN', 'АДМИН', 'СУПЕР АДМИН', 'BOSH_ADMIN'].includes(r)) return 'admin';
+            if (['DIREKTOR', 'ДИРЕКТOR', 'ДИРЕКТОР', 'DIRECTOR'].includes(r)) return 'director';
+            if (['SOTUV MENEJERI', 'МЕНЕДЖЕР ПО ПРОДАЖАМ', 'SALES MANAGER', 'SALES', 'SOTUV', 'SOTUV_MENEJERI'].includes(r)) return 'sales';
+            if (['OMBORCHI', 'КЛАДОВЩIK', 'КЛАДОВЩIK', 'КЛАДОВЩИК', 'WAREHOUSE KEEPER', 'WAREHOUSE', 'OMBOR', 'OMBORCHI_KLADOVSHIK'].includes(r)) return 'warehouse';
+            if (['OPERATOR', 'ОПЕРАТОР', 'ISHLAB CHIQARISH USTASI', 'МАСТЕР ПРОИЗВОДСТВА', 'PRODUCTION MASTER', 'OPERATOR_USTA'].includes(r)) return 'operator';
+            if (['CNC OPERATORI', 'ОПЕРАТОР ЧПУ', 'CNC OPERATOR', 'CNC'].includes(r)) return 'cnc';
+            if (['QC', 'QC INSPECTOR', 'QC_INSPECTOR', 'SIFAT NAZORATCHISI', 'SIFAT', 'ИНСПЕКТОР КАЧЕСТVA', 'ИНСПЕКТОР КАЧЕСТВА'].includes(r)) return 'qc';
+            if (['BUXGALTER', 'БУХГАЛTЕР', 'БУХГАЛТЕР', 'ACCOUNTANT', 'FINANCE', 'MOLIYA', 'MOLIYA BOSHQARUVCHI', 'BUXGALTERIYA'].includes(r)) return 'accounting';
+            if (['KURYER', 'КУРЬЕР', 'DELIVERY', 'LOGISTICS', 'LOGIST', 'LOGISTIKA', 'LOGISTICS MANAGER'].includes(r)) return 'logistics';
+            if (['TEXNOLOG', 'ТЕХНОЛОГ', 'TECHNOLOGIST'].includes(r)) return 'technologist';
+            if (['SERVIS MUHANDISI', 'СЕРВИСНЫЙ ИНЖЕНЕР', 'MAINTENANCE ENGINEER', 'MAINTENANCE', 'SERVICE ENGINEER', 'SERVIS_MUHANDISI'].includes(r)) return 'maintenance';
+            if (['PARDOZLOVCHI', 'ОТДЕLOCHHIK', 'ОТДЕLOCHNIK', 'ОТДЕЛОЧНИK', 'ОТДЕЛОЧНИK', 'ОТДЕЛОЧНИК', 'FINISHING OPERATOR', 'FINISHING', 'PARDOZ', 'PARDOZLOVCHI_FINISHING'].includes(r)) return 'finishing';
+            if (['CHIQINDI OPERATORI', 'ОПЕРАТОР ОТХОДОВ', 'WASTE OPERATOR', 'WASTE', 'CHIQINDI'].includes(r)) return 'waste';
+            return r.toLowerCase();
+          };
+
           const visibleItems = group.items.filter((item: any) => {
-            const isPrivileged = !!(user?.is_superuser || ['Bosh Admin', 'SuperAdmin', 'Admin', 'SUPERADMIN', 'ADMIN'].includes(currentRole));
+            const systemRole = getSystemRole(currentRole);
+            const isPrivileged = !!(
+              user?.is_superuser || 
+              ['admin', 'director'].includes(systemRole)
+            );
             if (isPrivileged) return true;
-            return item.roles?.includes(currentRole);
+            return item.roles?.includes(systemRole);
           });
           
           if (visibleItems.length === 0) return null;

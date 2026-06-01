@@ -167,7 +167,7 @@ export default function DebtDashboard() {
                           </span>
                        </td>
                        <td className="px-6 py-5">
-                          <button className="p-2 hover:bg-slate-100 rounded-xl transition-all group-hover:text-indigo-600 text-slate-400">
+                          <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-2 hover:bg-slate-100 rounded-xl transition-all group-hover:text-indigo-600 text-slate-400">
                              <ArrowUpRight className="w-4 h-4" />
                           </button>
                        </td>

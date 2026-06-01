@@ -169,11 +169,11 @@ export default function FigurePassport({ figure, onClose }: FigurePassportProps)
 
         {/* Footer Actions */}
         <div className="p-8 border-t border-slate-100 bg-slate-50/30 flex gap-4">
-           <button className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl hover:bg-black active:scale-95 transition-all">
+           <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl hover:bg-black active:scale-95 transition-all">
               <FileText className="w-5 h-5" />
               {t("Hujjatni Yuklash")}
            </button>
-           <button className="p-4 bg-white border border-slate-200 text-slate-400 rounded-2xl hover:bg-slate-50 transition-all">
+           <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-4 bg-white border border-slate-200 text-slate-400 rounded-2xl hover:bg-slate-50 transition-all">
               <QrCode className="w-6 h-6" />
            </button>
         </div>

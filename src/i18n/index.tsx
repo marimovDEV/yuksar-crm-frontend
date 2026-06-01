@@ -1,5 +1,4 @@
 import React, {
-  createContext,
   startTransition,
   useContext,
   useDeferredValue,
@@ -15,25 +14,19 @@ import {
   persistLanguage,
   translateText,
 } from './translations';
-
-type I18nContextValue = {
-  language: AppLanguage;
-  locale: string;
-  setLanguage: (language: AppLanguage) => void;
-  toggleLanguage: () => void;
-  t: (text: string) => string;
-};
+import {
+  I18nContext,
+  I18nContextValue
+} from './context';
 
 type StoredValue = {
   source: string;
   translated: string;
 };
 
-const ATTRIBUTE_NAMES = ['placeholder', 'title', 'aria-label', 'alt'];
+export const ATTRIBUTE_NAMES = ['placeholder', 'title', 'aria-label', 'alt'];
 const textNodeCache = new WeakMap<Text, StoredValue>();
 const elementAttributeCache = new WeakMap<Element, Map<string, StoredValue>>();
-
-const I18nContext = createContext<I18nContextValue | null>(null);
 
 function shouldSkipElement(element: Element | null): boolean {
   return Boolean(element?.closest('[data-i18n-skip="true"]'));
@@ -116,7 +109,7 @@ function translateAttributes(element: Element, language: AppLanguage) {
   });
 }
 
-function translateNode(node: Node, language: AppLanguage) {
+export function translateNode(node: Node, language: AppLanguage) {
   if (node.nodeType === Node.TEXT_NODE) {
     translateTextNode(node as Text, language);
     return;
@@ -141,73 +134,7 @@ function translateNode(node: Node, language: AppLanguage) {
   }
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<AppLanguage>(() => getStoredLanguage());
-  const deferredLanguage = useDeferredValue(language);
-
-  useEffect(() => {
-    persistLanguage(language);
-    document.documentElement.lang = language;
-    document.documentElement.dataset.appLanguage = language;
-  }, [language]);
-
-  useEffect(() => {
-    const root = document.getElementById('root');
-    if (!root) {
-      return;
-    }
-
-    translateNode(root, deferredLanguage);
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'characterData') {
-          translateNode(mutation.target, deferredLanguage);
-          return;
-        }
-
-        if (mutation.type === 'attributes') {
-          translateNode(mutation.target, deferredLanguage);
-          return;
-        }
-
-        mutation.addedNodes.forEach((node) => translateNode(node, deferredLanguage));
-      });
-    });
-
-    observer.observe(root, {
-      subtree: true,
-      childList: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ATTRIBUTE_NAMES,
-    });
-
-    return () => observer.disconnect();
-  }, [deferredLanguage]);
-
-  const value = useMemo<I18nContextValue>(() => ({
-    language,
-    locale: getLocale(language),
-    setLanguage: (nextLanguage: AppLanguage) => {
-      if (nextLanguage === language) {
-        return;
-      }
-
-      startTransition(() => {
-        setLanguageState(nextLanguage);
-      });
-    },
-    toggleLanguage: () => {
-      startTransition(() => {
-        setLanguageState((current) => current === 'uz' ? 'ru' : 'uz');
-      });
-    },
-    t: (text: string) => translateText(text, language),
-  }), [language]);
-
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
-}
+export { I18nProvider } from './I18nProvider';
 
 export function useI18n() {
   const context = useContext(I18nContext);

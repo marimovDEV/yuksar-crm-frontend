@@ -167,8 +167,8 @@ export default function MasterData() {
                       <Box className="w-6 h-6" />
                     </div>
                     <div className="flex gap-2">
-                       <button className="p-2 text-slate-300 hover:text-indigo-600 transition-colors"><Edit3 className="w-4 h-4" /></button>
-                       <button className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                       <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-2 text-slate-300 hover:text-indigo-600 transition-colors"><Edit3 className="w-4 h-4" /></button>
+                       <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-2 text-slate-300 hover:text-rose-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                  </div>
                  <h3 className="text-xl font-black text-slate-900 mb-1">{p.name}</h3>
@@ -256,8 +256,8 @@ export default function MasterData() {
                   </div>
 
                   <div className="p-10 border-t border-slate-50 bg-slate-50/30 flex gap-4">
-                     <button className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200">{t('Saqlash')}</button>
-                     <button className="px-10 py-5 bg-white border border-slate-200 text-slate-400 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">{t('Yopish')}</button>
+                     <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="flex-1 py-5 bg-slate-900 text-white rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200">{t('Saqlash')}</button>
+                     <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="px-10 py-5 bg-white border border-slate-200 text-slate-400 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">{t('Yopish')}</button>
                   </div>
                </motion.div>
             </div>

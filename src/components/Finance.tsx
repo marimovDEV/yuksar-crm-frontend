@@ -70,6 +70,9 @@ export default function Finance({ user }: FinanceProps) {
   const [isTransferring, setIsTransferring] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedCashbox, setSelectedCashbox] = useState<Cashbox | null>(null);
+  
+  const [isManagingAccounts, setIsManagingAccounts] = useState(false);
+  const [selectedClientForHistory, setSelectedClientForHistory] = useState<number | null>(null);
 
   const [transferData, setTransferData] = useState({
     from_cashbox: '',
@@ -124,6 +127,22 @@ export default function Finance({ user }: FinanceProps) {
       uiStore.showNotification(err.response?.data?.error || t("Xatolik yuz berdi"), "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    uiStore.showNotification(t("Hisobot tayyorlanmoqda..."), "info");
+    try {
+      const response = await api.get('finance/export/', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'finance_report.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      uiStore.showNotification(t("Eksport qilishda xatolik"), "error");
     }
   };
 
@@ -390,7 +409,7 @@ export default function Finance({ user }: FinanceProps) {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase tracking-wider">{t('Likvidlik tugunlari (Kassalar)')}</h3>
-                    <button className="text-xs font-black text-blue-600 hover:underline">{t('finance.manage_accounts')}</button>
+                    <button onClick={() => setIsManagingAccounts(true)} className="text-xs font-black text-blue-600 hover:underline">{t('finance.manage_accounts')}</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {cashboxes.map(box => (
@@ -432,10 +451,10 @@ export default function Finance({ user }: FinanceProps) {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <button className="p-4 bg-slate-50 border border-slate-200 rounded-[20px] hover:bg-slate-100 transition-all text-slate-600">
+                        <button onClick={() => uiStore.showNotification(t("Filtrlar menyusi ochilmoqda..."), "info")} className="p-4 bg-slate-50 border border-slate-200 rounded-[20px] hover:bg-slate-100 transition-all text-slate-600">
                             <Filter className="w-5 h-5" />
                         </button>
-                        <button className="p-4 bg-slate-50 border border-slate-200 rounded-[20px] hover:bg-slate-100 transition-all text-slate-600">
+                        <button onClick={handleDownloadExcel} className="p-4 bg-slate-50 border border-slate-200 rounded-[20px] hover:bg-slate-100 transition-all text-slate-600">
                             <Download className="w-5 h-5" />
                         </button>
                     </div>
@@ -497,7 +516,7 @@ export default function Finance({ user }: FinanceProps) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 last:rounded-r-[24px] bg-white border-y-2 border-r-2 border-slate-100 group-hover:border-blue-100 text-center">
-                                        <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                        <button onClick={() => uiStore.showNotification(t("Hujjat yuklash tizimi ishga tushirilmoqda"), "info")} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                                             <Paperclip className="w-4 h-4" />
                                         </button>
                                     </td>
@@ -554,8 +573,8 @@ export default function Finance({ user }: FinanceProps) {
                             </div>
 
                             <div className="flex gap-2">
-                                <button className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200">History</button>
-                                <button className="flex-1 px-4 py-3 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">Statement</button>
+                                <button onClick={() => setSelectedClientForHistory(b.customer_id)} className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200">History</button>
+                                <button onClick={() => handleDownloadExcel()} className="flex-1 px-4 py-3 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">Statement</button>
                             </div>
                         </div>
                     </motion.div>
@@ -653,6 +672,7 @@ export default function Finance({ user }: FinanceProps) {
         cashboxes={cashboxes}
         categories={categories}
         customers={customers}
+        user={user}
       />
 
       {/* Internal Transfer Modal */}
@@ -750,6 +770,118 @@ export default function Finance({ user }: FinanceProps) {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Account Management Modal */}
+      <AnimatePresence>
+        {isManagingAccounts && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsManagingAccounts(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[40px] shadow-2xl p-8 border border-slate-100 overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-600 rounded-2xl shadow-xl shadow-blue-200">
+                    <Wallet className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('finance.manage_accounts')}</h3>
+                </div>
+                <button onClick={() => setIsManagingAccounts(false)} className="p-3 hover:bg-slate-50 rounded-2xl transition-all">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                {cashboxes.map(cb => (
+                  <div key={cb.id} className="p-4 border border-slate-100 rounded-2xl flex items-center justify-between hover:border-blue-200 transition-all">
+                    <div>
+                      <h4 className="font-bold text-slate-900">{cb.name}</h4>
+                      <p className="text-sm font-semibold text-slate-500">{t(cb.type === 'CASH' ? 'Naqd' : 'Perezich')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-black text-slate-900">{fmt(cb.balance)} UZS</p>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${cb.is_active ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {cb.is_active ? t('Faol') : t('Nofaol')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
+                <button onClick={() => uiStore.showNotification(t("Yangi kassa qo'shish API orqali amalga oshiriladi"), "info")} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">
+                  + Yangi Kassa
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Client History Modal */}
+      <AnimatePresence>
+        {selectedClientForHistory !== null && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelectedClientForHistory(null)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-4xl bg-white rounded-[40px] shadow-2xl p-8 border border-slate-100 overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-600 rounded-2xl shadow-xl shadow-blue-200">
+                    <History className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">Tranzaksiyalar Tarixi</h3>
+                </div>
+                <button onClick={() => setSelectedClientForHistory(null)} className="p-3 hover:bg-slate-50 rounded-2xl transition-all">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto max-h-[60vh]">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50">
+                    <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <th className="px-4 py-3 rounded-tl-xl">Sana</th>
+                      <th className="px-4 py-3">Tavsif</th>
+                      <th className="px-4 py-3">Summa</th>
+                      <th className="px-4 py-3 rounded-tr-xl">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.filter(t => t.customer === selectedClientForHistory).map(trans => (
+                      <tr key={trans.id} className="border-b border-slate-50">
+                        <td className="px-4 py-4 text-sm font-bold text-slate-600">{new Date(trans.created_at).toLocaleDateString()}</td>
+                        <td className="px-4 py-4 text-sm font-bold text-slate-900">{trans.description}</td>
+                        <td className={`px-4 py-4 text-base font-black ${trans.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {trans.type === 'INCOME' ? '+' : '-'}{fmt(trans.amount)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${getStatusColor(trans.status)}`}>{trans.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {transactions.filter(t => t.customer === selectedClientForHistory).length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-slate-500 font-bold">Hech qanday tranzaksiya topilmadi</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </motion.div>
           </div>
         )}

@@ -49,6 +49,7 @@ export default function Sales({ user }: { user: User }) {
   const [loading, setLoading] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   
   // New Order Wizard State
   const [step, setStep] = useState(1);
@@ -203,6 +204,24 @@ export default function Sales({ user }: { user: User }) {
     } catch (err) {
       uiStore.showNotification(t("Sotuv exportida xatolik"), "error");
     }
+  };
+
+  const handleDeleteInvoice = async (id: number) => {
+    if (!window.confirm(t("Rostdan ham ushbu buyurtmani o'chirmoqchimisiz?"))) return;
+    try {
+      await api.delete(`sales/invoices/${id}/`);
+      uiStore.showNotification(t("Buyurtma o'chirildi"), "success");
+      fetchData();
+    } catch (err: any) {
+      uiStore.showNotification(err.response?.data?.error || t("Xatolik yuz berdi"), "error");
+    } finally {
+      setOpenDropdownId(null);
+    }
+  };
+
+  const handlePrintInvoice = (inv: Invoice) => {
+    window.print();
+    setOpenDropdownId(null);
   };
 
   const resetForm = () => {
@@ -432,7 +451,15 @@ export default function Sales({ user }: { user: User }) {
                     
                     <div className="flex justify-between items-start mb-6 relative z-10">
                       <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg uppercase tracking-widest border border-blue-100">{inv.invoice_number}</span>
-                      <button className="text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all"><MoreVertical className="w-5 h-5" /></button>
+                      <div className="relative">
+                        <button onClick={() => setOpenDropdownId(openDropdownId === inv.id ? null : inv.id)} className="text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all"><MoreVertical className="w-5 h-5" /></button>
+                        {openDropdownId === inv.id && (
+                           <div className="absolute top-full right-0 mt-2 w-36 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden" onMouseLeave={() => setOpenDropdownId(null)}>
+                              <button onClick={() => handlePrintInvoice(inv)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50">{t('Chek chiqarish')}</button>
+                              <button onClick={() => handleDeleteInvoice(inv.id)} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50">{t("O'chirish")}</button>
+                           </div>
+                        )}
+                      </div>
                     </div>
                     
                     <h5 className="text-base font-black text-slate-900 mb-1 leading-tight">{inv.customer_name}</h5>
@@ -491,7 +518,7 @@ export default function Sales({ user }: { user: User }) {
                       <td className="px-10 py-6 font-black text-slate-900">{inv.invoice_number}</td>
                       <td className="px-10 py-6">
                         <p className="font-black text-slate-700">{inv.customer_name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{inv.payment_method_display}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t(inv.payment_method_display)}</p>
                       </td>
                       <td className="px-10 py-6 font-black text-blue-600">{inv.total_amount.toLocaleString()} {t('UZS')}</td>
                       <td className="px-10 py-6">
@@ -501,11 +528,17 @@ export default function Sales({ user }: { user: User }) {
                           inv.status === 'SHIPPED' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
                           'bg-emerald-50 text-emerald-600 border-emerald-100'
                         }`}>
-                          {inv.status_display}
+                          {t(inv.status_display)}
                         </span>
                       </td>
-                      <td className="px-10 py-6 text-right">
-                        <button className="p-3 text-slate-300 hover:text-slate-600 transition-all"><MoreVertical className="w-5 h-5" /></button>
+                      <td className="px-10 py-6 text-right relative">
+                        <button onClick={() => setOpenDropdownId(openDropdownId === inv.id ? null : inv.id)} className="p-3 text-slate-300 hover:text-slate-600 transition-all"><MoreVertical className="w-5 h-5" /></button>
+                        {openDropdownId === inv.id && (
+                           <div className="absolute top-full right-10 w-36 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden" onMouseLeave={() => setOpenDropdownId(null)}>
+                              <button onClick={() => handlePrintInvoice(inv)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-50">{t('Chek chiqarish')}</button>
+                              <button onClick={() => handleDeleteInvoice(inv.id)} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50">{t("O'chirish")}</button>
+                           </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -524,7 +557,7 @@ export default function Sales({ user }: { user: User }) {
                   iconBg="bg-blue-50"
                   iconColor="text-blue-600"
                   status={{
-                    label: inv.status_display,
+                    label: t(inv.status_display),
                     variant: inv.status === 'NEW' ? 'info' :
                              inv.status === 'CONFIRMED' ? 'warning' :
                              inv.status === 'COMPLETED' ? 'success' : 'default'
@@ -534,7 +567,7 @@ export default function Sales({ user }: { user: User }) {
                   }
                   footer={
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{inv.payment_method_display}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{t(inv.payment_method_display)}</span>
                       <div className="flex gap-2">
                         {inv.status === 'NEW' && (
                           <button onClick={() => handleStatusTransition(inv.id, 'CONFIRMED')} className="touch-target px-4 bg-amber-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-100">{t('Tasdiq')}</button>

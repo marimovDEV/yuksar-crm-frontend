@@ -71,7 +71,7 @@ export default function BudgetManager() {
         <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
           <Target className="w-6 h-6 text-indigo-600" /> Byudjet Nazorati
         </h2>
-        <button className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200">
+        <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200">
           <Plus className="w-4 h-4" /> Yangi Byudjet
         </button>
       </div>

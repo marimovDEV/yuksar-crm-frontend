@@ -125,7 +125,7 @@ export default function ProductCatalog({ products, onAddToCart, onViewDetail, pr
   );
 }
 
-function ProductCard({ product, onAddToCart, onViewDetail, previewMode, idx }: { product: Product, onAddToCart: (p: Product) => void, onViewDetail: (p: Product) => void, previewMode: boolean, idx: number }) {
+function ProductCard({ product, onAddToCart, onViewDetail, previewMode, idx }: { key?: any, product: Product, onAddToCart: (p: Product) => void, onViewDetail: (p: Product) => void, previewMode: boolean, idx: number }) {
   const { t } = useI18n();
 
   return (

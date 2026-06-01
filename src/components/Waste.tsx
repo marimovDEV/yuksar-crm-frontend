@@ -9,6 +9,7 @@ import { User, WasteTask, WasteCategory } from '../types';
 import { uiStore } from '../lib/store';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
+import { useI18n } from '../i18n';
 
 const DEPARTMENTS = [
   { id: 'CNC', name: 'CNC Sexi', color: 'text-indigo-600', bg: 'bg-indigo-50' },
@@ -19,6 +20,7 @@ const DEPARTMENTS = [
 ];
 
 export default function Waste({ user }: { user: User }) {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState<WasteTask[]>([]);
   const [categories, setCategories] = useState<WasteCategory[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -90,11 +92,11 @@ export default function Waste({ user }: { user: User }) {
   const handleAction = async (id: number, action: string, data?: any) => {
     try {
       await api.post(`waste/tasks/${id}/${action}/`, data);
-      uiStore.showNotification(`Muvaffaqiyatli: ${action}`, "success");
+      uiStore.showNotification(`${t('Muvaffaqiyatli')}: ${action}`, "success");
       fetchData();
       if (action === 'finish') setIsFinishModalOpen(false);
     } catch (err) {
-      uiStore.showNotification("Xatolik yuz berdi", "error");
+      uiStore.showNotification(t("Xatolik yuz berdi"), "error");
     }
   };
 
@@ -128,10 +130,10 @@ export default function Waste({ user }: { user: User }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Chiqindi Nazorati</h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">{t('Chiqindi Nazorati')}</h1>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            CHIQINDILARNI BOSHQARISH VA QAYTA ISHLASH MARKAZI
+            {t('CHIQINDILARNI BOSHQARISH VA QAYTA ISHLASH MARKAZI')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -139,7 +141,7 @@ export default function Waste({ user }: { user: User }) {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
               <input 
                 type="text" 
-                placeholder="Qidiruv (ID yoki Batch)..." 
+                placeholder={t("Qidiruv (ID yoki Batch)...")} 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 pr-6 py-4 bg-white border-2 border-slate-100 rounded-3xl outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/5 transition-all w-full md:w-80 font-bold text-sm"
@@ -180,7 +182,7 @@ export default function Waste({ user }: { user: User }) {
                       <div>
                         <div className="flex items-center gap-3 mb-1">
                           <span className="px-3 py-1 bg-rose-500/20 text-rose-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                            QAYTA ISHLANMOQDA
+                            {t('QAYTA ISHLANMOQDA')}
                           </span>
                           <span className="text-rose-500/50 font-black text-[10px] tracking-widest uppercase">
                             ID: {activeTask.task_number}
@@ -190,7 +192,7 @@ export default function Waste({ user }: { user: User }) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.3em] mb-2">JARAYONDAGI VAQT</p>
+                      <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.3em] mb-2">{t('JARAYONDAGI VAQT')}</p>
                       <p className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter tabular-nums">
                         {formatDuration(activeTimer)}
                       </p>
@@ -199,19 +201,19 @@ export default function Waste({ user }: { user: User }) {
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
                     <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-8 border border-white/5">
-                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">Vazni</p>
+                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">{t('Vazni')}</p>
                       <p className="text-2xl font-black text-white">{activeTask.weight_kg} <span className="text-xs opacity-40 uppercase">kg</span></p>
                     </div>
                     <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-8 border border-white/5">
-                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">Bo'lim</p>
-                      <p className="text-sm font-black text-rose-400 uppercase tracking-widest">{activeTask.dept_display}</p>
+                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">{t("Bo'lim")}</p>
+                      <p className="text-sm font-black text-rose-400 uppercase tracking-widest">{t(activeTask.dept_display)}</p>
                     </div>
                     <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-8 border border-white/5">
-                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">Batch / Partiya</p>
-                      <p className="text-sm font-black text-slate-300 truncate">{activeTask.batch_number || 'Nomalum'}</p>
+                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">{t('Batch / Partiya')}</p>
+                      <p className="text-sm font-black text-slate-300 truncate">{activeTask.batch_number || t('Nomalum')}</p>
                     </div>
                     <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-8 border border-white/5">
-                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">Operator</p>
+                      <p className="text-slate-500 font-black text-[9px] uppercase tracking-widest mb-2">{t('Operator')}</p>
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-300">
                           {activeTask.operator_name?.[0]?.toUpperCase()}
@@ -230,7 +232,7 @@ export default function Waste({ user }: { user: User }) {
                       className="flex-1 min-w-[300px] py-10 bg-rose-600 hover:bg-rose-500 text-white rounded-[40px] font-black text-sm uppercase tracking-[0.3em] transition-all shadow-2xl shadow-rose-900/40 flex items-center justify-center gap-4 group"
                     >
                       <CheckCircle2 className="w-8 h-8 group-hover:scale-125 transition-transform" />
-                      QAYTA ISHLASHNI YAKUNLASH
+                      {t('QAYTA ISHLASHNI YAKUNLASH')}
                     </button>
                   </div>
                 </div>
@@ -240,8 +242,8 @@ export default function Waste({ user }: { user: User }) {
                 <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8 opacity-50">
                    <Recycle className="w-12 h-12 text-rose-300" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Hozirda jarayondagi chiqindi yo'q</h3>
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Pastdan yangi vazifani boshlang yoki qabul qiling</p>
+                <h3 className="text-2xl font-black text-slate-900 mb-2">{t("Hozirda jarayondagi chiqindi yo'q")}</h3>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('Pastdan yangi vazifani boshlang yoki qabul qiling')}</p>
               </div>
             )}
           </AnimatePresence>
@@ -251,10 +253,10 @@ export default function Waste({ user }: { user: User }) {
             <div className="flex items-center justify-between px-4">
               <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                 <ClipboardList className="w-6 h-6 text-rose-500" />
-                NAVBATDAGI CHIQUINDILAR
+                {t('NAVBATDAGI CHIQUINDILAR')}
               </h3>
               <span className="px-4 py-1.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {filteredQueue.length} TA KUTILMOQDA
+                {filteredQueue.length} {t('TA KUTILMOQDA')}
               </span>
             </div>
 
@@ -284,12 +286,12 @@ export default function Waste({ user }: { user: User }) {
 
                   <div className="grid grid-cols-2 gap-3 mb-8">
                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Vazni</p>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Vazni')}</p>
                         <p className="text-sm font-black text-rose-600">{task.weight_kg} <span className="text-[10px] uppercase">kg</span></p>
                      </div>
                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Manba</p>
-                        <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{task.dept_display}</p>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Manba')}</p>
+                        <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{t(task.dept_display)}</p>
                      </div>
                   </div>
 
@@ -299,12 +301,12 @@ export default function Waste({ user }: { user: User }) {
                     className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[2px] hover:bg-slate-800 disabled:opacity-30 transition-all flex items-center justify-center gap-2 group-hover:translate-y-[-2px] shadow-lg shadow-slate-100"
                   >
                     <Play className="w-4 h-4 fill-current" />
-                    <span>QAYTA ISHLASHNI BOSHLASH</span>
+                    <span>{t('QAYTA ISHLASHNI BOSHLASH')}</span>
                   </button>
                 </div>
               ))}
               {filteredQueue.length === 0 && (
-                 <div className="col-span-full py-12 text-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">Navbatda chiqindi yo'q</div>
+                 <div className="col-span-full py-12 text-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">{t('Navbatda chiqindi yo\'q')}</div>
               )}
             </div>
           </div>
@@ -315,7 +317,7 @@ export default function Waste({ user }: { user: User }) {
           <div className="bg-white rounded-[40px] p-8 border-2 border-slate-50 shadow-sm">
             <h3 className="text-lg font-black text-slate-900 mb-8 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              YAKUNLANGAN ISHLAR
+              {t('YAKUNLANGAN ISHLAR')}
             </h3>
             
             <div className="space-y-6">
@@ -327,7 +329,7 @@ export default function Waste({ user }: { user: User }) {
                   <div className="min-w-0 flex-1">
                     <h5 className="text-[13px] font-black text-slate-900 truncate uppercase">{task.category_name}</h5>
                     <div className="flex items-center gap-2 mt-0.5">
-                       <span className="text-[10px] font-black text-slate-400">{task.recycled_weight_kg} kg qayta ishlandi</span>
+                       <span className="text-[10px] font-black text-slate-400">{task.recycled_weight_kg} {t('kg qayta ishlandi')}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -337,7 +339,7 @@ export default function Waste({ user }: { user: User }) {
                 </div>
               ))}
               {completedTasks.length === 0 && (
-                <p className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-[10px]">Hali ish yakunlanmadi</p>
+                <p className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-[10px]">{t('Hali ish yakunlanmadi')}</p>
               )}
             </div>
           </div>
@@ -346,14 +348,14 @@ export default function Waste({ user }: { user: User }) {
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <BarChart3 className="w-32 h-32 rotate-12" />
             </div>
-            <h3 className="text-base font-black tracking-widest uppercase mb-8 relative z-10">Bugungi Natija</h3>
+            <h3 className="text-base font-black tracking-widest uppercase mb-8 relative z-10">{t('Bugungi Natija')}</h3>
             <div className="space-y-8 relative z-10">
               <div>
-                 <p className="text-xs font-black text-rose-100 uppercase tracking-widest mb-1">Umumiy Chiqindi</p>
+                 <p className="text-xs font-black text-rose-100 uppercase tracking-widest mb-1">{t('Umumiy Chiqindi')}</p>
                  <p className="text-4xl font-black">{stats?.today_total || 0} kg</p>
               </div>
               <div>
-                 <p className="text-xs font-black text-rose-100 uppercase tracking-widest mb-1">Kutilayotgan ishlar</p>
+                 <p className="text-xs font-black text-rose-100 uppercase tracking-widest mb-1">{t('Kutilayotgan ishlar')}</p>
                  <p className="text-4xl font-black">{stats?.pending_tasks || 0}</p>
               </div>
             </div>
@@ -372,8 +374,8 @@ export default function Waste({ user }: { user: User }) {
             >
               <div className="p-10 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black text-slate-900">Yakunlash</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{selectedTask.task_number} natijalari</p>
+                  <h3 className="text-2xl font-black text-slate-900">{t('Yakunlash')}</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{selectedTask.task_number} {t('natijalari')}</p>
                 </div>
                 <button onClick={() => setIsFinishModalOpen(false)} className="bg-white p-4 rounded-2xl text-slate-400 hover:text-rose-500 transition-all shadow-sm">
                   <X className="w-6 h-6" />
@@ -383,7 +385,7 @@ export default function Waste({ user }: { user: User }) {
               <form onSubmit={handleFinishSubmit} className="p-10 space-y-8">
                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Qayta ishlab olindi (kg)*</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Qayta ishlab olindi (kg)*')}</label>
                         <input 
                           type="number" 
                           required
@@ -395,7 +397,7 @@ export default function Waste({ user }: { user: User }) {
                         />
                     </div>
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Yo'qotish / Loss (kg)*</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Yo\'qotish / Loss (kg)*')}</label>
                         <input 
                           type="number" 
                           required
@@ -408,21 +410,21 @@ export default function Waste({ user }: { user: User }) {
                  </div>
 
                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Izohlar</label>
-                    <textarea 
-                      placeholder="Qayta ishlash jarayoni haqida..."
-                      value={finishData.notes}
-                      onChange={(e) => setFinishData({...finishData, notes: e.target.value})}
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-[20px] py-4 px-6 outline-none focus:border-slate-300 transition-all font-medium text-slate-700 resize-none" 
-                      rows={3}
-                    />
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Izohlar')}</label>
+                     <textarea 
+                       placeholder={t("Qayta ishlash jarayoni haqida...")}
+                       value={finishData.notes}
+                       onChange={(e) => setFinishData({...finishData, notes: e.target.value})}
+                       className="w-full bg-slate-50 border-2 border-slate-100 rounded-[20px] py-4 px-6 outline-none focus:border-slate-300 transition-all font-medium text-slate-700 resize-none" 
+                       rows={3}
+                     />
                  </div>
 
                  <button 
                   type="submit"
                   className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black text-sm uppercase tracking-[3px] hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-200"
                  >
-                   NATIJANI SAQLASH
+                   {t('NATIJANI SAQLASH')}
                    <ArrowRight className="w-5 h-5" />
                  </button>
               </form>
@@ -442,7 +444,7 @@ export default function Waste({ user }: { user: User }) {
               className="bg-white rounded-[40px] w-full max-w-xl shadow-2xl overflow-hidden"
             >
               <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-rose-50/20">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Chiqindi Qabul Qilish</h3>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t('Chiqindi Qabul Qilish')}</h3>
                 <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-slate-400 hover:text-rose-600 shadow-sm transition-all">
                   <X className="w-6 h-6" />
                 </button>
@@ -461,7 +463,7 @@ export default function Waste({ user }: { user: User }) {
               }} className="p-10 space-y-8">
                 <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">Manba</label>
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Manba')}</label>
                         <select 
                             required
                             value={newTask.source_department}
@@ -469,19 +471,19 @@ export default function Waste({ user }: { user: User }) {
                             className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[24px] outline-none focus:border-rose-500 font-bold text-slate-900 text-sm"
                         >
                             {DEPARTMENTS.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
+                                <option key={d.id} value={d.id}>{t(d.name)}</option>
                             ))}
                         </select>
                     </div>
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">Tur</label>
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Tur')}</label>
                         <select 
                             required
                             value={newTask.category}
                             onChange={(e) => setNewTask({...newTask, category: e.target.value})}
                             className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[24px] outline-none focus:border-rose-500 font-bold text-slate-900 text-sm"
                         >
-                            <option value="">Tanlang...</option>
+                            <option value="">{t('Tanlang')}...</option>
                             {categories.map(c => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
                             ))}
@@ -491,7 +493,7 @@ export default function Waste({ user }: { user: User }) {
 
                 <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">Vazni (kg)</label>
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Vazni')} (kg)</label>
                         <input 
                             type="number"
                             required
@@ -503,10 +505,10 @@ export default function Waste({ user }: { user: User }) {
                         />
                     </div>
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">Batch / Partiya</label>
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Batch / Partiya')}</label>
                         <input 
                             type="text"
-                            placeholder="Ixtiyoriy"
+                            placeholder={t("Ixtiyoriy")}
                             value={newTask.batch_number}
                             onChange={(e) => setNewTask({...newTask, batch_number: e.target.value})}
                             className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[24px] outline-none focus:border-rose-500 font-bold text-slate-900"
@@ -518,7 +520,7 @@ export default function Waste({ user }: { user: User }) {
                   type="submit"
                   className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[3px] text-xs hover:bg-slate-800 transition-all"
                 >
-                  TASDIQLASH VA QABUL QILISH
+                  {t('TASDIQLASH VA QABUL QILISH')}
                 </button>
               </form>
             </motion.div>

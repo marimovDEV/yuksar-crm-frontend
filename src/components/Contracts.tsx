@@ -181,7 +181,7 @@ export default function Contracts({ user }: { user: User }) {
                   </div>
                   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${cfg.bg} ${cfg.color}`}>
                     <StatusIcon className="w-3.5 h-3.5" />
-                    {contract.status_display}
+                    {t(contract.status_display)}
                   </span>
                 </div>
 

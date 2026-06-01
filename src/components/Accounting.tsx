@@ -244,7 +244,7 @@ export default function Accounting({ user }: Props) {
               {node.name}
             </span>
             <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${typeColors[node.account_type] || 'bg-gray-100'}`}>
-              {node.account_type_display}
+              {t(node.account_type_display)}
             </span>
             <span className={`text-sm font-black tabular-nums min-w-[120px] text-right ${node.balance >= 0 ? 'text-slate-900' : 'text-rose-600'}`}>
               {fmt(node.balance)}
@@ -283,7 +283,7 @@ export default function Accounting({ user }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm text-sm">
+          <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm text-sm">
             <Printer className="w-4 h-4" /> Export Report
           </button>
           <button 
@@ -380,9 +380,9 @@ export default function Accounting({ user }: Props) {
                               <div className="flex items-center gap-3 mb-2">
                                 <span className="text-xs font-mono font-black text-blue-600 px-2 py-1 bg-blue-50 rounded-lg">{entry.entry_number}</span>
                                 <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest ${statusColors[entry.status]}`}>
-                                  {entry.status_display}
+                                  {t(entry.status_display)}
                                 </span>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-lg">Source: {entry.source_type_display}</span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-lg">{t('Manba')}: {t(entry.source_type_display)}</span>
                                 <div className="flex-1" />
                                 <span className="text-xs text-slate-400 font-bold">{entry.date}</span>
                               </div>
@@ -428,7 +428,7 @@ export default function Accounting({ user }: Props) {
                                     <X className="w-4 h-4" />
                                   </button>
                                 )}
-                                <button className="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-blue-600 transition-all">
+                                <button onClick={() => window.print()} className="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-blue-600 transition-all">
                                     <Printer className="w-4 h-4" />
                                 </button>
                                 {entry.attachment && (

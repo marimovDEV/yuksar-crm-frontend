@@ -50,7 +50,6 @@ export default function Suppliers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  
   const [newSupplier, setNewSupplier] = useState({ 
     name: '', 
     contact_info: '',
@@ -61,6 +60,7 @@ export default function Suppliers() {
     contract_number: '',
     contract_expiry: ''
   });
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -83,8 +83,13 @@ export default function Suppliers() {
     if (!newSupplier.name) return;
     setLoading(true);
     try {
-      await api.post('suppliers/', newSupplier);
-      uiStore.showNotification("Ta'minotchi muvaffaqiyatli qo'shildi", "success");
+      if (isEditing && selectedSupplier) {
+        await api.put(`suppliers/${selectedSupplier.id}/`, newSupplier);
+        uiStore.showNotification("Ta'minotchi muvaffaqiyatli tahrirlandi", "success");
+      } else {
+        await api.post('suppliers/', newSupplier);
+        uiStore.showNotification("Ta'minotchi muvaffaqiyatli qo'shildi", "success");
+      }
       setIsModalOpen(false);
       setNewSupplier({ 
         name: '', 
@@ -96,11 +101,39 @@ export default function Suppliers() {
         contract_number: '',
         contract_expiry: ''
       });
+      setIsEditing(false);
       fetchData();
     } catch (err) {
       uiStore.showNotification("Xatolik yuz berdi", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startEdit = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setIsEditing(true);
+    setNewSupplier({
+      name: supplier.name || '',
+      contact_info: supplier.contact_info || '',
+      inn: supplier.inn || '',
+      manager_name: supplier.manager_name || '',
+      address: supplier.address || '',
+      material_type: supplier.material_type || '',
+      contract_number: supplier.contract_number || '',
+      contract_expiry: supplier.contract_expiry || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Haqiqatan ham bu ta'minotchini o'chirmoqchimisiz?")) return;
+    try {
+      await api.delete(`suppliers/${id}/`);
+      uiStore.showNotification("Ta'minotchi muvaffaqiyatli o'chirildi", "success");
+      fetchData();
+    } catch (err) {
+      uiStore.showNotification("Ta'minotchini o'chirishda xatolik yuz berdi", "error");
     }
   };
 
@@ -132,11 +165,17 @@ export default function Suppliers() {
         </div>
         <div className="flex gap-3">
           <button 
-             onClick={() => setIsModalOpen(true)}
+             onClick={() => {
+               setIsEditing(false);
+               setNewSupplier({
+                 name: '', contact_info: '', inn: '', manager_name: '', address: '', material_type: '', contract_number: '', contract_expiry: ''
+               });
+               setIsModalOpen(true);
+             }}
              className="bg-blue-600 text-white px-8 py-4 rounded-[22px] font-black flex items-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all group"
           >
-            <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-            <span>{t('Yangi Ta\'minotchi')}</span>
+             <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+             <span>{t('Yangi Ta\'minotchi')}</span>
           </button>
         </div>
       </div>
@@ -176,7 +215,7 @@ export default function Suppliers() {
               />
            </div>
            <div className="flex gap-2">
-              <button className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
+              <button onClick={() => window.print()} className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm">
                  <Activity className="w-5 h-5" />
               </button>
            </div>
@@ -236,8 +275,8 @@ export default function Suppliers() {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"><Edit3 className="w-4 h-4" /></button>
-                       <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                       <button onClick={(e) => { e.stopPropagation(); startEdit(s); }} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"><Edit3 className="w-4 h-4" /></button>
+                       <button onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
                        <ChevronRight className="w-5 h-5 text-slate-300 ml-2" />
                     </div>
                   </td>
@@ -556,11 +595,11 @@ function SupplierDetailDrawer({ supplier, onClose, t, locale }: { supplier: Supp
 
           {/* Footer */}
           <div className="p-10 border-t border-slate-50 bg-slate-50/20 flex gap-4">
-             <button className="flex-1 py-5 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-slate-200 hover:bg-black transition-all">
+             <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="flex-1 py-5 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-slate-200 hover:bg-black transition-all">
                 <ShoppingBag className="w-5 h-5" />
                 {t('Yangi Buyurtma')}
              </button>
-             <button className="p-5 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all">
+             <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-5 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all">
                 <Edit3 className="w-6 h-6" />
              </button>
           </div>

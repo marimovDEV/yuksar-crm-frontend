@@ -8,7 +8,7 @@ import { useI18n } from '../i18n';
 interface ScannerModalProps {
   onScan: (data: any) => void;
   onClose: () => void;
-  type?: 'BATCH' | 'DOCUMENT';
+  type?: 'BATCH' | 'DOCUMENT' | 'BLOCK';
 }
 
 export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: ScannerModalProps) {
@@ -17,6 +17,7 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const isDocumentResult = Boolean(scannedData?.number);
+  const isBlockResult = Boolean(scannedData?.block_id);
   const displayDate = scannedData?.date || scannedData?.created_at;
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
       setLoading(true);
       setError(null);
       try {
-        // Universal scan endpoint handles both DOC: and BAT: prefixes
+        // Universal scan endpoint handles DOC:, BAT: and BLK:
         const endpoint = `documents/by-qr/${decodedText}/`;
         const res = await api.get(endpoint);
         setScannedData(res.data);
@@ -68,7 +69,7 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                <Camera className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">{scannedData ? 'Ma\'lumot topildi' : t('QR Skayner')}</h3>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{scannedData ? t('Ma\'lumot topildi') : t('QR Skayner')}</h3>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-0.5">
                 {scannedData ? scannedData.batch_number || scannedData.number : t('Partiya yoki Hujjatni aniqlash')}
               </p>
@@ -85,7 +86,7 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                 {loading && (
                   <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-6">
                      <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                     <p className="text-sm font-black text-slate-900 uppercase tracking-widest">Ma'lumotlar yuklanmoqda...</p>
+                     <p className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('Ma\'lumotlar yuklanmoqda...')}</p>
                   </div>
                 )}
                 <AnimatePresence>
@@ -103,31 +104,63 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                   <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 space-y-6">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hujjat turi</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Hujjat turi')}</p>
                         <p className="text-xl font-black text-slate-900 uppercase tracking-tight">{scannedData.type_label || scannedData.type}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Holat</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Holat')}</p>
                         <p className="text-sm font-black text-blue-600">{scannedData.status_label || scannedData.status}</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-slate-200/60">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Qayerdan</p>
-                        <p className="text-sm font-black text-slate-900">{scannedData.from_entity_name || "Noma'lum"}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Qayerdan')}</p>
+                        <p className="text-sm font-black text-slate-900">{scannedData.from_entity_name || t("Noma'lum")}</p>
                       </div>
                       <div className="text-left sm:text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Qayerga</p>
-                        <p className="text-sm font-black text-slate-900">{scannedData.to_entity_name || "Noma'lum"}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Qayerga')}</p>
+                        <p className="text-sm font-black text-slate-900">{scannedData.to_entity_name || t("Noma'lum")}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pozitsiyalar soni</p>
-                        <p className="text-sm font-black text-amber-600">{scannedData.items?.length || 0} ta</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Pozitsiyalar soni')}</p>
+                        <p className="text-sm font-black text-amber-600">{scannedData.items?.length || 0} {t('ta')}</p>
                       </div>
                       <div className="text-left sm:text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Yaratilgan sana</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Yaratilgan sana')}</p>
                         <p className="text-sm font-black text-slate-900">{displayDate ? new Date(displayDate).toLocaleDateString(locale) : '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : isBlockResult ? (
+                  <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 space-y-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Blok ID')}</p>
+                        <p className="text-xl font-black text-slate-900 uppercase tracking-tight">{scannedData.block_id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Holat')}</p>
+                        <p className="text-sm font-black text-blue-600">{t(scannedData.status_display || scannedData.status)}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-slate-200/60">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Retsept')}</p>
+                        <p className="text-sm font-black text-slate-900">{scannedData.recipe_name || '-'}</p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Manzil')}</p>
+                        <p className="text-sm font-black text-slate-900">{scannedData.current_location?.location_code || scannedData.warehouse_name || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Klass')}</p>
+                        <p className="text-sm font-black text-emerald-600">{t(scannedData.classification_display || scannedData.classification)}</p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Cooling Time')}</p>
+                        <p className="text-sm font-black text-slate-900">{scannedData.cooling_time_hours ?? '-'} h</p>
                       </div>
                     </div>
                   </div>
@@ -135,22 +168,22 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                   <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100">
                     <div className="flex items-center justify-between mb-8">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mahsulot</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Mahsulot')}</p>
                         <p className="text-xl font-black text-slate-900 uppercase tracking-tight">{scannedData.material_name || scannedData.type}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Qolgan miqdor</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Qolgan miqdor')}</p>
                         <p className="text-2xl font-black text-blue-600">{scannedData.remaining_quantity || 0} kg</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-200/60">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Band qilingan (Reserved)</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Band qilingan (Reserved)')}</p>
                         <p className="text-sm font-black text-amber-600">{scannedData.reserved_quantity || 0} kg</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kirim sanasi</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('Kirim sanasi')}</p>
                         <p className="text-sm font-black text-slate-900">{displayDate ? new Date(displayDate).toLocaleDateString(locale) : '-'}</p>
                       </div>
                     </div>
@@ -162,13 +195,13 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
                     onClick={() => { onScan(scannedData); onClose(); }}
                     className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all"
                    >
-                     {isDocumentResult ? "Hujjat bo'yicha davom etish" : 'Sexga berish / Harakat qilish'}
+                     {isDocumentResult ? t("Hujjat bo'yicha davom etish") : t('Sexga berish / Harakat qilish')}
                    </button>
                    <button 
                     onClick={() => setScannedData(null)}
                     className="w-full py-4 border border-slate-200 text-slate-500 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all font-mono"
                    >
-                     QAYTADAN SKAYNERLASH
+                     {t('QAYTADAN SKAYNERLASH')}
                    </button>
                 </div>
              </motion.div>
@@ -176,15 +209,15 @@ export default function ScannerModal({ onScan, onClose, type = 'BATCH' }: Scanne
            
            {!scannedData && (
              <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4 italic">Ko'rsatma:</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4 italic">{t('Ko\'rsatma:')}</p>
                 <ul className="text-xs font-bold text-slate-600 space-y-3">
                    <li className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] flex-shrink-0">1</div>
-                      <span>{type === 'DOCUMENT' ? "Hujjat QR kodini kamera markaziga keltiring." : "Partiya yorlig'idagi QR kodni kamera markaziga keltiring."}</span>
+                      <span>{type === 'DOCUMENT' ? t("Hujjat QR kodini kamera markaziga keltiring.") : type === 'BLOCK' ? t("Blok yorlig'idagi QR kodni kamera markaziga keltiring.") : t("Partiya yorlig'idagi QR kodni kamera markaziga keltiring.")}</span>
                    </li>
                    <li className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] flex-shrink-0">2</div>
-                      <span>{type === 'DOCUMENT' ? "Tizim hujjatni aniqlab, marshrut va status ma'lumotlarini ochadi." : "Tizim avtomatik ravishda partiyani aniqlaydi va ma'lumotlarni ochadi."}</span>
+                      <span>{type === 'DOCUMENT' ? t("Tizim hujjatni aniqlab, marshrut va status ma'lumotlarini ochadi.") : type === 'BLOCK' ? t("Tizim blok pasportini, timeline va joriy manzilini ochadi.") : t("Tizim avtomatik ravishda partiyani aniqlaydi va ma'lumotlarni ochadi.")}</span>
                    </li>
                 </ul>
              </div>

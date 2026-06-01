@@ -13,34 +13,40 @@ import WarehouseMap from './warehouse/WarehouseMap';
 import SK1RawMaterial from './warehouse/SK1RawMaterial';
 import SK2BlockStorage from './warehouse/SK2BlockStorage';
 import { SK3DecorStorage, SK4Shipment } from './warehouse/SK34Storage';
+import WasteWarehouse from './warehouse/WasteWarehouse';
 import WarehouseTransfers from './warehouse/WarehouseTransfers';
 import CycleCounting from './warehouse/CycleCounting';
 import WarehouseAnalytics from './warehouse/WarehouseAnalytics';
+import BlockPassport from './production/BlockPassport';
+import { FinishedBlock } from '../types';
 
 interface WarehouseUnifiedProps { user: User; }
 
-type WTab = 'MAP' | 'SK1' | 'SK2' | 'SK3' | 'SK4' | 'TRANSFERS' | 'STOCKTAKE' | 'ANALYTICS';
+type WTab = 'MAP' | 'SK1' | 'SK2' | 'SK3' | 'SK4' | 'WASTE' | 'TRANSFERS' | 'STOCKTAKE' | 'ANALYTICS';
 
 export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<WTab>('MAP');
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState<FinishedBlock | null>(null);
 
   // Enterprise Modules Definition
   const MODULES = [
     { id: 'MAP', label: 'Live Xarita', icon: MapPin, color: 'blue' },
-    { id: 'SK1', label: 'SK-1 (Xom Ashyo)', icon: Box, color: 'emerald' },
-    { id: 'SK2', label: 'SK-2 (Bloklar)', icon: Layers, color: 'indigo' },
-    { id: 'SK3', label: 'SK-3 (Dekor)', icon: Package2, color: 'amber' },
-    { id: 'SK4', label: 'SK-4 (Yuklash)', icon: Truck, color: 'violet' },
+    { id: 'SK1', label: 'Склад сырья', icon: Box, color: 'emerald' },
+    { id: 'SK2', label: 'Склад готовой продукции', icon: Layers, color: 'indigo' },
+    { id: 'SK3', label: 'Склад декора', icon: Package2, color: 'amber' },
+    { id: 'SK4', label: 'Зона отгрузки', icon: Truck, color: 'violet' },
+    { id: 'WASTE', label: 'Брак / возврат / отходы', icon: AlertTriangle, color: 'rose' },
     { id: 'TRANSFERS', label: 'Ichki O\'tkazmalar', icon: ArrowRightLeft, color: 'sky' },
     { id: 'STOCKTAKE', label: 'Inventarizatsiya', icon: ClipboardList, color: 'rose' },
     { id: 'ANALYTICS', label: 'Analitika', icon: BarChart3, color: 'slate' },
   ] as const;
 
-  const handleScanResult = (result: string) => {
-    console.log('Scanned:', result);
-    // Scanning logic would route to exact batch or block detail view
+  const handleScanResult = (result: any) => {
+    if (result?.block_id) {
+      setSelectedBlock(result);
+    }
     setScannerOpen(false);
   };
 
@@ -56,11 +62,11 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
             <h1 className="text-3xl font-black tracking-tight mb-2 flex items-center gap-3">
               Warehouse Management System
               <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
-                LIVE
+                {t('LIVE')}
               </div>
             </h1>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Bosh Ombor va Logistika Markazi
+              <MapPin className="w-4 h-4" /> {t('Bosh Ombor va Logistika Markazi')}
             </p>
           </div>
 
@@ -116,6 +122,7 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
             {activeTab === 'SK2' && <SK2BlockStorage />}
             {activeTab === 'SK3' && <SK3DecorStorage />}
             {activeTab === 'SK4' && <SK4Shipment />}
+            {activeTab === 'WASTE' && <WasteWarehouse />}
             {activeTab === 'TRANSFERS' && <WarehouseTransfers />}
             {activeTab === 'STOCKTAKE' && <CycleCounting />}
             {activeTab === 'ANALYTICS' && <WarehouseAnalytics />}
@@ -125,7 +132,10 @@ export default function WarehouseUnified({ user }: WarehouseUnifiedProps) {
 
       {/* GLOBAL MODALS */}
       {scannerOpen && (
-        <ScannerModal onClose={() => setScannerOpen(false)} onResult={handleScanResult} />
+        <ScannerModal onClose={() => setScannerOpen(false)} onScan={handleScanResult} type="BLOCK" />
+      )}
+      {selectedBlock && (
+        <BlockPassport block={selectedBlock} onClose={() => setSelectedBlock(null)} />
       )}
     </div>
   );

@@ -39,6 +39,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [activeTab, setActiveTab] = useState<'STAFF' | 'ATTENDANCE' | 'PERFORMANCE'>('STAFF');
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [modalTab, setModalTab] = useState<'ASOSIY' | 'LAVOZIM' | 'RUXSATLAR' | 'STATUS'>('ASOSIY');
 
   // New User Form
   const [formData, setFormData] = useState({
@@ -46,10 +47,15 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     username: '',
     phone: '',
     password: '',
+    confirmPassword: '',
+    pin_code: '',
     role_id: null as number | null,
     department_id: null as number | null,
-    status: 'ACTIVE' as 'ACTIVE' | 'BLOCKED' | 'PENDING',
-    assigned_warehouses: [] as number[]
+    status: 'ACTIVE' as 'ACTIVE' | 'BLOCKED' | 'PENDING' | 'RESIGNED' | 'VACATION',
+    shift: 'DAY' as 'DAY' | 'NIGHT',
+    assigned_machine: '',
+    assigned_warehouses: [] as number[],
+    custom_permissions: [] as string[]
   });
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -64,18 +70,20 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
   const fetchStaff = async () => {
     try {
-      const [staffRes, whRes, rolesRes, deptRes, attendanceRes] = await Promise.all([
+      const [staffRes, whRes, rolesRes, deptRes, attendanceRes, permRes] = await Promise.all([
         api.get('users/'),
         api.get('warehouses/'),
         api.get('roles/'),
         api.get('departments/'),
-        api.get('compliance/attendance/')
+        api.get('compliance/attendance/'),
+        api.get('permissions/')
       ]);
       setStaff(staffRes.data.results || staffRes.data);
       setAvailableWarehouses(whRes.data.results || whRes.data);
       setRoles(rolesRes.data.results || rolesRes.data);
       setDepartments(deptRes.data.results || deptRes.data);
       setAttendance(attendanceRes.data.results || attendanceRes.data);
+      setPermissions(permRes.data.results || permRes.data);
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
@@ -89,6 +97,29 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!editingUser || formData.password) {
+      if (formData.password.length < 6) {
+        uiStore.showNotification(t("Parol kamida 6 ta belgidan iborat bo'lishi kerak"), 'error');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        uiStore.showNotification(t("Parollar mos kelmadi"), 'error');
+        return;
+      }
+    }
+
+    if (formData.pin_code) {
+      if (!/^\d+$/.test(formData.pin_code)) {
+        uiStore.showNotification(t("PIN kod faqat raqamlardan iborat bo'lishi kerak"), 'error');
+        return;
+      }
+      if (formData.pin_code.length !== 4 && formData.pin_code.length !== 6) {
+        uiStore.showNotification(t("PIN kod 4 yoki 6 raqamdan iborat bo'lishi kerak"), 'error');
+        return;
+      }
+    }
+
     setLoading(true);
     
     const payload = {
@@ -98,6 +129,10 @@ export default function StaffManagement({ user }: StaffManagementProps) {
       role_id: formData.role_id,
       department_id: formData.department_id,
       status: formData.status,
+      shift: formData.shift,
+      assigned_machine: formData.assigned_machine || null,
+      pin_code: formData.pin_code || null,
+      custom_permissions: formData.custom_permissions,
       assigned_warehouses: formData.assigned_warehouses,
       ...(formData.password ? { password: formData.password } : {})
     };
@@ -128,11 +163,17 @@ export default function StaffManagement({ user }: StaffManagementProps) {
       username: '', 
       phone: '', 
       password: '', 
+      confirmPassword: '',
+      pin_code: '',
       role_id: null,
       department_id: null,
       status: 'ACTIVE',
-      assigned_warehouses: []
+      shift: 'DAY',
+      assigned_machine: '',
+      assigned_warehouses: [],
+      custom_permissions: []
     });
+    setModalTab('ASOSIY');
   };
 
   const translateAction = (action: string) => {
@@ -176,11 +217,17 @@ export default function StaffManagement({ user }: StaffManagementProps) {
       username: s.username,
       phone: s.phone || '',
       password: '', 
+      confirmPassword: '',
+      pin_code: s.pin_code || '',
       role_id: s.role_id || null,
       department_id: s.department_id || null,
-      status: s.status || 'ACTIVE',
-      assigned_warehouses: Array.isArray(s.assigned_warehouses) ? s.assigned_warehouses : []
+      status: (s.status as any) || 'ACTIVE',
+      shift: s.shift || 'DAY',
+      assigned_machine: s.assigned_machine || '',
+      assigned_warehouses: Array.isArray(s.assigned_warehouses) ? s.assigned_warehouses.map(Number) : [],
+      custom_permissions: s.custom_permissions || []
     });
+    setModalTab('ASOSIY');
     setIsAdding(true);
   };
 
@@ -191,6 +238,28 @@ export default function StaffManagement({ user }: StaffManagementProps) {
         ? prev.assigned_warehouses.filter(w => w !== id)
         : [...prev.assigned_warehouses, id]
     }));
+  };
+
+  const toggleCustomPermission = (key: string) => {
+    setFormData(prev => ({
+      ...prev,
+      custom_permissions: prev.custom_permissions.includes(key)
+        ? prev.custom_permissions.filter(p => p !== key)
+        : [...prev.custom_permissions, key]
+    }));
+  };
+
+  const groupPermissions = () => {
+    const groups: Record<string, ERPPermission[]> = {};
+    permissions.forEach(p => {
+      const parts = p.key.split('.');
+      const groupName = parts[0] ? parts[0].toUpperCase() : 'BOSHQA';
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(p);
+    });
+    return groups;
   };
 
   const handleDeleteStaff = async (staffId: string, staffName: string) => {
@@ -210,6 +279,31 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     }
   };
 
+  const handleImpersonate = async (targetId: number, targetName: string) => {
+    try {
+      const response = await api.post(`users/${targetId}/impersonate/`);
+      const { access, refresh } = response.data;
+      
+      // Store current admin credentials
+      localStorage.setItem('original_access_token', localStorage.getItem('access_token') || '');
+      localStorage.setItem('original_refresh_token', localStorage.getItem('refresh_token') || '');
+      localStorage.setItem('original_user', JSON.stringify(user));
+      
+      // Set target user credentials
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      
+      uiStore.showNotification(t("Tizimga kirish muvaffaqiyatli amalga oshirildi"), 'success');
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      uiStore.showNotification(t("Tizimga kirishda xatolik yuz berdi"), 'error');
+    }
+  };
+
   const filteredStaff = staff.filter(s => 
     (s.full_name?.toLowerCase() || s.username?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
@@ -219,6 +313,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     return (
       <EmployeeProfile
         employeeId={selectedProfileId}
+        currentUser={user}
         onBack={() => setSelectedProfileId(null)}
       />
     );
@@ -226,10 +321,21 @@ export default function StaffManagement({ user }: StaffManagementProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200">
-         <button onClick={() => setActiveTab('STAFF')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'STAFF' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Xodimlar</button>
-         <button onClick={() => setActiveTab('ATTENDANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ATTENDANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Davomat</button>
-         <button onClick={() => setActiveTab('PERFORMANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PERFORMANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>KPI & Reyting</button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200">
+           <button onClick={() => setActiveTab('STAFF')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'STAFF' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Xodimlar</button>
+           <button onClick={() => setActiveTab('ATTENDANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'ATTENDANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>Davomat</button>
+           <button onClick={() => setActiveTab('PERFORMANCE')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PERFORMANCE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}>KPI & Reyting</button>
+        </div>
+        {activeTab === 'STAFF' && (
+          <button 
+            onClick={() => { resetForm(); setIsAdding(true); }}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 active:scale-95"
+          >
+            <UserPlus className="w-4 h-4" />
+            {t('Yangi xodim yaratish')}
+          </button>
+        )}
       </div>
 
       {activeTab === 'STAFF' && (
@@ -279,7 +385,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                               (s.effective_role || s.role_display || s.role) === 'Admin' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
                               'bg-slate-50 text-slate-500 border-slate-100'}
                           `}>
-                            {s.effective_role || s.role_display || s.role}
+                            {t(s.effective_role || s.role_display || s.role)}
                           </span>
                           {s.department_name && (
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{s.department_name}</span>
@@ -305,6 +411,15 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                         </div>
                       </td>
                       <td className="px-8 py-5 text-right flex items-center justify-end gap-2">
+                        {s.id !== user.id && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleImpersonate(Number(s.id), s.name || s.full_name || s.username); }}
+                            className="p-3 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-emerald-100 active:scale-95"
+                            title={t('Tizimga kirish')}
+                          >
+                            <Key className="w-5 h-5" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedProfileId(Number(s.id)); }}
                           className="p-3 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all shadow-sm border border-transparent hover:border-indigo-100 active:scale-95"
@@ -431,7 +546,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                         <UserIcon className="w-10 h-10 text-slate-300" />
                      </div>
                      <h3 className="text-xl font-black text-slate-900 mb-1">{s.full_name}</h3>
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">{s.role_display}</p>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">{t(s.role_display)}</p>
                      
                      <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-slate-50 rounded-2xl">
@@ -473,7 +588,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                   </div>
                   <div>
                     <h2 className="text-2xl font-black tracking-tight leading-none mb-2">{selectedUser.full_name || selectedUser.username}</h2>
-                    <span className="px-3 py-1 bg-white/10 border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest">{selectedUser.effective_role || selectedUser.role_display || selectedUser.role}</span>
+                    <span className="px-3 py-1 bg-white/10 border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest">{t(selectedUser.effective_role || selectedUser.role_display || selectedUser.role)}</span>
                   </div>
                 </div>
               </div>
@@ -626,131 +741,272 @@ export default function StaffManagement({ user }: StaffManagementProps) {
                   <X className="w-7 h-7" />
                 </button>
               </div>
-
               <form onSubmit={handleAddStaff} className="p-8 space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('To\'liq ism')}</label>
-                      <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input 
-                          required
-                          type="text" 
-                          value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
-                          placeholder="Azizbek Karimov"
-                      />
-                      </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Login')}</label>
+                {/* Elegant Glassmorphic Tabs Selector */}
+                <div className="flex bg-slate-100 p-1 rounded-2xl w-full border border-slate-200/60 mb-6">
+                  {(['ASOSIY', 'LAVOZIM', 'RUXSATLAR', 'STATUS'] as const).map(tabKey => (
+                    <button
+                      key={tabKey}
+                      type="button"
+                      onClick={() => setModalTab(tabKey)}
+                      className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                        modalTab === tabKey ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                    >
+                      {t({
+                        ASOSIY: "Asosiy ma'lumot",
+                        LAVOZIM: 'Lavozim',
+                        RUXSATLAR: 'Ruxsatlar',
+                        STATUS: 'Status'
+                      }[tabKey])}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="min-h-[300px]">
+                  {/* TABS CONTENT */}
+                  {modalTab === 'ASOSIY' && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      {/* Full Name */}
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('To\'liq ism')}</label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                          <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                           <input 
                             required
                             type="text" 
-                            value={formData.username}
-                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
                             className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
-                            placeholder="aziz88"
+                            placeholder="Azizbek Karimov"
                           />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Telefon')}</label>
-                        <input 
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Login */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Login')}</label>
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input 
+                              required
+                              type="text" 
+                              value={formData.username}
+                              onChange={(e) => setFormData({...formData, username: e.target.value})}
+                              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
+                              placeholder="aziz88"
+                            />
+                          </div>
+                        </div>
+                        {/* Phone */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Telefon')}</label>
+                          <input 
                             required
                             type="text" 
                             value={formData.phone}
                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
                             className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
                             placeholder="+998 90 123 45 67"
-                        />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Bo\'lim')}</label>
-                        <select 
-                          required
-                          value={formData.department_id || ''}
-                          onChange={(e) => setFormData({...formData, department_id: Number(e.target.value)})}
-                          className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
-                        >
-                          <option value="">{t('Tanlang')}...</option>
-                          {departments.map(dept => (
-                            <option key={dept.id} value={dept.id}>{dept.name}</option>
-                          ))}
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Lavozim')}</label>
-                        <select 
-                          required
-                          value={formData.role_id || ''}
-                          onChange={(e) => setFormData({...formData, role_id: Number(e.target.value)})}
-                          className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
-                        >
-                          <option value="">{t('Tanlang')}...</option>
-                          {roles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
-                          ))}
-                        </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Status')}</label>
-                        <select 
-                          value={formData.status}
-                          onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                          className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
-                        >
-                          <option value="ACTIVE">{t('Faol')}</option>
-                          <option value="BLOCKED">{t('Bloklangan')}</option>
-                          <option value="PENDING">{t('Kutilmoqda')}</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Parol')}</label>
-                        <div className="relative">
-                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                          <input 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Password */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Parol')}</label>
+                          <div className="relative">
+                            <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input 
                               required={!editingUser}
                               type="password" 
                               value={formData.password}
                               onChange={(e) => setFormData({...formData, password: e.target.value})}
                               className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
                               placeholder={editingUser ? t("O'zgartirmaslik uchun bo'sh") + "..." : "••••••••"}
-                          />
+                            />
+                          </div>
                         </div>
-                    </div>
-                  </div>
+                        {/* Confirm Password */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Parolni tasdiqlash')}</label>
+                          <div className="relative">
+                            <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input 
+                              required={!editingUser && !!formData.password}
+                              type="password" 
+                              value={formData.confirmPassword}
+                              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                        </div>
+                      </div>
 
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Biriktirilgan Skladlar (Ixtiyoriy)')}</label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableWarehouses.map(w => (
-                        <button
-                          key={w.id}
-                          type="button"
-                          onClick={() => toggleWarehouse(w.id)}
-                          className={`
-                            px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
-                            ${formData.assigned_warehouses.includes(w.id) 
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' 
-                              : 'bg-slate-50 text-slate-500 border-slate-100 hover:bg-white hover:border-blue-200'}
-                          `}
-                        >
-                          {w.name}
-                        </button>
-                      ))}
+                      {/* PIN Code */}
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('PIN kod (4-6 raqam)')}</label>
+                        <input 
+                          type="text" 
+                          value={formData.pin_code}
+                          onChange={(e) => setFormData({...formData, pin_code: e.target.value})}
+                          className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner"
+                          placeholder="1234"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {modalTab === 'LAVOZIM' && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Department */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Bo\'lim')}</label>
+                          <select 
+                            required
+                            value={formData.department_id || ''}
+                            onChange={(e) => setFormData({...formData, department_id: Number(e.target.value)})}
+                            className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
+                          >
+                            <option value="">{t('Tanlang')}...</option>
+                            {departments.map(dept => (
+                              <option key={dept.id} value={dept.id}>{dept.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* Role */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Lavozim')}</label>
+                          <select 
+                            required
+                            value={formData.role_id || ''}
+                            onChange={(e) => setFormData({...formData, role_id: Number(e.target.value)})}
+                            className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
+                          >
+                            <option value="">{t('Tanlang')}...</option>
+                            {roles.map(role => (
+                              <option key={role.id} value={role.id}>{role.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Shift */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Smena')}</label>
+                          <select 
+                            value={formData.shift}
+                            onChange={(e) => setFormData({...formData, shift: e.target.value as 'DAY' | 'NIGHT'})}
+                            className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
+                          >
+                            <option value="DAY">{t('Kunduzgi smena')}</option>
+                            <option value="NIGHT">{t('Tungi smena')}</option>
+                          </select>
+                        </div>
+                        {/* Assigned Machine */}
+                        <div className="space-y-2">
+                          <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Biriktirilgan stanok')}</label>
+                          <select 
+                            value={formData.assigned_machine}
+                            onChange={(e) => setFormData({...formData, assigned_machine: e.target.value})}
+                            className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
+                          >
+                            <option value="">{t('Tanlang')}...</option>
+                            <option value="CNC-1">CNC-1</option>
+                            <option value="CNC-2">CNC-2</option>
+                            <option value="FORMING-1">FORMING-1</option>
+                            <option value="CUTTING-1">CUTTING-1</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Warehouses */}
+                      <div className="space-y-3">
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Biriktirilgan Skladlar')}</label>
+                        <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+                          {availableWarehouses.map(w => (
+                            <button
+                              key={w.id}
+                              type="button"
+                              onClick={() => toggleWarehouse(w.id)}
+                              className={`
+                                px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
+                                ${formData.assigned_warehouses.includes(w.id) 
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' 
+                                  : 'bg-slate-50 text-slate-500 border-slate-100 hover:bg-white hover:border-blue-200'}
+                              `}
+                            >
+                              {w.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {modalTab === 'RUXSATLAR' && (
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar animate-in fade-in duration-300">
+                      {Object.entries(groupPermissions()).map(([groupName, groupPerms]) => (
+                        <div key={groupName} className="space-y-2 border-b border-slate-100 pb-3 last:border-b-0">
+                          <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{groupName}</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {groupPerms.map(p => {
+                              const isChecked = formData.custom_permissions.includes(p.key);
+                              return (
+                                <label 
+                                  key={p.id} 
+                                  className={`
+                                    flex items-center gap-2 p-2.5 rounded-xl border text-[9px] font-bold cursor-pointer transition-all active:scale-95
+                                    ${isChecked 
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm shadow-emerald-50' 
+                                      : 'bg-slate-50 text-slate-500 border-slate-100 hover:bg-white hover:border-slate-200'}
+                                  `}
+                                >
+                                  <input 
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleCustomPermission(p.key)}
+                                    className="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 w-3.5 h-3.5"
+                                  />
+                                  <span className="truncate" title={p.name}>{p.name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                      {permissions.length === 0 && (
+                        <p className="text-[10px] font-bold text-slate-400 italic text-center py-6">{t('Ruxsatlar ro\'yxati yuklanmagan')}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {modalTab === 'STATUS' && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      {/* Status Select */}
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('Status')}</label>
+                        <select 
+                          value={formData.status}
+                          onChange={(e) => setFormData({...formData, status: e.target.value as any})}
+                          className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-[22px] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-black text-slate-900 shadow-inner appearance-none"
+                        >
+                          <option value="ACTIVE">{t('Aktiv')}</option>
+                          <option value="BLOCKED">{t('Bloklangan')}</option>
+                          <option value="PENDING">{t('Kutilmoqda')}</option>
+                          <option value="RESIGNED">{t('Ishdan bo‘shagan')}</option>
+                          <option value="VACATION">{t('Ta’tilda')}</option>
+                        </select>
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-[10px] font-bold text-blue-700 leading-relaxed">
+                        {t('Diqqat! Ishdan bo‘shagan yoki Bloklangan xodimlar tizimga kira olmaydilar va ularning faol seanslari bekor qilinadi.')}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <button 

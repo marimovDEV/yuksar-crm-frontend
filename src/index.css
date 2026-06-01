@@ -133,3 +133,35 @@
 .text-xs-bold {
   @apply text-[10px] font-black uppercase tracking-widest;
 }
+
+/* =====================================================
+   SCADA FLOW ANIMATIONS
+   ===================================================== */
+@keyframes pipe-particles {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-pipe-particles {
+  animation: pipe-particles 1.2s linear infinite;
+}
+
+@keyframes rotate-mixer {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotate-animation {
+  animation: rotate-mixer 4s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+

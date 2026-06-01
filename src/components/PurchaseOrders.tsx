@@ -143,10 +143,10 @@ export default function PurchaseOrders() {
               />
            </div>
            <div className="flex gap-2">
-              <button className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm">
+              <button onClick={() => uiStore.showNotification(t("Filtrlar menyusi ochilmoqda..."), "info")} className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm">
                  <Filter className="w-6 h-6" />
               </button>
-              <button className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
+              <button onClick={() => window.print()} className="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
                  <Download className="w-6 h-6" />
               </button>
            </div>
@@ -218,7 +218,7 @@ export default function PurchaseOrders() {
                              {t('Buyurtma berish')}
                            </button>
                         )}
-                        <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 shadow-sm transition-all">
+                        <button onClick={(e) => { e.stopPropagation(); uiStore.showNotification(t("Xarid tafsilotlari tez kunda"), "info"); }} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 shadow-sm transition-all">
                            <ChevronRight className="w-5 h-5" />
                         </button>
                      </div>
@@ -266,7 +266,7 @@ function PurchaseOrderModal({ onClose, onSuccess, t }: { onClose: () => void, on
 
   useEffect(() => {
     api.get('suppliers/').then(res => setSuppliers(res.data.results || res.data));
-    api.get('warehouse/materials/').then(res => setMaterials(res.data.results || res.data));
+    api.get('materials/').then(res => setMaterials(res.data.results || res.data));
   }, []);
 
   const addItem = () => {

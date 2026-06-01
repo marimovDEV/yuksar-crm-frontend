@@ -440,7 +440,7 @@ export default function Documents({ user }: { user: User }) {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right">
-                         <button className="p-3 bg-white text-slate-300 rounded-2xl border border-slate-100 group-hover:text-blue-600 group-hover:border-blue-200 transition-all hover:scale-110">
+                         <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  className="p-3 bg-white text-slate-300 rounded-2xl border border-slate-100 group-hover:text-blue-600 group-hover:border-blue-200 transition-all hover:scale-110">
                            <Eye className="w-5 h-5" />
                          </button>
                       </td>

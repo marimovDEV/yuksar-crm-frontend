@@ -8,7 +8,7 @@ import {
   FileText, ShieldCheck, Activity
 } from 'lucide-react';
 
-export default function AccountingDashboard({ summary }: Props) {
+export default function AccountingDashboard({ summary }: { summary: any }) {
   const { t, locale } = useI18n();
   if (!summary) return null;
 
@@ -139,7 +139,7 @@ export default function AccountingDashboard({ summary }: Props) {
                 { label: 'Tax Reconciliation', icon: Receipt, color: 'emerald' },
                 { label: 'Inventory Sync', icon: Scale, color: 'purple' },
             ].map(action => (
-                <button key={action.label} className="flex items-center gap-3 px-6 py-4 bg-white border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-700 hover:bg-slate-50 hover:shadow-lg transition-all active:scale-95 shadow-sm">
+                <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  key={action.label} className="flex items-center gap-3 px-6 py-4 bg-white border border-slate-100 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-700 hover:bg-slate-50 hover:shadow-lg transition-all active:scale-95 shadow-sm">
                     <action.icon className={`w-4 h-4 text-${action.color}-600`} />
                     {action.label}
                 </button>

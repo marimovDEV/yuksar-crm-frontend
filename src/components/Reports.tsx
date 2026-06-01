@@ -214,7 +214,7 @@ export default function Reports({ user }: { user: User }) {
                  </div>
                  <div className="flex bg-slate-50 p-1.5 rounded-[22px] border border-slate-100">
                     {['Kunlik', 'Haftalik', 'Oylik'].map(period => (
-                       <button key={period} className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'Kunlik' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>{t(period)}</button>
+                       <button onClick={() => alert("Bu funksiya tez kunda ishga tushadi")}  key={period} className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${period === 'Kunlik' ? 'bg-white text-blue-600 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>{t(period)}</button>
                     ))}
                  </div>
               </div>

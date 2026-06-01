@@ -34,7 +34,7 @@ export default function BlockQCModal({ block, onClose, onSuccess }: BlockQCModal
   const [length, setLength] = useState(block.length?.toString() || '1000');
   const [width, setWidth] = useState(block.width?.toString() || '1000');
   const [height, setHeight] = useState(block.height?.toString() || '1000');
-  const [visualDefects, setVisualDefects] = useState(block.visual_defects?.join(', ') || '');
+  const [visualDefects, setVisualDefects] = useState(block.visual_defects || '');
   const [notes, setNotes] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
