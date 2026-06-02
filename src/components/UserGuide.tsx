@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   BookOpen, Database, Factory, Wallet, ShieldCheck, 
-  ChevronRight, PlayCircle, Info, CheckCircle2, ShoppingCart, Truck
+  ChevronRight, PlayCircle, Info, CheckCircle2, ShoppingCart, Truck, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useI18n } from '../i18n';
@@ -20,107 +20,147 @@ interface GuideContent {
 }
 
 const GUIDE_DATA_UZ: Record<string, GuideContent> = {
-  warehouse: {
-    title: "1. Omborda Xom-ashyo Kirimi",
-    description: "Yangi xom-ashyo kelganda uni tizimga kirim qilish va ombor balansini oshirish jarayoni.",
+  dashboard: {
+    title: "1. Asosiy Boshqaruv (Dashboard)",
+    description: "Zavodning barcha asosiy ko'rsatkichlarini bir joyda ko'rsatuvchi rahbar paneli. Har kuni ertalab eng avval shu panelni tekshirish tavsiya etiladi.",
     steps: [
-      { step: "Tizimga kirish", desc: "Chap menyudan 'Ombor (WMS)' -> 'Ombor Boshqaruvi' bo'limini tanlang." },
-      { step: "Kirimni boshlash", desc: "Yuqoridagi 'Kirim qilish' (+) tugmasini bosing." },
-      { step: "Ma'lumotlarni kiritish", desc: "Ta'minotchi ismini tanlang, material turini (masalan, Granula) va tarozidagi haqiqiy og'irlikni (kg) kiriting." },
-      { step: "Saqlash", desc: "'Saqlash' tugmasini bosing. Tizim avtomatik ravishda yangi xom-ashyo partiyasini (Batch) yaratadi va omborga qo'shadi." }
+      { step: "Ko'rsatkichlar", desc: "Kunlik ishlab chiqarish hajmi, tayyor mahsulotlar va aktiv buyurtmalarni ko'zdan kechiring." },
+      { step: "Moliya", desc: "Tushumlar va chiqimlar grafigini kuzating, sof foydani tahlil qiling." },
+      { step: "Ogohlantirishlar (Alertlar)", desc: "Qizil rangda chiqqan datchik xatolari va kamayib ketgan zaxiralarni zudlik bilan mas'ulga yuboring." }
     ],
-    outcome: "Ombordagi xom-ashyo qoldig'i real vaqtda yangilanadi va moliya balansida ta'minotchiga qarz yoziladi."
+    outcome: "Zavoddagi barcha jarayonlarni atigi 1 daqiqa ichida baholash va muammolarni erta aniqlash imkonini beradi."
+  },
+  warehouse: {
+    title: "2. Ombor Boshqaruvi va Inventarizatsiya",
+    description: "Xom-ashyo qabuli, FIFO tizimi asosida ishlatilishi va zaxiralarning qat'iy hisobi.",
+    steps: [
+      { step: "Kirim qilish", desc: "Ombor bo'limida (+) tugmasi orqali yangi kelgan xom-ashyoni, uning ta'minotchisini va aniq vaznini kiriting." },
+      { step: "FIFO nazorati", desc: "Tizim eng birinchi kelgan materialni birinchi bo'lib ishlab chiqarishga yuboradi (eskirib qolmasligi uchun)." },
+      { step: "Tranzit", desc: "Sexlar o'rtasida mahsulotni ko'chirayotganda majburiy tizim tasdig'ini oling." },
+      { step: "Inventarizatsiya", desc: "Oy oxirida 'Cycle Counting' orqali ombordagi real miqdor va tizimdagi miqdor farqini aniqlang va to'g'irlang." }
+    ],
+    outcome: "Ombordagi har bir kilogramm material hisobga olinadi va yo'qotishlar (o'g'rilik) ning oldi olinadi."
   },
   production: {
-    title: "2. Ishlab Chiqarish (MES Flow)",
-    description: "Xom-ashyodan tayyor aralashma (zames) qilish va undan bloklar quyish jarayoni.",
+    title: "3. Ishlab Chiqarish va MES",
+    description: "Xom-ashyoni tayyor mahsulotga aylantirish, zames tayyorlash va stanoklarni boshqarish.",
     steps: [
-      { step: "Zames boshlash", desc: "'Ishlab Chiqarish (MES)' -> 'Ishlab Chiqarish Poligoni'ga o'ting va 'Yangi zames' tugmasini bosing." },
-      { step: "Retsept tanlash", desc: "Kerakli retseptni (masalan, D20) tanlang. Tizim avtomatik granula miqdorini hisoblaydi va ombordan yechadi." },
-      { step: "Bunker kutish vaqti", desc: "Zamesni bunkerga yuklang. Bunker taymeri (4-6 soat) tugagach, yashil rangga kiradi." },
-      { step: "Blok quyish va QR", desc: "Bunkerdan aralashmani olib, formaga quying va 'Blok quyish'ni bosing. Tizim yaratgan QR-kodni chop etib, blokka yopishtiring." }
+      { step: "Yangi Zames", desc: "Ishlab chiqarish bo'limidan retseptni tanlang. Tizim kerakli xom-ashyoni ombordan avtomatik yechib oladi." },
+      { step: "Bunker taymeri", desc: "Aralashma bunkerga tushgach, yetilish vaqti (4-6 soat) tugashini kuting. Yashil bo'lganda formovkaga o'tkazish mumkin." },
+      { step: "Blok quyish", desc: "Massani qolipga quygach, 'Blok yaratish' ni bosing. Har bir blokka QR-kod yorlig'i chop etib yopishtiring." },
+      { step: "Qayta ishlash", desc: "Brak yoki chiqindilar paydo bo'lsa, ularni 'Recycle' sexiga yuborib maydalab, qayta ishlab chiqarishga qo'shing." }
     ],
-    outcome: "Ishlab chiqarilgan blok avtomatik ravishda 'Sovutilmoqda (Cooling)' holatida zaxiraga kiradi."
+    outcome: "Zavod doimiy uzluksiz ishlaydi va ishlab chiqarishdagi har bir jarayon QR kodlar orqali kuzatiladi."
+  },
+  qc: {
+    title: "4. Sifat Nazorati (QC)",
+    description: "Mahsulotlar sifatini tekshirish va brak (nuqsonli) mahsulotlarni ajratish.",
+    steps: [
+      { step: "O'lchash", desc: "Chiqgan bloklarning uzunligi, eni, qalinligi va zichligini o'lchab tizimga kiriting." },
+      { step: "Sinf (Klass) berish", desc: "Standartga javob bersa A-Klass, biroz nuqsoni bo'lsa B-Klass qilib tasdiqlang." },
+      { step: "Brak", desc: "Yaroqsiz mahsulotlarni zudlik bilan brakka chiqarib, chiqindi omboriga yo'naltiring." }
+    ],
+    outcome: "Mijozlarga faqat tekshirilgan yuqori sifatli mahsulotlar yetkaziladi."
   },
   sales: {
-    title: "3. Sotuv va Yetkazib Berish",
-    description: "Mijozga tovar sotish, pulini hisoblash va yuk mashinasida yuborish jarayoni.",
+    title: "5. Sotuv va Yetkazib Berish",
+    description: "Mijozlar bazasi, yangi buyurtmalar qabul qilish va yuklarni manzilga yuborish.",
     steps: [
-      { step: "Buyurtma ochish", desc: "'Sotuvlar' bo'limidan mijozni tanlang va mahsulot hamda uning miqdorini qo'shib 'Saqlash'ni bosing." },
-      { step: "Zaxira tekshiruvi", desc: "Agar omborda tayyor mahsulot bo'lsa buyurtma 'Confirmed' bo'ladi, agar yo'q bo'lsa avtomatik ishlab chiqarishga navbatga turadi." },
-      { step: "Yukni jo'natish", desc: "Mahsulot tayyor bo'lgach, holatni 'Shipped' qiling. Bu kuryer ilovasida yetkazib berish ro'yxatini shakllantiradi." },
-      { step: "Yetkazish", desc: "Kuryer yukni manzilga topshirgach, telefondan 'Yetkazildi' tugmasini bosadi va buyurtma yakunlanadi." }
+      { step: "Buyurtma shakllantirish", desc: "Mijozni tanlang, mahsulotlarni tanlang va 'Saqlash' tugmasini bosing." },
+      { step: "Zaxira va Ishlab chiqarish", desc: "Agar omborda mahsulot yetmasa, buyurtma avtomatik tarzda zavodga ishlab chiqarish navbatiga tushadi." },
+      { step: "Yukni jo'natish", desc: "Yuk tayyor bo'lgach kuryerga (haydovchiga) biriktiring. Kuryer manzilga yetib borgach ilovada 'Yetkazildi' ni bosadi." }
     ],
-    outcome: "Mahsulot ombordan chiqib ketadi va kassa yoki mijoz qarz balansi avtomatik tarzda shakllanadi."
+    outcome: "Mijoz buyurtmalari hech qachon unutilmaydi va qarzdorliklar avtomatik nazorat qilinadi."
   },
   finance: {
-    title: "4. Moliya va Kassa Nazorati",
-    description: "Kassadagi pullar, tushumlar va zavod xarajatlarining 100% shaffof hisobi.",
+    title: "6. Moliya va Hisob-kitob",
+    description: "Zavodning barcha moliyaviy aylanmasi, pul tushumlari, kassa va xarajatlar tahlili.",
     steps: [
-      { step: "Kassa aylanmasi", desc: "Barcha savdolar to'lov usuliga qarab (Naqd, Karta, Bank) tegishli kassa balansiga tushadi." },
-      { step: "Xarajatlarni yozish", desc: "Ish haqi, elektr, ijara kabi barcha chiqimlarni o'z vaqtida tegishli toifa bilan chiqim qiling." },
-      { step: "Direktor tahlili", desc: "Bosh sahifadagi grafiklar va tushum ko'rsatkichlari orqali zavodning sof foydasini kuzatib boring." }
+      { step: "Tushumlar", desc: "Sotilgan tovarlar uchun barcha pullar Naqd, Karta yoki Bank orqali to'g'ridan to'g'ri tizim kassa balansiga tushadi." },
+      { step: "Xarajatlar", desc: "Ijara, oylik maosh, soliq va logistika xarajatlarini kunlik tarzda kirim qilib boring." },
+      { step: "Qarzdorlar (Debitorlar)", desc: "Mijozlarning to'lanmagan qarzlari qizarib turadi, ularni vaqtida yig'ib oling." }
     ],
-    outcome: "Zavodning moliya va buxgalteriya balansi har doim tiyin-tiyinigacha to'g'ri chiqadi."
+    outcome: "Har bir tiyin hisobi yuritiladi. Direktor tizim orqali qancha toza foyda ko'rayotganini real vaqtda ko'radi."
   }
 };
 
 const GUIDE_DATA_RU: Record<string, GuideContent> = {
-  warehouse: {
-    title: "1. Приемка сырья на Склад",
-    description: "Процесс оприходования нового сырья при поступлении на завод и увеличения баланса склада.",
+  dashboard: {
+    title: "1. Главная панель (Dashboard)",
+    description: "Панель управления руководителя, на которой собраны все ключевые показатели завода. Рекомендуется проверять её каждое утро.",
     steps: [
-      { step: "Вход в систему", desc: "В левом меню выберите 'Склад (WMS)' -> 'Управление складом'." },
-      { step: "Начало приемки", desc: "Нажмите кнопку 'Приемка' (+) в верхней части экрана." },
-      { step: "Ввод данных", desc: "Выберите поставщика, тип сырья (например, Гранулы) и укажите точный вес (кг) с весов." },
-      { step: "Сохранение", desc: "Нажмите кнопку 'Сохранить'. Система автоматически создаст новую партию (Batch) и добавит ее на склад." }
+      { step: "Показатели", desc: "Проверяйте ежедневный объем производства, наличие готовой продукции и активные заказы." },
+      { step: "Финансы", desc: "Следите за графиками доходов и расходов, анализируйте чистую прибыль." },
+      { step: "Уведомления (Alerts)", desc: "Немедленно передавайте ответственным лицам красные уведомления об ошибках датчиков или нехватке запасов." }
     ],
-    outcome: "Остаток сырья на складе обновляется в реальном времени, а в финансовом балансе фиксируется долг перед поставщиком."
+    outcome: "Позволяет за 1 минуту оценить состояние всех процессов на заводе и заранее выявить проблемы."
+  },
+  warehouse: {
+    title: "2. Управление складом и Инвентаризация",
+    description: "Приемка сырья, использование по системе FIFO и строгий учет запасов.",
+    steps: [
+      { step: "Приемка", desc: "В разделе склада через кнопку (+) введите новое поступившее сырье, поставщика и точный вес." },
+      { step: "Контроль FIFO", desc: "Система отправляет в производство самое старое сырье (First In, First Out), чтобы оно не портилось." },
+      { step: "Транзит", desc: "При перемещении материалов между цехами обязательно получайте подтверждение в системе." },
+      { step: "Инвентаризация", desc: "В конце месяца используйте 'Cycle Counting', чтобы найти и исправить расхождения между фактическим наличием и системой." }
+    ],
+    outcome: "Каждый килограмм материала учитывается, что исключает потери и кражи."
   },
   production: {
-    title: "2. Производство (MES Flow)",
-    description: "Процесс создания готовой смеси (замеса) из сырья и формования блоков.",
+    title: "3. Производство и MES",
+    description: "Превращение сырья в готовую продукцию, создание замесов и управление станками.",
     steps: [
-      { step: "Запуск замеса", desc: "Перейдите в 'Производство (MES)' -> 'Производственный полигон' и нажмите 'Новый замес'." },
-      { step: "Выбор рецепта", desc: "Выберите нужный рецепт (например, D20). Система автоматически рассчитает и спишет необходимое сырье со склада." },
-      { step: "Выдержка в бункере", desc: "Загрузите смесь в бункер. Когда таймер бункера (4-6 часов) истечет, его индикатор загорится зеленым." },
-      { step: "Формовка и QR-код", desc: "Вылейте смесь из бункера в форму, сформируйте блок и нажмите 'Литье блока'. Распечатайте созданный QR-код и наклейте на блок." }
+      { step: "Новый замес", desc: "Выберите рецепт в производственном модуле. Система автоматически спишет необходимое сырье со склада." },
+      { step: "Таймер бункера", desc: "Подождите время созревания смеси в бункере (4-6 часов). Когда индикатор станет зеленым, можно формовать." },
+      { step: "Формовка блоков", desc: "Залейте массу в форму и нажмите 'Создать блок'. Распечатайте и наклейте QR-код на каждый блок." },
+      { step: "Переработка", desc: "Брак или отходы отправляйте в цех переработки (Recycle), чтобы измельчить их и добавить во вторичное производство." }
     ],
-    outcome: "Произведенный блок автоматически поступает на склад в статусе 'Охлаждение (Cooling)'."
+    outcome: "Завод работает непрерывно, а каждый этап производства отслеживается через QR-коды."
+  },
+  qc: {
+    title: "4. Контроль качества (QC)",
+    description: "Проверка качества продукции и отделение бракованных изделий.",
+    steps: [
+      { step: "Замеры", desc: "Измерьте длину, ширину, толщину и плотность выпущенных блоков и введите в систему." },
+      { step: "Присвоение класса", desc: "Если продукт соответствует стандарту — присвойте А-Класс, если есть мелкие дефекты — В-Класс." },
+      { step: "Брак", desc: "Немедленно отмечайте некачественную продукцию как брак и отправляйте на склад отходов." }
+    ],
+    outcome: "Клиентам доставляется только проверенная продукция высокого качества."
   },
   sales: {
-    title: "3. Продажи и Доставка",
-    description: "Продажа товара клиенту, расчет стоимости и отправка грузовым транспортом.",
+    title: "5. Продажи и Логистика",
+    description: "Ведение базы клиентов, прием новых заказов и отправка грузов по адресу.",
     steps: [
-      { step: "Создание заказа", desc: "В разделе 'Продажи' выберите клиента, добавьте товары, укажите их количество и нажмите 'Сохранить'." },
-      { step: "Проверка наличия", desc: "Если товар есть на складе, заказ подтверждается. Если товара нет, он автоматически становится в очередь на производство." },
-      { step: "Отгрузка", desc: "Когда товар готов, измените статус на 'Отгружен (Shipped)'. Это добавит заказ в список доставки в приложении курьера." },
-      { step: "Вручение", desc: "После доставки курьер нажимает кнопку 'Доставлено' в приложении, и заказ завершается." }
+      { step: "Создание заказа", desc: "Выберите клиента, нужные товары и нажмите 'Сохранить'." },
+      { step: "Запасы и Производство", desc: "Если на складе не хватает товара, заказ автоматически встает в очередь на производство." },
+      { step: "Отгрузка", desc: "Готовый груз привязывается к курьеру (водителю). По прибытии курьер нажимает 'Доставлено' в приложении." }
     ],
-    outcome: "Товар списывается со склада, а баланс кассы и долг клиента обновляются автоматически."
+    outcome: "Заказы клиентов никогда не теряются, а долги контролируются автоматически."
   },
   finance: {
-    title: "4. Финансы и Касса",
-    description: "100% прозрачный учет всех касс, поступлений и расходов завода.",
+    title: "6. Финансы и Бухгалтерия",
+    description: "Анализ всего финансового оборота, поступлений, касс и расходов завода.",
     steps: [
-      { step: "Обороты кассы", desc: "Все продажи автоматически поступают на баланс соответствующей кассы в зависимости от метода оплаты (Наличные, Карта, Банк)." },
-      { step: "Фиксация расходов", desc: "Своевременно оформляйте расходы на зарплату, электричество, аренду и другие нужды с указанием категории." },
-      { step: "Анализ директора", desc: "Следите за чистой прибылью завода с помощью графиков и финансовых показателей на главной странице." }
+      { step: "Поступления", desc: "Все деньги за проданные товары поступают на баланс кассы системы напрямую (Наличные, Карта, Банк)." },
+      { step: "Расходы", desc: "Ежедневно вносите расходы на аренду, зарплату, налоги и логистику." },
+      { step: "Дебиторы (Должники)", desc: "Неоплаченные долги клиентов подсвечиваются красным — вовремя собирайте платежи." }
     ],
-    outcome: "Финансовый и бухгалтерский баланс завода всегда сходится до копейки."
+    outcome: "Учет до копейки. Директор в реальном времени видит чистую прибыль."
   }
 };
 
 export default function UserGuide() {
   const { language, t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'warehouse' | 'production' | 'sales' | 'finance'>('warehouse');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'warehouse' | 'production' | 'qc' | 'sales' | 'finance'>('dashboard');
 
   const guideData = language === 'ru' ? GUIDE_DATA_RU : GUIDE_DATA_UZ;
   const currentGuide = guideData[activeTab];
 
   const TABS = [
+    { id: 'dashboard', label: language === 'ru' ? "Панель" : "Boshqaruv", icon: Activity },
     { id: 'warehouse', label: language === 'ru' ? "Склад" : "Ombor", icon: Database },
     { id: 'production', label: language === 'ru' ? "Производство" : "Ishlab chiqarish", icon: Factory },
+    { id: 'qc', label: language === 'ru' ? "Контроль Качества" : "Sifat nazorati", icon: ShieldCheck },
     { id: 'sales', label: language === 'ru' ? "Продажи" : "Sotuv", icon: ShoppingCart },
     { id: 'finance', label: language === 'ru' ? "Финансы" : "Moliya", icon: Wallet }
   ];
@@ -134,15 +174,15 @@ export default function UserGuide() {
           <div className="md:col-span-7 space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider">
               <ShieldCheck className="w-4 h-4" />
-              {language === 'ru' ? "Официальное руководство" : "Rasmiy Yo'riqnoma"}
+              {language === 'ru' ? "Полное официальное руководство" : "To'liq Rasmiy Yo'riqnoma"}
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-              {language === 'ru' ? "Как работает система YUKSAR ERP?" : "YUKSAR ERP tizimi qanday ishlaydi?"}
+              {language === 'ru' ? "Руководство пользователя YUKSAR ERP" : "YUKSAR ERP Foydalanuvchi qo'llanmasi"}
             </h2>
             <p className="text-slate-500 font-medium text-sm leading-relaxed">
               {language === 'ru' 
-                ? "Посмотрите краткий видео-обзор завода и системы, чтобы понять основной рабочий процесс за 2 минуты."
-                : "2 daqiqada asosiy ish jarayonini tushunish uchun zavod va tizimning qisqa video-sharhini tomosha qiling."}
+                ? "Это подробное руководство поможет руководителю и сотрудникам полностью понять и использовать все функции системы. Выберите нужный раздел ниже для изучения."
+                : "Ushbu batafsil qo'llanma rahbar va xodimlarga tizimning barcha imkoniyatlarini tushunish va to'liq foydalanishga yordam beradi. Quyidan kerakli bo'limni tanlang."}
             </p>
           </div>
           
@@ -158,7 +198,7 @@ export default function UserGuide() {
               </div>
             </div>
             <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-white text-[10px] font-bold tracking-wider">
-              {language === 'ru' ? "ВИДЕО-ОБЗОР" : "VIDEO-SHARH"}
+              {language === 'ru' ? "ВИДЕО-ОБЗОР СИСТЕМЫ" : "TIZIM VIDEO-SHARHI"}
             </div>
           </div>
         </div>
@@ -173,7 +213,7 @@ export default function UserGuide() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-3 px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
                 isActive 
                   ? 'bg-white text-indigo-600 shadow-md border border-slate-200/50' 
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
@@ -223,7 +263,7 @@ export default function UserGuide() {
           {/* Outcome Alert */}
           <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl flex gap-4 items-start">
             <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 flex-shrink-0">
-              <Info className="w-4 h-4" />
+              <CheckCircle2 className="w-5 h-5" />
             </div>
             <div className="space-y-1">
               <h5 className="font-bold text-xs text-emerald-800 uppercase tracking-widest">
