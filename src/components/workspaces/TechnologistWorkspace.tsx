@@ -42,7 +42,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
     try {
       setLoading(true);
       const [recipesRes, qcRes] = await Promise.all([
-        api.get('recipes/').catch(() => ({ data: [] })),
+        api.get('production/recipes/').catch(() => ({ data: [] })),
         api.get('production/finished-blocks/?status=READY').catch(() => ({ data: [] }))
       ]);
       setRecipes(recipesRes.data.results || recipesRes.data || []);
@@ -250,7 +250,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
                       type="button" 
                       onClick={async () => {
                         try {
-                          await api.post('recipes/', {
+                          await api.post('production/recipes/', {
                             name: newRecipe.name,
                             density: newRecipe.density,
                             cycle_time: newRecipe.cycle_time,

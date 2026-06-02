@@ -94,8 +94,8 @@ export default function MaintenanceWorkspace({ user }: MaintenanceWorkspaceProps
     try {
       const [telemetryRes, alarmsRes, ticketsRes] = await Promise.all([
         api.get('telemetry/tags/live/').catch(() => ({ data: {} })),
-        api.get('telemetry/alarms/active/').catch(() => ({ data: [] })),
-        api.get('maintenance/tickets/').catch(() => ({ data: [] }))
+        api.get('alerts/').catch(() => ({ data: [] })),
+        api.get('support-tickets/').catch(() => ({ data: [] }))
       ]);
 
       setLiveTelemetry(telemetryRes.data || {});
@@ -136,7 +136,7 @@ export default function MaintenanceWorkspace({ user }: MaintenanceWorkspaceProps
     }
     setSubmittingTicket(true);
     try {
-      await api.post('maintenance/tickets/', {
+      await api.post('support-tickets/', {
         equipment_name: newTicket.equipment_name,
         description: newTicket.issue_description,
         priority: newTicket.priority,
@@ -173,7 +173,7 @@ export default function MaintenanceWorkspace({ user }: MaintenanceWorkspaceProps
 
   const handleUpdateTicketStatus = async (ticketId: number, nextStatus: 'IN_PROGRESS' | 'COMPLETED') => {
     try {
-      await api.patch(`maintenance/tickets/${ticketId}/`, { status: nextStatus });
+      await api.patch(`support-tickets/${ticketId}/`, { status: nextStatus });
       uiStore.showNotification(t("Topshiriq statusi yangilandi"), "success");
       fetchMaintenanceData();
     } catch (err) {
