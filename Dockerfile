@@ -3,7 +3,7 @@ FROM node:20-alpine AS build-stage
 
 WORKDIR /app
 
-ARG VITE_API_URL=https://yuksar.pizzacentergarden.uz/api/
+ARG VITE_API_URL=https://yuksara.pizzacentergarden.uz/api/
 ENV VITE_API_URL=$VITE_API_URL
 
 COPY package*.json ./
