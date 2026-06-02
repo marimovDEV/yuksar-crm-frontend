@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'https://yuksar.pizzacentergarden.uz/api/';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://yuksara.pizzacentergarden.uz/api/';
 
 const api = axios.create({
   baseURL: API_URL,
