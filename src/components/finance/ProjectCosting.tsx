@@ -27,7 +27,7 @@ export default function ProjectCosting() {
     const fetchCostingData = async () => {
       try {
         // This would ideally be a specialized analytics endpoint
-        const res = await api.get('sales/orders/');
+        const res = await api.get('sales/invoices/');
         setOrders(res.data.results || res.data);
       } catch (err) {
         console.error("Failed to fetch costing data", err);
@@ -126,8 +126,8 @@ export default function ProjectCosting() {
                 <tbody className="divide-y divide-slate-50">
                    {filtered.map((order, idx) => {
                       const sales = parseFloat(order.total_amount) || 0;
-                      // Simulated cost: roughly 60-85% of sales
-                      const cost = sales * (0.6 + Math.random() * 0.25);
+                      // Use real cost_amount if available, otherwise 0 (don't fake it)
+                      const cost = parseFloat(order.cost_amount || order.total_cost || '0') || 0;
                       const profit = sales - cost;
                       const margin = (profit / sales) * 100;
 

@@ -47,7 +47,7 @@ export default function EmployeeProfile({ employeeId, currentUser, onBack }: Emp
     try {
       const [usersRes, logsRes, payrollRes, kpiRes, permRes] = await Promise.all([
         api.get('users/'),
-        api.get('audit-logs/').catch(() => ({ data: { results: [] } })),
+        api.get(`users/${employeeId}/login_history/`).catch(() => ({ data: [] })),
         api.get('payroll/').catch(() => ({ data: { results: [] } })),
         api.get(`users/${employeeId}/kpi/`).catch(() => ({ data: null })),
         api.get('permissions/').catch(() => ({ data: { results: [] } })),
@@ -58,7 +58,7 @@ export default function EmployeeProfile({ employeeId, currentUser, onBack }: Emp
       setEmployee(emp || null);
 
       const logs = logsRes.data.results || logsRes.data || [];
-      setAuditLogs(logs.filter((l: any) => l.user === employeeId || l.user_id === employeeId || l.userName === emp?.full_name).slice(0, 10));
+      setAuditLogs(logs.slice(0, 10));
 
       const allPayroll = payrollRes.data.results || payrollRes.data || [];
       setPayrollData(allPayroll.filter((p: any) => p.user_id === employeeId));

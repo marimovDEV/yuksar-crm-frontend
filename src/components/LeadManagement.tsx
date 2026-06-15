@@ -67,7 +67,7 @@ export default function LeadManagement({ user }: LeadManagementProps) {
     setLoading(true);
     try {
       const res = await api.get('leads/');
-      setLeads(res.data || []);
+      setLeads(res.data.results || res.data || []);
     } catch {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), 'error');
     } finally {

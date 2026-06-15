@@ -52,9 +52,9 @@ export default function Finishing({ user }: { user: User }) {
         api.get('materials/'),
         api.get('production/finished-blocks/?status=READY')
       ]);
-      setJobs(jobsRes.data);
-      setMaterials(matRes.data);
-      setBlocks(blocksRes.data);
+      setJobs(jobsRes.data.results || jobsRes.data);
+      setMaterials(matRes.data.results || matRes.data);
+      setBlocks(blocksRes.data.results || blocksRes.data);
     } catch (err) {
       console.error("Finishing fetch error", err);
     } finally {

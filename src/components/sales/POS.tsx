@@ -58,22 +58,22 @@ export default function POS({ user }: { user: User }) {
         api.get('clients/')
       ]);
       
-      // Enhance products with mock data for visual catalog
-      const enhancedProducts = (productsRes.data.results || productsRes.data).map((p: Product) => ({
+      // Map real product fields - no fake data
+      const enhancedProducts = (productsRes.data.results || productsRes.data).map((p: any) => ({
         ...p,
         images: [
            `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`,
            `https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80`
         ],
-        pattern_type: ['Classic', 'Modern', 'Premium'][Math.floor(Math.random() * 3)],
-        dimensions: "1000x500mm",
-        density: "15-20kg/m³",
-        product_class: ['A_CLASS', 'B_CLASS', 'C_CLASS'][Math.floor(Math.random() * 3)],
-        stock_quantity: Math.floor(Math.random() * 500),
-        suitable_objects: ['Uy', 'Fasad', 'Dekor', 'Shift'].slice(0, Math.floor(Math.random() * 3) + 1),
-        qc_certified: Math.random() > 0.3,
-        description: "Yuqori zichlikdagi dekorativ penoplast paneli. Showroom uslubida sotish uchun ideal."
-      }));
+        pattern_type: p.pattern_type || p.category || '—',
+        dimensions: p.dimensions || (p.length && p.width ? `${p.length}x${p.width}mm` : '1000x500mm'),
+        density: p.density || p.density_range || '15-20kg/m³',
+        product_class: p.product_class || p.grade || p.quality_class || '—',
+        stock_quantity: p.stock_quantity ?? p.available_quantity ?? p.quantity ?? 0,
+        suitable_objects: p.suitable_objects || (p.category ? [p.category] : []),
+        qc_certified: p.qc_certified ?? false,
+        description: p.description || p.notes || 'Penoplast mahsuloti',
+      })) as Product[];
 
       setProducts(enhancedProducts);
       setClients(clientsRes.data.results || clientsRes.data);

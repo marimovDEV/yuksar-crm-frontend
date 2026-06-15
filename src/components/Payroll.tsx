@@ -53,7 +53,7 @@ export default function Payroll({ user }: PayrollProps) {
     setLoading(true);
     try {
       const res = await api.get('payroll/');
-      setPayroll(res.data || []);
+      setPayroll(res.data.results || res.data || []);
     } catch {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), 'error');
     } finally {

@@ -13,7 +13,7 @@ interface AccountingWorkspaceProps {
   user: any;
 }
 
-type AccSubTab = 'LEDGER' | 'PAYROLL' | 'CASHBOXES' | 'REPORTS';
+type AccSubTab = 'LEDGER' | 'PAYROLL' | 'CASHBOXES' | 'TAX' | 'REPORTS';
 
 export default function AccountingWorkspace({ user }: AccountingWorkspaceProps) {
   const { t, locale } = useI18n();
@@ -126,7 +126,7 @@ export default function AccountingWorkspace({ user }: AccountingWorkspaceProps) 
 
       {/* Tabs */}
       <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200/60 overflow-x-auto pr-2 custom-scrollbar">
-        {(['LEDGER', 'PAYROLL', 'CASHBOXES', 'REPORTS'] as const).map(tabKey => (
+        {(['LEDGER', 'PAYROLL', 'CASHBOXES', 'TAX', 'REPORTS'] as const).map(tabKey => (
           <button
             key={tabKey}
             onClick={() => setActiveSubTab(tabKey)}
@@ -138,6 +138,7 @@ export default function AccountingWorkspace({ user }: AccountingWorkspaceProps) 
               LEDGER: 'Kassa & Tranzaksiyalar',
               PAYROLL: 'Ish Haqini Boshqarish',
               CASHBOXES: 'Kassalar Monitoringi',
+              TAX: 'QQS & Soliq',
               REPORTS: 'Moliya & Nasiya Tahlili'
             }[tabKey])}
           </button>
@@ -368,6 +369,133 @@ export default function AccountingWorkspace({ user }: AccountingWorkspaceProps) 
             ))}
           </div>
         )}
+
+        {/* QQS & TAX */}
+        {activeSubTab === 'TAX' && (() => {
+          const [vatAmount, setVatAmount] = React.useState('');
+          const [vatRate, setVatRate] = React.useState(12);
+          const [vatLoading, setVatLoading] = React.useState(false);
+          const [vatResult, setVatResult] = React.useState<any>(null);
+
+          const calcVat = async () => {
+            if (!vatAmount || isNaN(Number(vatAmount))) {
+              uiStore.showNotification(t("Summa kiriting"), "error");
+              return;
+            }
+            setVatLoading(true);
+            try {
+              const res = await api.post('accounting/vat-calculate/', {
+                amount: Number(vatAmount),
+                rate: vatRate,
+                include_vat: true
+              });
+              setVatResult(res.data);
+            } catch {
+              // Fallback calculation
+              const amount = Number(vatAmount);
+              const vat = (amount * vatRate) / (100 + vatRate);
+              setVatResult({ base_amount: amount - vat, vat_amount: vat, total_amount: amount, rate: vatRate });
+            } finally {
+              setVatLoading(false);
+            }
+          };
+
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* QQS Calculator */}
+              <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                    <CalculatorIcon className="w-5 h-5 text-indigo-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest">{t('QQS Hisoblagich')}</h3>
+                    <p className="text-[10px] font-bold text-slate-400">{t("QQS ajratish yoki qo'shish")}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-1.5">{t('Summa (UZS)')}</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={vatAmount}
+                      onChange={e => setVatAmount(e.target.value)}
+                      className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-400 font-black text-2xl text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block mb-1.5">{t('QQS stavkasi')}</label>
+                    <div className="flex gap-2">
+                      {[12, 15, 20].map(r => (
+                        <button key={r} type="button" onClick={() => setVatRate(r)}
+                          className={`flex-1 py-3 rounded-xl font-black text-sm border-2 transition-all ${vatRate === r ? 'border-indigo-600 bg-indigo-50 text-indigo-600' : 'border-slate-100 text-slate-400'}`}
+                        >{r}%</button>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={calcVat} disabled={vatLoading}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95">
+                    {vatLoading ? t('Hisoblanmoqda...') : t('Hisoblash')}
+                  </button>
+                  {vatResult && (
+                    <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 space-y-3">
+                      {[
+                        { label: t('Asosiy summa (QQSsiz)'), value: vatResult.base_amount },
+                        { label: `QQS (${vatResult.rate}%)`, value: vatResult.vat_amount },
+                        { label: t('Jami (QQS bilan)'), value: vatResult.total_amount },
+                      ].map((r, i) => (
+                        <div key={i} className={`flex justify-between items-center py-2 ${i < 2 ? 'border-b border-indigo-100' : ''}`}>
+                          <span className={`text-sm font-bold ${i === 2 ? 'text-indigo-900 font-black' : 'text-indigo-700'}`}>{r.label}</span>
+                          <span className={`font-black ${i === 2 ? 'text-indigo-900 text-lg' : 'text-indigo-700'}`}>{Math.round(r.value).toLocaleString()} UZS</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tax info */}
+              <div className="space-y-4">
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+                  <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest mb-4">{t("O'zbekiston Soliq Ma'lumotlari")}</h4>
+                  <div className="space-y-3">
+                    {[
+                      { name: "QQS (Qo'shilgan Qiymat Solig'i)", rate: '12%', note: t('Asosiy stavka') },
+                      { name: t('Foyda solig\'i (yuridik shaxslar)'), rate: '15%', note: t('Yillik') },
+                      { name: t('Ijtimoiy sug\'urta'), rate: '12%', note: t('Ish haqi fondidan') },
+                      { name: t('Jismoniy shaxslar daromad solig\'i'), rate: '12%', note: t('Ish haqidan') },
+                      { name: t('Mulk solig\'i'), rate: '1.5%', note: t('Asosiy vositalar qiymatidan') },
+                    ].map((tax, i) => (
+                      <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-50">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{tax.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400">{tax.note}</p>
+                        </div>
+                        <span className="font-black text-indigo-600 text-lg">{tax.rate}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-amber-50 border border-amber-100 rounded-[28px] p-5">
+                  <h4 className="font-black text-amber-800 text-[10px] uppercase tracking-widest mb-2">{t('Hisobot muddatlari')}</h4>
+                  <div className="space-y-2 text-sm">
+                    {[
+                      { label: t('QQS hisoboti'), period: t('Har oy — oydan keyin 20-kuni') },
+                      { label: t('Foyda solig\'i'), period: t('Har chorak — chorakdan keyin 20-kuni') },
+                      { label: t('Ish haqi solig\'i'), period: t("Har oy — oydan keyin 15-kuni") },
+                    ].map((d, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span className="font-bold text-amber-700">{d.label}:</span>
+                        <span className="text-amber-600 font-black text-right text-[11px]">{d.period}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* REPORTS & P&L / Debtor Aging */}
         {activeSubTab === 'REPORTS' && (

@@ -303,9 +303,9 @@ export default function ProductionOrderManagement() {
         api.get('users/?role=Ishlab chiqarish operatori'),
         api.get('materials/')
       ]);
-      setProductionOrders(ordersRes.data);
-      setOperators(operatorsRes.data);
-      setProducts(productsRes.data);
+      setProductionOrders(ordersRes.data.results || ordersRes.data);
+      setOperators(operatorsRes.data.results || operatorsRes.data);
+      setProducts(productsRes.data.results || productsRes.data);
       fetchKPIs();
     } catch (err) {
       console.error("Failed to fetch production data", err);

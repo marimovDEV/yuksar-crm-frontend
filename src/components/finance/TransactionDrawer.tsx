@@ -69,8 +69,8 @@ export default function TransactionDrawer({
       const fetchSources = async () => {
         try {
           const [ordersRes, purchasesRes] = await Promise.all([
-            api.get('sales/orders/'),
-            api.get('warehouse/purchase-orders/')
+            api.get('sales/invoices/'),
+            api.get('procurement/orders/')
           ]);
           setOrders(ordersRes.data.results || ordersRes.data);
           setPurchases(purchasesRes.data.results || purchasesRes.data);

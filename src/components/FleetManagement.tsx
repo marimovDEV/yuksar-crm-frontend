@@ -63,9 +63,9 @@ export default function FleetManagement({ user }: FleetManagementProps) {
         api.get('fleet/trips/'),
         api.get('fleet/drivers/'),
       ]);
-      setVehicles(vRes.data || []);
-      setTrips(tRes.data || []);
-      setDrivers(dRes.data || []);
+      setVehicles(vRes.data.results || vRes.data || []);
+      setTrips(tRes.data.results || tRes.data || []);
+      setDrivers(dRes.data.results || dRes.data || []);
     } catch {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), 'error');
     } finally {

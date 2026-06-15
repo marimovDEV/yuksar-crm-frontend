@@ -39,10 +39,10 @@ export default function MasterData() {
     try {
       if (activeTab === 'RECIPES') {
         const res = await api.get('production/recipes/');
-        setRecipes(res.data);
+        setRecipes(res.data.results || res.data);
       } else {
         const res = await api.get('materials/');
-        setProducts(res.data);
+        setProducts(res.data.results || res.data);
       }
     } catch (err) {
       console.error(err);

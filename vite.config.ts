@@ -25,5 +25,18 @@ export default defineConfig(({mode}) => {
         clientPort: 3000,
       },
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-charts': ['recharts'],
+            'vendor-ui': ['lucide-react', 'axios'],
+            'vendor-qr': ['qrcode.react', 'html5-qrcode'],
+          },
+        },
+      },
+    },
   };
 });

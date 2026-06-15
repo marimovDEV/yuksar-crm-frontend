@@ -15,11 +15,11 @@ interface SalesWorkspaceProps {
   user: any;
 }
 
-type SalesSubTab = 'VORONKA' | 'POS' | 'CLIENTS' | 'LEADS' | 'CALCULATOR';
+type SalesSubTab = 'DASHBOARD' | 'VORONKA' | 'POS' | 'CLIENTS' | 'LEADS' | 'CALCULATOR';
 
 export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
   const { t, locale } = useI18n();
-  const [activeSubTab, setActiveSubTab] = useState<SalesSubTab>('VORONKA');
+  const [activeSubTab, setActiveSubTab] = useState<SalesSubTab>('DASHBOARD');
   
   // API Core States
   const [loading, setLoading] = useState(true);
@@ -88,12 +88,12 @@ export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
         images: [
            `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`
         ],
-        pattern_type: ['Classic', 'Modern', 'Premium'][Math.floor(Math.random() * 3)],
-        dimensions: "1000x500mm",
-        density: "15-20kg/m³",
-        product_class: ['A_CLASS', 'B_CLASS'][Math.floor(Math.random() * 2)],
-        stock_quantity: Math.floor(Math.random() * 500),
-        description: "Yuqori zichlikdagi dekorativ penoplast paneli. Fasad va ichki qismlar uchun ideal."
+        pattern_type: p.pattern_type || p.category || '—',
+        dimensions: p.dimensions || (p.length && p.width ? `${p.length}x${p.width}mm` : '—'),
+        density: p.density ? `${p.density} kg/m³` : (p.density_min && p.density_max ? `${p.density_min}-${p.density_max} kg/m³` : '—'),
+        product_class: p.product_class || p.grade || p.quality_class || '—',
+        stock_quantity: p.stock_quantity ?? p.available_quantity ?? p.quantity ?? 0,
+        description: p.description || p.notes || 'Penoplast mahsuloti',
       }));
       setProducts(enhancedProducts);
     } catch (err) {
@@ -256,7 +256,7 @@ export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
 
       {/* Sub Tabs Selector */}
       <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200/60 overflow-x-auto pr-2 custom-scrollbar">
-        {(['VORONKA', 'POS', 'CLIENTS', 'LEADS', 'CALCULATOR'] as const).map(tabKey => (
+        {(['DASHBOARD', 'VORONKA', 'POS', 'CLIENTS', 'LEADS', 'CALCULATOR'] as const).map(tabKey => (
           <button
             key={tabKey}
             onClick={() => setActiveSubTab(tabKey)}
@@ -265,6 +265,7 @@ export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
             }`}
           >
             {t({
+              DASHBOARD: 'Dashboard',
               VORONKA: 'Voronka (Pipeline)',
               POS: 'POS Katalog',
               CLIENTS: 'Mijozlar (CRM)',
@@ -277,6 +278,109 @@ export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
 
       {/* Main Contents */}
       <div className="min-h-[400px]">
+
+        {/* ─── DASHBOARD ─── */}
+        {activeSubTab === 'DASHBOARD' && (() => {
+          const today = new Date().toDateString();
+          const todayInvoices = invoices.filter(inv => new Date(inv.date || inv.created_at).toDateString() === today);
+          const todaySales = todayInvoices.reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0);
+          const pendingOrders = invoices.filter(inv => ['NEW', 'CONFIRMED'].includes(inv.status));
+          const debtorInvoices = invoices.filter(inv => inv.status === 'DELIVERED' && !inv.is_paid);
+          const debtTotal = debtorInvoices.reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0);
+          const monthInvoices = invoices.filter(inv => {
+            const d = new Date(inv.date || inv.created_at);
+            const now = new Date();
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+          });
+          const monthSales = monthInvoices.reduce((s, inv) => s + (parseFloat(inv.total_amount) || 0), 0);
+          const monthTarget = 100_000_000;
+          const monthProgress = Math.min(100, (monthSales / monthTarget) * 100);
+          const topClients = Object.values(
+            invoices.reduce((acc: any, inv) => {
+              const name = inv.customer_name || 'Noma\'lum';
+              if (!acc[name]) acc[name] = { name, total: 0, count: 0 };
+              acc[name].total += parseFloat(inv.total_amount) || 0;
+              acc[name].count++;
+              return acc;
+            }, {})
+          ).sort((a: any, b: any) => b.total - a.total).slice(0, 5) as any[];
+
+          return (
+            <div className="space-y-6">
+              {/* KPI Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: t('Bugungi sotuv'), value: `${todaySales.toLocaleString()} UZS`, sub: `${todayInvoices.length} ta buyurtma`, color: 'emerald' },
+                  { label: t('Oylik sotuv'), value: `${monthSales.toLocaleString()} UZS`, sub: `${monthProgress.toFixed(0)}% reja`, color: 'blue' },
+                  { label: t('Kutayotgan buyurtmalar'), value: pendingOrders.length, sub: t('Tasdiqlanmagan'), color: 'amber' },
+                  { label: t('Qarzdorlik'), value: `${debtTotal.toLocaleString()} UZS`, sub: `${debtorInvoices.length} ta mijoz`, color: 'rose' },
+                ].map((kpi, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }} className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{kpi.label}</p>
+                    <p className={`text-xl font-black text-${kpi.color}-600 leading-tight`}>{kpi.value}</p>
+                    <p className="text-[10px] font-bold text-slate-300 mt-1">{kpi.sub}</p>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Monthly target progress */}
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Oylik Sotuv Rejasi')}</p>
+                    <p className="text-2xl font-black text-slate-900 mt-1">{monthSales.toLocaleString()} <span className="text-sm font-bold text-slate-300">/ {monthTarget.toLocaleString()} UZS</span></p>
+                  </div>
+                  <span className={`text-3xl font-black ${monthProgress >= 80 ? 'text-emerald-500' : monthProgress >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{monthProgress.toFixed(0)}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${monthProgress}%` }} transition={{ duration: 1 }} className={`h-full rounded-full ${monthProgress >= 80 ? 'bg-emerald-500' : monthProgress >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Top clients */}
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+                  <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest mb-4">{t('Top Mijozlar')}</h3>
+                  <div className="space-y-3">
+                    {topClients.length > 0 ? topClients.map((cl: any, i) => (
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50">
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500">{i + 1}</span>
+                          <div>
+                            <p className="text-sm font-black text-slate-900">{cl.name}</p>
+                            <p className="text-[10px] font-bold text-slate-400">{cl.count} {t('buyurtma')}</p>
+                          </div>
+                        </div>
+                        <p className="font-black text-slate-900 text-sm">{cl.total.toLocaleString()} <span className="text-[10px] text-slate-300">UZS</span></p>
+                      </div>
+                    )) : <p className="text-slate-300 text-xs italic text-center py-6">{t("Hali buyurtmalar yo'q")}</p>}
+                  </div>
+                </div>
+
+                {/* Pending orders */}
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest">{t('Kutayotgan Buyurtmalar')}</h3>
+                    <button onClick={() => setActiveSubTab('VORONKA')} className="text-[10px] font-black text-blue-600 uppercase hover:underline">{t('Barchasi')}</button>
+                  </div>
+                  <div className="space-y-3">
+                    {pendingOrders.slice(0, 5).map(inv => (
+                      <div key={inv.id} className="flex items-center justify-between py-2 border-b border-slate-50">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">{inv.customer_name}</p>
+                          <p className="text-[10px] font-bold text-slate-400">{inv.invoice_number} · {t(inv.status)}</p>
+                        </div>
+                        <p className="font-black text-sm text-slate-900">{parseFloat(inv.total_amount || 0).toLocaleString()} <span className="text-[10px] text-slate-300">UZS</span></p>
+                      </div>
+                    ))}
+                    {pendingOrders.length === 0 && <p className="text-slate-300 text-xs italic text-center py-6">{t("Barcha buyurtmalar bajarilgan")}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Pipeline / Voronka */}
         {activeSubTab === 'VORONKA' && (
           <div className="space-y-6">

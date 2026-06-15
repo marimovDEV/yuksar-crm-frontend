@@ -17,7 +17,7 @@ export default function Alerts() {
     try {
       setLoading(true);
       const res = await api.get('alerts/alerts/unread/');
-      setAlerts(res.data);
+      setAlerts(res.data.results || res.data);
     } catch (err) {
       console.error(err);
     } finally {

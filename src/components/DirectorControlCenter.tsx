@@ -1,131 +1,219 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Factory, Scissors, Brush, Package, Truck,
   AlertTriangle, AlertOctagon, Info, RefreshCw,
   Activity, Thermometer, Droplets, Gauge, Box,
   Zap, TrendingUp, ChevronRight, X, ArrowRight,
   Flame, BarChart3, ShieldCheck, Warehouse, Layers,
-  Clock
+  Clock, Database, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import api from '../lib/api';
 import { useI18n } from '../i18n';
 
 /* ═══════════════════════════════════════════════════════════════
-   LIVE FACTORY — DIREKTOR NAZORAT MARKAZI
-   Industrial Dashboard: KPI Strip + Factory Flow + Alerts + Charts
+   DIRECTOR LIVE FACTORY — Real API wired, no DEMO fallbacks
    ═══════════════════════════════════════════════════════════════ */
 
 interface FlowStage {
   id: string;
   name: string;
-  name_ru: string;
   active: number;
   waiting: number;
   problem: number;
+  icon: React.ElementType;
+  color: string;
+  navTarget: string;
 }
 
 interface LiveAlert {
-  id: number;
+  id: string | number;
   level: 'critical' | 'warning' | 'info';
-  text_uz: string;
-  text_ru: string;
+  text: string;
   target?: string;
 }
-
-/* ── FLOW STAGE ICONS ── */
-const STAGE_ICONS: Record<string, React.ElementType> = {
-  'raw_material': Warehouse,
-  'zames': Thermometer,
-  'bunker': Box,
-  'formovka': Layers,
-  'cooling': Droplets,
-  'qc': ShieldCheck,
-  'cnc': Scissors,
-  'finishing': Brush,
-  'drying': Flame,
-  'warehouse': Package,
-  'delivery': Truck,
-};
-
-const STAGE_COLORS: string[] = [
-  'bg-amber-50 text-amber-700 border-amber-200',
-  'bg-orange-50 text-orange-700 border-orange-200',
-  'bg-yellow-50 text-yellow-700 border-yellow-200',
-  'bg-blue-50 text-blue-700 border-blue-200',
-  'bg-cyan-50 text-cyan-700 border-cyan-200',
-  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'bg-violet-50 text-violet-700 border-violet-200',
-  'bg-rose-50 text-rose-700 border-rose-200',
-  'bg-teal-50 text-teal-700 border-teal-200',
-  'bg-sky-50 text-sky-700 border-sky-200',
-];
 
 export default function DirectorControlCenter({ onAction }: { onAction: (id: string) => void }) {
   const { t, language } = useI18n();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
+  const [refreshing, setRefreshing] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string | number>>(new Set());
+
+  // Raw API data
+  const [zames, setZames] = useState<any[]>([]);
+  const [bunkers, setBunkers] = useState<any[]>([]);
+  const [blocks, setBlocks] = useState<any[]>([]);
+  const [drying, setDrying] = useState<any[]>([]);
+  const [cncJobs, setCncJobs] = useState<any[]>([]);
+  const [finishingJobs, setFinishingJobs] = useState<any[]>([]);
+  const [finishedBlocks, setFinishedBlocks] = useState<any[]>([]);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [telemetry, setTelemetry] = useState<any[]>([]);
+  const [finance, setFinance] = useState<any>(null);
+  const [stocks, setStocks] = useState<any[]>([]);
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'uz-UZ', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
-  const timeStr = now.toLocaleTimeString(language === 'ru' ? 'ru-RU' : 'uz-UZ', {
-    hour: '2-digit', minute: '2-digit',
-  });
+  const dateStr = now.toLocaleDateString('uz-UZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
   const isDay = now.getHours() >= 8 && now.getHours() < 20;
-  const shiftLabel = isDay ? t('Kunlik 08:00 – 20:00') : t('Tungi 20:00 – 08:00');
 
-  /* ── DATA FETCH ── */
-  const fetchData = async () => {
+  const fetchAll = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true); else setRefreshing(true);
     try {
-      const res = await api.get('dashboard/summary/');
-      setData(res.data);
-    } catch { /* fallback to demo */ }
-    finally { setLoading(false); }
-  };
+      const [
+        zamesRes, bunkersRes, blocksRes, dryingRes,
+        cncRes, finishingRes, finishedRes, deliveriesRes,
+        alertsRes, telRes, financeRes, stocksRes,
+      ] = await Promise.all([
+        api.get('production/zames/').catch(() => ({ data: [] })),
+        api.get('production/bunkers/').catch(() => ({ data: [] })),
+        api.get('production/blocks/').catch(() => ({ data: [] })),
+        api.get('production/drying/').catch(() => ({ data: [] })),
+        api.get('cnc/jobs/').catch(() => ({ data: [] })),
+        api.get('finishing/jobs/').catch(() => ({ data: [] })),
+        api.get('production/finished-blocks/').catch(() => ({ data: [] })),
+        api.get('sales/deliveries/').catch(() => ({ data: [] })),
+        api.get('alerts/?is_read=false&page_size=20').catch(() => ({ data: [] })),
+        api.get('telemetry/tags/live/').catch(() => ({ data: [] })),
+        api.get('finance/analytics/').catch(() => ({ data: null })),
+        api.get('stocks/').catch(() => ({ data: [] })),
+      ]);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+      setZames(zamesRes.data.results || zamesRes.data || []);
+      setBunkers(bunkersRes.data.results || bunkersRes.data || []);
+      setBlocks(blocksRes.data.results || blocksRes.data || []);
+      setDrying(dryingRes.data.results || dryingRes.data || []);
+      setCncJobs(cncRes.data.results || cncRes.data || []);
+      setFinishingJobs(finishingRes.data.results || finishingRes.data || []);
+      setFinishedBlocks(finishedRes.data.results || finishedRes.data || []);
+      setDeliveries(deliveriesRes.data.results || deliveriesRes.data || []);
+      setAlerts(alertsRes.data.results || alertsRes.data || []);
+      setTelemetry(telRes.data.results || telRes.data || []);
+      setFinance(financeRes.data);
+      setStocks(stocksRes.data.results || stocksRes.data || []);
+    } catch (err) {
+      console.error('DirectorControlCenter fetch error:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
-  /* ── DEMO FACTORY FLOW ── */
-  const DEMO_FLOW: FlowStage[] = useMemo(() => [
-    { id: 'raw_material', name: 'Xom Ashyo', name_ru: 'Сырьё', active: 3, waiting: 1, problem: 0 },
-    { id: 'zames', name: 'Zames', name_ru: 'Замес', active: 2, waiting: 4, problem: 0 },
-    { id: 'bunker', name: 'Bunker', name_ru: 'Бункер', active: 6, waiting: 2, problem: 0 },
-    { id: 'formovka', name: 'Formovka', name_ru: 'Формовка', active: 4, waiting: 3, problem: 1 },
-    { id: 'cooling', name: 'Sovutish', name_ru: 'Охлаждение', active: 8, waiting: 0, problem: 0 },
-    { id: 'qc', name: 'Sifat Nazorati', name_ru: 'Контроль качества', active: 2, waiting: 5, problem: 0 },
-    { id: 'cnc', name: 'CNC', name_ru: 'ЧПУ Резка', active: 3, waiting: 2, problem: 1 },
-    { id: 'finishing', name: 'Pardozlash', name_ru: 'Отделка', active: 2, waiting: 1, problem: 0 },
-    { id: 'drying', name: 'Quritish', name_ru: 'Сушка', active: 5, waiting: 3, problem: 0 },
-    { id: 'warehouse', name: 'Ombor', name_ru: 'Склад', active: 12, waiting: 0, problem: 0 },
-    { id: 'delivery', name: 'Yetkazish', name_ru: 'Доставка', active: 4, waiting: 2, problem: 0 },
-  ], []);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    const interval = setInterval(() => fetchAll(true), 30000);
+    return () => clearInterval(interval);
+  }, [fetchAll]);
 
-  const factoryFlow: FlowStage[] = data?.factory_flow || DEMO_FLOW;
+  // ── Compute Factory Flow from real data ──
+  const activeZames = zames.filter(z => z.status === 'IN_PROGRESS').length;
+  const waitingZames = zames.filter(z => z.status === 'PENDING' || z.status === 'CREATED').length;
 
-  /* ── DEMO ALERTS ── */
-  const DEMO_ALERTS: LiveAlert[] = useMemo(() => [
-    { id: 1, level: 'critical', text_uz: 'Siro: 30L qoldi (min 50L)', text_ru: 'Сиро: осталось 30Л (мин 50Л)', target: 'purchase-orders' },
-    { id: 2, level: 'warning', text_uz: "CNC-2: 45 daqiqa to'xtagan", text_ru: 'CNC-2: простой 45 минут', target: 'production' },
-    { id: 3, level: 'warning', text_uz: "Qarz muddati: Samarqand QB — 7 kun o'tdi", text_ru: 'Срок долга: Самарканд QB — 7 дней просрочки', target: 'debtors' },
-    { id: 4, level: 'info', text_uz: "Bunker №3 yetilish vaqti tugadi", text_ru: 'Бункер №3 — созревание завершено', target: 'production' },
-    { id: 5, level: 'critical', text_uz: "Formovka: harorat 95°C dan oshdi", text_ru: 'Формовка: температура выше 95°C', target: 'production' },
-    { id: 6, level: 'info', text_uz: "Ombor SK-4: 85% band", text_ru: 'Склад СК-4: 85% занято', target: 'warehouse' },
-  ], []);
+  const activeBunkers = bunkers.filter(b => b.status === 'FILLING' || b.status === 'READY').length;
+  const waitingBunkers = bunkers.filter(b => b.status === 'EMPTY').length;
 
-  const liveAlerts: LiveAlert[] = data?.live_alerts || DEMO_ALERTS;
-  const visibleAlerts = liveAlerts.filter(a => !dismissedAlerts.has(a.id));
+  const activeBlocks = blocks.filter(b => b.status === 'IN_PROGRESS' || b.status === 'FORMING').length;
+  const waitingBlocks = blocks.filter(b => b.status === 'PENDING').length;
 
-  const dismissAlert = (id: number) => {
-    setDismissedAlerts(prev => new Set(prev).add(id));
+  const activeDrying = drying.filter(d => d.status === 'IN_PROGRESS' || d.status === 'DRYING').length;
+  const waitingDrying = drying.filter(d => d.status === 'PENDING').length;
+
+  const allFB = finishedBlocks;
+  const qcPending = allFB.filter(b => b.status === 'QC_PENDING').length;
+  const qcFailed = allFB.filter(b => b.status === 'QC_FAILED').length;
+
+  const activeCNC = cncJobs.filter(j => j.status === 'IN_PROGRESS' || j.status === 'RUNNING').length;
+  const waitingCNC = cncJobs.filter(j => j.status === 'PENDING' || j.status === 'QUEUED').length;
+  const problemCNC = cncJobs.filter(j => j.status === 'PAUSED' || j.status === 'ERROR').length;
+
+  const activeFinishing = finishingJobs.filter(j => j.status === 'IN_PROGRESS').length;
+  const waitingFinishing = finishingJobs.filter(j => j.status === 'PENDING').length;
+
+  const readyBlocks = allFB.filter(b => b.status === 'READY' || b.status === 'APPROVED').length;
+
+  const activeDeliveries = deliveries.filter(d => d.status === 'SENT' || d.status === 'IN_TRANSIT').length;
+  const waitingDeliveries = deliveries.filter(d => d.status === 'PENDING').length;
+
+  // Critical stock items
+  const criticalStocks = stocks.filter((s: any) => {
+    const qty = s.quantity || s.remaining_quantity || 0;
+    return qty < 500; // Less than 500 kg threshold
+  });
+
+  // Total today's blocks (produced today)
+  const todayISO = new Date().toISOString().split('T')[0];
+  const todayBlocks = allFB.filter(b => b.created_at?.startsWith(todayISO) || b.produced_date?.startsWith(todayISO)).length;
+
+  // Brak %
+  const totalAll = allFB.length;
+  const brakCount = allFB.filter(b => b.status === 'QC_FAILED' || b.status === 'REJECTED').length;
+  const brakPct = totalAll > 0 ? parseFloat(((brakCount / totalAll) * 100).toFixed(1)) : 0;
+
+  // Finance
+  const todayRevenue = finance?.today_revenue || finance?.revenue_today || 0;
+  const monthRevenue = finance?.month_revenue || finance?.revenue_month || 0;
+
+  // Telemetry — find key tags
+  const getTelTag = (names: string[]) => {
+    if (!Array.isArray(telemetry)) return null;
+    return telemetry.find((t: any) => names.some(n => (t.tag_name || t.name || '').toLowerCase().includes(n.toLowerCase())));
   };
+  const tempTag = getTelTag(['chamber_temp', 'temperature', 'steam_temp']);
+  const pressTag = getTelTag(['steam_pressure', 'pressure', 'boiler_pressure']);
+  const tempVal = tempTag ? (tempTag.value ?? tempTag.current_value ?? '—') : '—';
+  const pressVal = pressTag ? (pressTag.value ?? pressTag.current_value ?? '—') : '—';
+
+  // ── Factory Flow stages ──
+  const factoryFlow: FlowStage[] = [
+    { id: 'raw_material', name: 'Xom Ashyo (Ombor)', active: stocks.length, waiting: criticalStocks.length, problem: criticalStocks.length > 0 ? 1 : 0, icon: Warehouse, color: 'bg-slate-50 border-slate-200 text-slate-700', navTarget: 'warehouse-workspace' },
+    { id: 'zames', name: 'Predvspenivatel (Zamas)', active: activeZames, waiting: waitingZames, problem: 0, icon: Thermometer, color: 'bg-amber-50 border-amber-200 text-amber-800', navTarget: 'operator-workspace' },
+    { id: 'bunker', name: 'Bunker (Matuiratsiya)', active: activeBunkers, waiting: waitingBunkers, problem: 0, icon: Database, color: 'bg-orange-50 border-orange-200 text-orange-800', navTarget: 'operator-workspace' },
+    { id: 'formovka', name: 'Formovka (Blok hosil)', active: activeBlocks, waiting: waitingBlocks, problem: 0, icon: Box, color: 'bg-yellow-50 border-yellow-200 text-yellow-800', navTarget: 'operator-workspace' },
+    { id: 'drying', name: 'Quritish', active: activeDrying, waiting: waitingDrying, problem: 0, icon: Flame, color: 'bg-red-50 border-red-200 text-red-800', navTarget: 'operator-workspace' },
+    { id: 'qc', name: 'Sifat Nazorati (QC)', active: qcPending, waiting: 0, problem: qcFailed, icon: ShieldCheck, color: 'bg-emerald-50 border-emerald-200 text-emerald-800', navTarget: 'qc-workspace' },
+    { id: 'cnc', name: 'CNC Kesish', active: activeCNC, waiting: waitingCNC, problem: problemCNC, icon: Scissors, color: 'bg-indigo-50 border-indigo-200 text-indigo-800', navTarget: 'cnc-workspace' },
+    { id: 'finishing', name: 'Pardozlash', active: activeFinishing, waiting: waitingFinishing, problem: 0, icon: Brush, color: 'bg-violet-50 border-violet-200 text-violet-800', navTarget: 'finishing' },
+    { id: 'warehouse_out', name: 'Tayyor Mahsulot Ombor', active: readyBlocks, waiting: 0, problem: 0, icon: Package, color: 'bg-teal-50 border-teal-200 text-teal-800', navTarget: 'warehouse-workspace' },
+    { id: 'delivery', name: 'Yetkazib berish', active: activeDeliveries, waiting: waitingDeliveries, problem: 0, icon: Truck, color: 'bg-sky-50 border-sky-200 text-sky-800', navTarget: 'logistics-workspace' },
+  ];
+
+  // ── Live Alerts (from real alerts API + derived critical events) ──
+  const derivedAlerts: LiveAlert[] = [];
+  if (criticalStocks.length > 0) {
+    derivedAlerts.push({ id: 'crit-stock', level: 'critical', text: `${criticalStocks.length} ta xomashyo kritik darajada kam (< 500 kg)`, target: 'warehouse-workspace' });
+  }
+  if (problemCNC > 0) {
+    derivedAlerts.push({ id: 'cnc-problem', level: 'warning', text: `CNC: ${problemCNC} ta stanok to'xtagan yoki xatolik`, target: 'cnc-workspace' });
+  }
+  if (qcFailed > 0) {
+    derivedAlerts.push({ id: 'qc-failed', level: 'warning', text: `${qcFailed} ta blok QC dan o'tmadi — tekshirish kerak`, target: 'qc-workspace' });
+  }
+  if (brakPct > 5) {
+    derivedAlerts.push({ id: 'brak-high', level: 'critical', text: `Brak darajasi yuqori: ${brakPct}% (limit 5%)`, target: 'qc-workspace' });
+  }
+
+  // Real alerts from API
+  const apiAlerts: LiveAlert[] = alerts.map((a: any) => ({
+    id: a.id,
+    level: (a.severity === 'CRITICAL' || a.level === 'critical') ? 'critical' as const :
+           (a.severity === 'WARNING' || a.level === 'warning') ? 'warning' as const : 'info' as const,
+    text: a.message || a.title || a.text_uz || a.description || 'Ogohlantirish',
+    target: a.target_module || undefined,
+  }));
+
+  const allAlerts = [...derivedAlerts, ...apiAlerts];
+  const visibleAlerts = allAlerts.filter(a => !dismissedAlerts.has(a.id));
+
+  // KPI cards
+  const kpiCards = [
+    { icon: Factory, label: "Bugun ishlab chiqarildi", value: todayBlocks, unit: 'blok', color: 'bg-blue-50 text-blue-800', iconBg: 'bg-blue-100' },
+    { icon: CheckCircle2, label: "Tayyor (omborda)", value: readyBlocks, unit: 'blok', color: 'bg-emerald-50 text-emerald-800', iconBg: 'bg-emerald-100' },
+    { icon: Scissors, label: "CNC da faol", value: activeCNC, unit: 'ish', color: 'bg-indigo-50 text-indigo-800', iconBg: 'bg-indigo-100' },
+    { icon: Truck, label: "Yetkazishda", value: activeDeliveries, unit: 'yetkazma', color: 'bg-sky-50 text-sky-800', iconBg: 'bg-sky-100' },
+    { icon: AlertTriangle, label: "Brak darajasi", value: brakPct, unit: '%', color: brakPct > 5 ? 'bg-rose-50 text-rose-800' : 'bg-slate-50 text-slate-700', iconBg: brakPct > 5 ? 'bg-rose-100' : 'bg-slate-100' },
+    { icon: TrendingUp, label: "Bugungi daromad", value: todayRevenue ? Math.round(todayRevenue / 1000000) : '—', unit: todayRevenue ? 'M UZS' : '', color: 'bg-amber-50 text-amber-800', iconBg: 'bg-amber-100' },
+  ];
 
   const ALERT_STYLES = {
     critical: { bg: 'bg-rose-50', border: 'border-rose-200', icon: AlertOctagon, iconColor: 'text-rose-600', dot: 'bg-rose-500' },
@@ -133,82 +221,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
     info:     { bg: 'bg-blue-50',  border: 'border-blue-200',  icon: Info,          iconColor: 'text-blue-600',  dot: 'bg-blue-500'  },
   };
 
-  /* ── KPI DATA ── */
-  const todayCount = data?.production_status?.today_count || 0;
-  const cuttingCount = data?.production_status?.cutting_count || 0;
-  const dryingCount = data?.production_status?.drying_count || 32;
-  const deliveryCount = data?.delivery_status?.active_count || 6;
-  const defectRate = data?.production_status?.defect_rate || 2.1;
-  const todayProfit = data?.finance_status?.today_revenue || '18,450,000';
-
-  const kpiCards = [
-    {
-      icon: Factory,
-      label: t('Ishlab chiqarildi'),
-      value: `${todayCount}`,
-      unit: t('ta blok'),
-      color: 'bg-blue-50 text-blue-700',
-      iconBg: 'bg-blue-100',
-    },
-    {
-      icon: Scissors,
-      label: t('CNC da'),
-      value: `${cuttingCount}`,
-      unit: t('ta'),
-      color: 'bg-indigo-50 text-indigo-700',
-      iconBg: 'bg-indigo-100',
-    },
-    {
-      icon: Flame,
-      label: t('Quritishda'),
-      value: `${dryingCount}`,
-      unit: t('ta'),
-      color: 'bg-orange-50 text-orange-700',
-      iconBg: 'bg-orange-100',
-    },
-    {
-      icon: Truck,
-      label: t('Logistikada'),
-      value: `${deliveryCount}`,
-      unit: t('ta'),
-      color: 'bg-sky-50 text-sky-700',
-      iconBg: 'bg-sky-100',
-    },
-    {
-      icon: AlertTriangle,
-      label: t('Brak'),
-      value: `${defectRate}`,
-      unit: '%',
-      color: defectRate > 3 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700',
-      iconBg: defectRate > 3 ? 'bg-rose-100' : 'bg-emerald-100',
-    },
-    {
-      icon: TrendingUp,
-      label: t('Bugungi foyda'),
-      value: typeof todayProfit === 'number' ? todayProfit.toLocaleString() : todayProfit,
-      unit: 'UZS',
-      color: 'bg-emerald-50 text-emerald-700',
-      iconBg: 'bg-emerald-100',
-    },
-  ];
-
-  /* ── CHARTS DATA ── */
-  const hourlyProduction = data?.hourly_production || [
-    { hour: '08', val: 12 }, { hour: '09', val: 18 }, { hour: '10', val: 22 },
-    { hour: '11', val: 15 }, { hour: '12', val: 8 }, { hour: '13', val: 20 },
-    { hour: '14', val: 24 }, { hour: '15', val: 19 },
-  ];
-  const maxHourly = Math.max(...hourlyProduction.map((h: any) => h.val), 1);
-
-  const resourceCharts = [
-    { label: t('Gaz sarfi'), value: data?.gas_usage || 72, max: 100, unit: '%', color: 'bg-amber-500' },
-    { label: t('Elektr sarfi'), value: data?.electricity_usage || 65, max: 100, unit: '%', color: 'bg-blue-500' },
-    { label: t('Brak tendensiyasi'), value: defectRate, max: 10, unit: '%', color: defectRate > 3 ? 'bg-rose-500' : 'bg-emerald-500' },
-    { label: t('Ombor band'), value: data?.warehouse_occupancy || 78, max: 100, unit: '%', color: 'bg-teal-500' },
-  ];
-
-  /* ── LOADING ── */
-  if (loading && !data) return (
+  if (loading) return (
     <div className="flex items-center justify-center py-40">
       <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
     </div>
@@ -230,39 +243,44 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
             </div>
           </div>
           <p className="text-xs text-slate-400 font-medium mt-2 ml-[52px]">
-            {dateStr} &nbsp;|&nbsp; {t('Smena')}: {shiftLabel}
+            {dateStr} &nbsp;|&nbsp; {t('Smena')}: {isDay ? '08:00 – 20:00' : '20:00 – 08:00'}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {tempVal !== '—' && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-xl">
+              <Thermometer className="w-3.5 h-3.5 text-orange-600" />
+              <span className="text-[11px] font-black text-orange-700">{tempVal}°C</span>
+            </div>
+          )}
+          {pressVal !== '—' && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl">
+              <Gauge className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-[11px] font-black text-blue-700">{pressVal} bar</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{t('Tizim barqaror ishlamoqda')}</span>
+            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Jonli</span>
           </div>
           <span className="text-sm font-black text-slate-400 tabular-nums">{timeStr}</span>
-          <button
-            onClick={fetchData}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> {t('Yangilash')}
+          <button onClick={() => fetchAll(true)} disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> {t('Yangilash')}
           </button>
         </div>
       </div>
 
-      {/* ═══ SECTION 1: KPI STRIP ═══ */}
+      {/* ═══ KPI STRIP ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {kpiCards.map((kpi, i) => (
-          <motion.div
-            key={kpi.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className={`${kpi.color} rounded-2xl p-4 border border-white/60 shadow-sm hover:shadow-md transition-shadow`}
-          >
+          <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            className={`${kpi.color} rounded-2xl p-4 border border-white/60 shadow-sm hover:shadow-md transition-shadow`}>
             <div className="flex items-center gap-2 mb-2">
               <div className={`w-8 h-8 ${kpi.iconBg} rounded-lg flex items-center justify-center`}>
                 <kpi.icon className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wide opacity-70 leading-tight">{kpi.label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wide opacity-70 leading-tight">{t(kpi.label)}</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black leading-none">{kpi.value}</span>
@@ -272,193 +290,115 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         ))}
       </div>
 
-      {/* ═══ SECTION 2 + 3: FACTORY FLOW + ALERTS ═══ */}
+      {/* ═══ LIVE FACTORY FLOW + ALERTS ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* ── FACTORY FLOW (2/3 width) ── */}
+        {/* Factory Flow (2/3) */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-500" />
-              {t('Ishlab Chiqarish Zanjiri')}
+              {t('Ishlab Chiqarish Zanjiri')} — {factoryFlow.length} bosqich
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400">
-                {factoryFlow.length} {t('bosqich')}
-              </span>
+            <div className="flex items-center gap-3 text-[10px] font-bold">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />Faol: {factoryFlow.reduce((s,f) => s+f.active, 0)}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full inline-block" />Kutmoqda: {factoryFlow.reduce((s,f) => s+f.waiting, 0)}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500 rounded-full inline-block" />Muammo: {factoryFlow.reduce((s,f) => s+f.problem, 0)}</span>
             </div>
           </div>
-
-          <div className="p-5">
-            {/* Flow Grid - 2 rows: 6 top, 5 bottom */}
-            <div className="space-y-3">
-              {/* Row 1: stages 1-6 */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-2">
-                {factoryFlow.slice(0, 6).map((stage, idx) => {
-                  const Icon = STAGE_ICONS[stage.id] || Box;
-                  const colorClass = STAGE_COLORS[idx % STAGE_COLORS.length];
-                  const hasProblem = stage.problem > 0;
-                  return (
-                    <React.Fragment key={stage.id}>
-                      {idx > 0 && (
-                        <ArrowRight className="w-4 h-4 text-slate-300 shrink-0 hidden sm:block" />
-                      )}
-                      <motion.button
-                        whileHover={{ y: -2 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => onAction(stage.id === 'raw_material' ? 'warehouse' : stage.id === 'delivery' ? 'logistics' : stage.id === 'qc' ? 'quality' : stage.id === 'warehouse' ? 'warehouse' : 'production')}
-                        className={`flex-1 min-w-[120px] rounded-xl border p-3 text-left transition-all hover:shadow-md ${hasProblem ? 'bg-rose-50 border-rose-300 ring-1 ring-rose-200' : colorClass}`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icon className="w-4 h-4 shrink-0" />
-                          <span className="text-[10px] font-black uppercase tracking-wide leading-tight truncate">
-                            {language === 'ru' ? stage.name_ru : stage.name}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-emerald-600 uppercase">{t('Faol')}</span>
-                            <span className="text-sm font-black text-emerald-700">{stage.active}</span>
+          <div className="p-5 space-y-3">
+            {/* Row 1: stages 0-4 */}
+            {[factoryFlow.slice(0, 5), factoryFlow.slice(5)].map((row, rowIdx) => (
+              <div key={rowIdx}>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {row.map((stage, idx) => {
+                    const Icon = stage.icon;
+                    const hasProblem = stage.problem > 0;
+                    return (
+                      <React.Fragment key={stage.id}>
+                        {idx > 0 && <ArrowRight className="w-4 h-4 text-slate-300 shrink-0 hidden sm:block" />}
+                        <motion.button
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => onAction(stage.navTarget)}
+                          className={`flex-1 min-w-[130px] rounded-xl border p-3 text-left transition-all hover:shadow-md ${hasProblem ? 'bg-rose-50 border-rose-300 ring-1 ring-rose-300 animate-pulse' : stage.color}`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <Icon className="w-4 h-4 shrink-0" />
+                            <span className="text-[9px] font-black uppercase tracking-wide leading-tight">{stage.name}</span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-amber-600 uppercase">{t('Kutmoqda')}</span>
-                            <span className="text-sm font-black text-amber-700">{stage.waiting}</span>
-                          </div>
-                          {stage.problem > 0 && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-rose-600 uppercase">{t('Muammo')}</span>
-                              <span className="text-sm font-black text-rose-700 animate-pulse">{stage.problem}</span>
+                          <div className="grid grid-cols-3 gap-1 text-center">
+                            <div>
+                              <p className="text-[8px] font-bold text-emerald-600 uppercase">Faol</p>
+                              <p className="text-base font-black text-emerald-700">{stage.active}</p>
                             </div>
-                          )}
-                        </div>
-                      </motion.button>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-
-              {/* Connector arrows down */}
-              <div className="flex justify-center">
-                <div className="flex items-center gap-1 text-slate-300">
-                  <div className="w-px h-3 bg-slate-300" />
-                  <ArrowRight className="w-4 h-4 rotate-90" />
-                  <div className="w-px h-3 bg-slate-300" />
+                            <div>
+                              <p className="text-[8px] font-bold text-amber-600 uppercase">Kutish</p>
+                              <p className="text-base font-black text-amber-700">{stage.waiting}</p>
+                            </div>
+                            <div>
+                              <p className="text-[8px] font-bold text-rose-600 uppercase">Muammo</p>
+                              <p className={`text-base font-black text-rose-700 ${stage.problem > 0 ? 'animate-pulse' : ''}`}>{stage.problem}</p>
+                            </div>
+                          </div>
+                        </motion.button>
+                      </React.Fragment>
+                    );
+                  })}
                 </div>
+                {rowIdx === 0 && (
+                  <div className="flex justify-start pl-2 py-1">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="w-px h-3 bg-slate-300" />
+                      <ArrowRight className="w-4 h-4 text-slate-300 rotate-90" />
+                      <div className="w-px h-3 bg-slate-300" />
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Row 2: stages 7-11 */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-2">
-                {factoryFlow.slice(6).map((stage, idx) => {
-                  const Icon = STAGE_ICONS[stage.id] || Box;
-                  const colorClass = STAGE_COLORS[(idx + 6) % STAGE_COLORS.length];
-                  const hasProblem = stage.problem > 0;
-                  return (
-                    <React.Fragment key={stage.id}>
-                      {idx > 0 && (
-                        <ArrowRight className="w-4 h-4 text-slate-300 shrink-0 hidden sm:block" />
-                      )}
-                      <motion.button
-                        whileHover={{ y: -2 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => onAction(stage.id === 'raw_material' ? 'warehouse' : stage.id === 'delivery' ? 'logistics' : stage.id === 'qc' ? 'quality' : stage.id === 'warehouse' ? 'warehouse' : 'production')}
-                        className={`flex-1 min-w-[120px] rounded-xl border p-3 text-left transition-all hover:shadow-md ${hasProblem ? 'bg-rose-50 border-rose-300 ring-1 ring-rose-200' : colorClass}`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icon className="w-4 h-4 shrink-0" />
-                          <span className="text-[10px] font-black uppercase tracking-wide leading-tight truncate">
-                            {language === 'ru' ? stage.name_ru : stage.name}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-emerald-600 uppercase">{t('Faol')}</span>
-                            <span className="text-sm font-black text-emerald-700">{stage.active}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-amber-600 uppercase">{t('Kutmoqda')}</span>
-                            <span className="text-sm font-black text-amber-700">{stage.waiting}</span>
-                          </div>
-                          {stage.problem > 0 && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-rose-600 uppercase">{t('Muammo')}</span>
-                              <span className="text-sm font-black text-rose-700 animate-pulse">{stage.problem}</span>
-                            </div>
-                          )}
-                        </div>
-                      </motion.button>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Flow summary */}
-            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-6 text-[10px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
-                <span className="text-slate-500">{t('Faol')}: {factoryFlow.reduce((s, f) => s + f.active, 0)}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 bg-amber-500 rounded-full" />
-                <span className="text-slate-500">{t('Kutmoqda')}: {factoryFlow.reduce((s, f) => s + f.waiting, 0)}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 bg-rose-500 rounded-full" />
-                <span className="text-slate-500">{t('Muammo')}: {factoryFlow.reduce((s, f) => s + f.problem, 0)}</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* ── LIVE ALERTS (1/3 width) ── */}
+        {/* Live Alerts (1/3) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              {t('Ogohlantirish')}
+              {t('Ogohlantirishlar')}
             </h3>
-            <span className="text-[10px] font-black text-slate-400">{visibleAlerts.length} {t('ta')}</span>
+            <span className="text-[10px] font-black text-slate-400">{visibleAlerts.length} ta</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[400px]">
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[440px]">
             <AnimatePresence>
               {visibleAlerts.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                   <ShieldCheck className="w-8 h-8 mb-2 text-emerald-400" />
-                  <span className="text-xs font-bold">{t('Hamma narsa joyida!')}</span>
+                  <span className="text-xs font-bold">Hamma narsa joyida!</span>
                 </div>
               )}
               {visibleAlerts.map((alert) => {
                 const s = ALERT_STYLES[alert.level];
                 const AIcon = s.icon;
-                const alertText = language === 'ru' ? alert.text_ru : alert.text_uz;
                 return (
-                  <motion.div
-                    key={alert.id}
-                    layout
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10, height: 0 }}
-                    className={`flex items-start gap-3 p-3 rounded-xl border ${s.bg} ${s.border}`}
-                  >
+                  <motion.div key={alert.id} layout
+                    initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10, height: 0 }}
+                    className={`flex items-start gap-3 p-3 rounded-xl border ${s.bg} ${s.border}`}>
                     <div className="flex items-center gap-2 shrink-0 mt-0.5">
                       <div className={`w-2 h-2 ${s.dot} rounded-full animate-pulse`} />
                       <AIcon className={`w-4 h-4 ${s.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 leading-relaxed">{alertText}</p>
+                      <p className="text-xs font-bold text-slate-800 leading-relaxed">{alert.text}</p>
                       {alert.target && (
-                        <button
-                          onClick={() => onAction(alert.target!)}
-                          className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline mt-1 flex items-center gap-0.5"
-                        >
+                        <button onClick={() => onAction(alert.target!)}
+                          className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline mt-1 flex items-center gap-0.5">
                           {t('Batafsil')} <ChevronRight className="w-3 h-3" />
                         </button>
                       )}
                     </div>
-                    <button
-                      onClick={() => dismissAlert(alert.id)}
-                      className="text-slate-400 hover:text-slate-600 shrink-0 mt-0.5"
-                    >
+                    <button onClick={() => setDismissedAlerts(prev => new Set(prev).add(alert.id))}
+                      className="text-slate-400 hover:text-slate-600 shrink-0 mt-0.5">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </motion.div>
@@ -469,64 +409,28 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         </div>
       </div>
 
-      {/* ═══ SECTION 4: CHARTS ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ═══ ANALYTICS BOTTOM ROW ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Hourly Production Bar Chart */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-blue-500" />
-              {t('Soatlik ishlab chiqarish')}
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400">{t('Bugun')}</span>
-          </div>
-          <div className="p-5">
-            <div className="flex items-end gap-2 h-32">
-              {hourlyProduction.map((h: any, i: number) => {
-                const pct = (h.val / maxHourly) * 100;
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-[10px] font-black text-slate-600">{h.val}</span>
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${pct}%` }}
-                      transition={{ duration: 0.8, delay: i * 0.05 }}
-                      className="w-full bg-blue-500 rounded-t-md min-h-[4px]"
-                      style={{ maxHeight: '100%' }}
-                    />
-                    <span className="text-[9px] font-bold text-slate-400">{h.hour}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Resource Usage Charts */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
-              <Gauge className="w-4 h-4 text-emerald-500" />
-              {t('Resurs sarfi')}
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400">{t('Jonli monitoring')}</span>
-          </div>
-          <div className="p-5 space-y-4">
-            {resourceCharts.map((chart) => {
-              const pct = Math.min(Math.round((chart.value / chart.max) * 100), 100);
+        {/* Production bottleneck analysis */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <BarChart3 className="w-4 h-4 text-blue-500" /> Bosqich yuklanishi
+          </h3>
+          <div className="space-y-3">
+            {factoryFlow.map(stage => {
+              const total = stage.active + stage.waiting + stage.problem;
+              const pct = Math.min(total * 10, 100); // rough visual
               return (
-                <div key={chart.label}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-700">{chart.label}</span>
-                    <span className="text-sm font-black text-slate-900">{chart.value}{chart.unit}</span>
+                <div key={stage.id}>
+                  <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                    <span className="truncate">{stage.name}</span>
+                    <span className="shrink-0 ml-2">{total} ta</span>
                   </div>
-                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                      className={`h-full ${chart.color} rounded-full`}
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${stage.problem > 0 ? 'bg-rose-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${Math.max(pct, 5)}%` }}
                     />
                   </div>
                 </div>
@@ -534,8 +438,75 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
             })}
           </div>
         </div>
-      </div>
 
+        {/* QC & Quality snapshot */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Sifat Ko'rsatkichlari
+          </h3>
+          <div className="space-y-4">
+            {[
+              { label: 'Tayyor bloklar', value: readyBlocks, total: totalAll, color: 'bg-emerald-500' },
+              { label: 'QC kutmoqda', value: qcPending, total: totalAll, color: 'bg-amber-400' },
+              { label: 'QC rad etilgan', value: qcFailed + brakCount, total: totalAll, color: 'bg-rose-500' },
+            ].map(({ label, value, total: tot, color }) => {
+              const pct = tot > 0 ? Math.round((value / tot) * 100) : 0;
+              return (
+                <div key={label}>
+                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+                    <span>{label}</span>
+                    <span className="font-black">{value} ta ({pct}%)</span>
+                  </div>
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`h-full ${color} rounded-full`} style={{ width: `${Math.max(pct, 2)}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500">Umumiy brak %</span>
+                <span className={`text-lg font-black ${brakPct > 5 ? 'text-rose-600' : 'text-emerald-600'}`}>{brakPct}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Finance snapshot */}
+        <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-sm p-5">
+          <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-emerald-400" /> Moliyaviy Ko'rsatkich
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Bugungi daromad</p>
+              <p className="text-2xl font-black text-emerald-400">
+                {todayRevenue ? `${Math.round(todayRevenue / 1000000).toLocaleString()} M` : '—'} <span className="text-sm text-slate-400">UZS</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Oylik daromad</p>
+              <p className="text-xl font-black text-slate-200">
+                {monthRevenue ? `${Math.round(monthRevenue / 1000000).toLocaleString()} M` : '—'} <span className="text-sm text-slate-400">UZS</span>
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Yetkazishlar</p>
+                <p className="text-lg font-black text-sky-400">{activeDeliveries}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Kritik stok</p>
+                <p className={`text-lg font-black ${criticalStocks.length > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>{criticalStocks.length}</p>
+              </div>
+            </div>
+          </div>
+          <button onClick={() => onAction('profit-analytics')}
+            className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5">
+            To'liq moliyaviy hisobot <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

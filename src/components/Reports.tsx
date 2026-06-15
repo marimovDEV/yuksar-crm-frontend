@@ -55,7 +55,7 @@ export default function Reports({ user }: { user: User }) {
       setAnalytics(anaRes.data);
 
       const histRes = await api.get('reports/history/');
-      setHistory(histRes.data);
+      setHistory(histRes.data.results || histRes.data);
     } catch (err: any) {
       console.error("Failed to fetch reports data:", err.response?.status, err.message);
       if (err.response?.status === 401) {

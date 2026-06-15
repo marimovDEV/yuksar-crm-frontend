@@ -65,6 +65,7 @@ const Sales = lazy(() => import('./components/Sales'));
 const Clients = lazy(() => import('./components/Clients'));
 const CNC = lazy(() => import('./components/CNC'));
 const Finishing = lazy(() => import('./components/Finishing'));
+const FinishingWorkspace = lazy(() => import('./components/workspaces/FinishingWorkspace'));
 const Waste = lazy(() => import('./components/Waste'));
 const Reports = lazy(() => import('./components/Reports'));
 const StaffManagement = lazy(() => import('./components/StaffManagement'));
@@ -105,6 +106,8 @@ const AccountingWorkspace = lazy(() => import('./components/workspaces/Accountin
 const LogisticsWorkspace = lazy(() => import('./components/workspaces/LogisticsWorkspace'));
 const TechnologistWorkspace = lazy(() => import('./components/workspaces/TechnologistWorkspace'));
 const MaintenanceWorkspace = lazy(() => import('./components/workspaces/MaintenanceWorkspace'));
+const SuperAdminCenter = lazy(() => import('./components/SuperAdminCenter'));
+const EmployeePerformanceCenter = lazy(() => import('./components/EmployeePerformanceCenter'));
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
   state = { hasError: false, error: null as any };
@@ -175,7 +178,9 @@ export default function App() {
 
   const currentRole = user?.effective_role || user?.role_display || user?.role || '';
   const systemRole = getSystemRole(currentRole);
-  const isPrivilegedUser = !!(user?.is_superuser || systemRole === 'admin' || systemRole === 'director');
+  // Faqat haqiqiy adminlar barcha menyularni ko'radi.
+  // Director alohida, cheklangan menyuga ega.
+  const isPrivilegedUser = !!(user?.is_superuser || systemRole === 'admin');
   const [isImpersonating, setIsImpersonating] = useState(false);
 
   useEffect(() => {
@@ -207,14 +212,14 @@ export default function App() {
       items: [
         { id: 'operator-workspace', name: t('Operator Paneli'), icon: Radio, roles: ['admin', 'operator'] },
         { id: 'production-orders', name: t('Ishlab Chiqarish Buyurtmalari'), icon: FileText, roles: ['admin', 'operator'] },
-        { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['admin', 'operator', 'cnc', 'finishing', 'waste'] },
-        { id: 'scada', name: t('SCADA Live Xaritasi'), icon: Radio, roles: ['admin', 'operator'] },
+        { id: 'production', name: t('Ishlab Chiqarish Poligoni'), icon: Factory, roles: ['admin', 'operator', 'cnc', 'finishing', 'waste', 'technologist', 'qc'] },
+        { id: 'scada', name: t('SCADA Live Xaritasi'), icon: Radio, roles: ['admin', 'operator', 'director'] },
         { id: 'cnc-workspace', name: t('CNC Boshqaruvi'), icon: Scissors, roles: ['admin', 'cnc', 'operator'] },
         { id: 'finishing', name: t('Finishing Sexi'), icon: Brush, roles: ['admin', 'finishing', 'operator'] },
-        { id: 'qc-workspace', name: t('Sifat Boshqaruvi (QC)'), icon: CheckCircle2, roles: ['admin', 'qc', 'operator'] },
+        { id: 'qc-workspace', name: t('Sifat Boshqaruvi (QC)'), icon: CheckCircle2, roles: ['admin', 'qc', 'operator', 'technologist'] },
         { id: 'technologist-workspace', name: t('Texnolog Paneli'), icon: Layers, roles: ['admin', 'technologist'] },
         { id: 'maintenance-workspace', name: t('Texnik Xizmat (SCADA)'), icon: Settings, roles: ['admin', 'maintenance'] },
-        { id: 'waste', name: t('Chiqindi Boshqaruvi'), icon: Trash2, roles: ['admin', 'waste', 'operator'] },
+        { id: 'waste', name: t('Chiqindi Boshqaruvi'), icon: Trash2, roles: ['admin', 'waste', 'operator', 'cnc', 'technologist'] },
       ]
     },
     {
@@ -247,7 +252,7 @@ export default function App() {
       items: [
         { id: 'finance', name: t('Moliya & Kassa'), icon: Wallet, roles: ['admin', 'accounting'] },
         { id: 'accounting-workspace', name: t('Buxgalteriya Terminali'), icon: CalculatorIcon, roles: ['admin', 'accounting'] },
-        { id: 'profit-analytics', name: t('Foyda Analitikasi'), icon: BarChart3, roles: ['admin', 'accounting'] },
+        { id: 'profit-analytics', name: t('Foyda Analitikasi'), icon: BarChart3, roles: ['admin', 'accounting', 'director'] },
         { id: 'payroll', name: t('Ish Haqi'), icon: Wallet, roles: ['admin', 'accounting'] },
       ]
     },
@@ -266,7 +271,7 @@ export default function App() {
       icon: Truck,
       items: [
         { id: 'logistics-workspace', name: t('Yetkazish Terminali'), icon: Truck, roles: ['admin', 'logistics', 'sales'] },
-        { id: 'fleet', name: t('Transport Parki'), icon: Truck, roles: ['admin'] },
+        { id: 'fleet', name: t('Transport Parki'), icon: Truck, roles: ['admin', 'logistics'] },
       ]
     },
     {
@@ -275,17 +280,19 @@ export default function App() {
       icon: Settings,
       items: [
         { id: 'staff', name: t('Xodimlar'), icon: UserIcon, roles: ['admin'] },
-        { id: 'compliance', name: t('Hujjatlar & Soliq'), icon: FileText, roles: ['admin'] },
-        { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['admin', 'warehouse', 'operator', 'sales', 'logistics'] },
+        { id: 'performance', name: t('Performans & KPI'), icon: Target, roles: ['admin', 'director'] },
+        { id: 'compliance', name: t('Hujjatlar & Soliq'), icon: FileText, roles: ['admin', 'accounting'] },
+        { id: 'documents', name: t('Hujjatlar Jurnali'), icon: FileText, roles: ['admin', 'warehouse', 'operator', 'sales', 'logistics', 'accounting'] },
         { id: 'activity', name: t('Tizim Faolligi'), icon: Activity, roles: ['admin'] },
-        { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['admin'] },
+        { id: 'alerts', name: t('Xabarnomalar'), icon: Bell, roles: ['admin', 'director', 'operator', 'warehouse'] },
       ]
     },
     {
       id: 'user-guide',
       title: null,
       items: [
-        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator'] },
+        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'accounting', 'logistics', 'technologist', 'maintenance', 'waste', 'director'] },
+        { id: 'performance', name: t('Mening KPI'), icon: Target, roles: ['sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'logistics', 'technologist', 'maintenance', 'waste', 'accounting'] },
       ]
     }
   ];
@@ -545,7 +552,7 @@ export default function App() {
         case 'maintenance-workspace':
           return <MaintenanceWorkspace user={user!} />;
         case 'finishing':
-          return <Finishing user={user!} />;
+          return <FinishingWorkspace user={user!} />;
         default:
           return <Dashboard user={user} onAction={setActiveTab} />;
       }
@@ -579,7 +586,7 @@ export default function App() {
       case 'cnc-workspace':
         return <CNCWorkspace user={user!} />;
       case 'finishing':
-        return <Finishing user={user!} />;
+        return <FinishingWorkspace user={user!} />;
       case 'waste':
         return <Waste user={user!} />;
       case 'reports':
@@ -600,10 +607,18 @@ export default function App() {
         return <Suppliers />;
       case 'purchase-orders':
         return <PurchaseOrders />;
+      case 'super-admin':
+        return isPrivilegedUser ? <SuperAdminCenter user={user!} /> : null;
+      case 'performance':
+        return isPrivilegedUser
+          ? <EmployeePerformanceCenter user={user!} />
+          : <EmployeePerformanceCenter user={user!} />; // everyone sees own KPI
       case 'activity':
         return <AdminActivity />;
       case 'staff':
-        return <StaffManagement user={user!} />;
+        return isPrivilegedUser
+          ? <SuperAdminCenter user={user!} />
+          : <StaffManagement user={user!} />;
       case 'documents':
         return <Documents user={user!} />;
       case 'finance':
@@ -781,8 +796,10 @@ export default function App() {
     const isPrivileged = isPrivilegedUser;
     const base = [];
 
-    if (isPrivileged || systemRole === 'director') {
+    if (isPrivileged) {
       base.push({ id: 'dashboard', name: t('Asosiy'), icon: LayoutDashboard });
+    } else if (systemRole === 'director') {
+      base.push({ id: 'exec-dashboard', name: t('Asosiy'), icon: Target });
     } else {
       const defaultTab = getDefaultTabForRole(currentRole);
       let icon = LayoutDashboard;
@@ -806,6 +823,11 @@ export default function App() {
         { id: 'warehouse-workspace', name: t('Ombor'), icon: Database },
         { id: 'production', name: t('Ishlab ch.'), icon: Factory },
         { id: 'sales-workspace', name: t('Sotuv'), icon: ShoppingCart },
+      );
+    } else if (systemRole === 'director') {
+      base.push(
+        { id: 'profit-analytics', name: t('Foyda'), icon: BarChart3 },
+        { id: 'alerts', name: t('Xabarnoma'), icon: Bell },
       );
     } else if (systemRole === 'sales') {
       base.push(

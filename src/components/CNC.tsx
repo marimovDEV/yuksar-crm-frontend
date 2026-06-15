@@ -89,9 +89,9 @@ export default function CNC({ user }: { user: User }) {
         api.get('production/finished-blocks/?status=READY'),
         api.get('materials/') // Filter for finished products if needed
       ]);
-      setJobs(jobsRes.data);
-      setBlocks(blocksRes.data);
-      setProducts(prodRes.data);
+      setJobs(jobsRes.data.results || jobsRes.data);
+      setBlocks(blocksRes.data.results || blocksRes.data);
+      setProducts(prodRes.data.results || prodRes.data);
     } catch (err) {
       console.error("CNC fetch error", err);
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");

@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "start": "PATH=/opt/homebrew/bin:$PATH npm run dev",
+    "build:prod": "PATH=/opt/homebrew/bin:$PATH npm run build"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

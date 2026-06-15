@@ -83,10 +83,10 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
         const invList = invRes.data.results || invRes.data || [];
         const prodList = productsRes.data.results || productsRes.data || [];
         
-        // Enhance ready stock catalog
+        // Enhance ready stock catalog — real quantities only
         setReadyStock(prodList.slice(0, 5).map((p: any) => ({
           ...p,
-          stock: Math.floor(Math.random() * 200) + 20,
+          stock: p.stock_quantity ?? p.available_quantity ?? p.quantity ?? 0,
           decor: p.name?.includes('Dekor') ? 'Dekorativ' : 'EPS Plita'
         })));
 

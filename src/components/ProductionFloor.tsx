@@ -124,12 +124,12 @@ export default function ProductionFloor({ user }: { user: User }) {
         api.get('production/finished-blocks/')
       ]);
       const [zamesRes, recipesRes, batchesRes, materialsRes, bunkersRes, ordersRes, blockRes, finishedBlockRes] = results;
-      setZamesy(zamesRes.data);
-      setRecipes(recipesRes.data);
-      setBatches(batchesRes.data);
-      setMaterials(materialsRes.data);
-      setBunkers(bunkersRes.data);
-      const cleanOrders = (ordersRes.data || []).filter((o: any) => {
+      setZamesy(zamesRes.data.results || zamesRes.data);
+      setRecipes(recipesRes.data.results || recipesRes.data);
+      setBatches(batchesRes.data.results || batchesRes.data);
+      setMaterials(materialsRes.data.results || materialsRes.data);
+      setBunkers(bunkersRes.data.results || bunkersRes.data);
+      const cleanOrders = ((ordersRes.data.results || ordersRes.data) || []).filter((o: any) => {
         return !(
           o.product_name?.toUpperCase().includes('TEST-') ||
           o.order_number?.toUpperCase().includes('TEST-') ||
@@ -138,8 +138,8 @@ export default function ProductionFloor({ user }: { user: User }) {
         );
       });
       setProductionOrders(cleanOrders);
-      setBlockProductions(blockRes.data);
-      setFinishedBlocks(finishedBlockRes.data);
+      setBlockProductions(blockRes.data.results || blockRes.data);
+      setFinishedBlocks(finishedBlockRes.data.results || finishedBlockRes.data);
     } catch (err) {
       console.error("Failed to fetch production data", err);
     } finally {
@@ -266,7 +266,8 @@ export default function ProductionFloor({ user }: { user: User }) {
 
   const handleCreateFormovka = async (bunkerId: number) => {
     try {
-      await uiStore.createFormovka(bunkerId, `F-${Math.floor(Math.random() * 9 + 1)}`, 12);
+      const formNum = `F-${Date.now().toString().slice(-4)}`;
+      await uiStore.createFormovka(bunkerId, formNum, 12);
       fetchProductionData();
     } catch (err) {
       // Notified by store

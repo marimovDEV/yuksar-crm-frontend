@@ -813,30 +813,65 @@ export default function WarehouseWorkspace({ user }: WarehouseWorkspaceProps) {
                     <p className="text-slate-500 font-medium">{t("Smena davomida bajarilishi majburiy bo'lgan ombor logistika ishlari")}</p>
                   </div>
 
-                  <div className="bg-slate-50 rounded-[36px] border border-slate-100 p-8 space-y-4">
-                    {[
-                      { id: 1, text: "Granula xomashyolarini saralash va Silo-1 ga 3,000kg yuklash", done: true, priority: 'HIGH' },
-                      { id: 2, text: "CNC kesish sexiga 15 ta tayyor blokni o'tkazish logistikasini tasdiqlash", done: false, priority: 'HIGH' },
-                      { id: 3, text: "Ta'minotchi 'Polymer Holding' dan kiruvchi yuk xatini qabul qilish", done: false, priority: 'MEDIUM' },
-                      { id: 4, text: "Ombor qoldiqlarini 100% inventarizatsiyadan o'tkazish", done: false, priority: 'LOW' }
-                    ].map((task) => (
-                      <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200/50 flex items-center justify-between group hover:shadow-md transition-all">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${task.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-transparent group-hover:border-emerald-500 group-hover:text-emerald-500 transition-colors cursor-pointer'}`}>
-                            <CheckCircle2 className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className={`text-sm font-bold ${task.done ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t(task.text)}</p>
-                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block ${
-                              task.priority === 'HIGH' ? 'bg-rose-50 text-rose-600' :
-                              task.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
-                            }`}>{t(task.priority)}</span>
-                          </div>
+                  {/* Pending transfers → real tasks */}
+                  {(() => {
+                    const pendingTransfers = transfers.filter((tr: any) => tr.status === 'PENDING' || tr.status === 'DRAFT' || !tr.status);
+                    const criticalBatches = batches.filter((b: any) => b.remaining_quantity < criticalThreshold);
+                    const openAudit = audits.find((a: any) => a.status === 'IN_PROGRESS' || a.status === 'DRAFT');
+
+                    const realTasks: { id: string; text: string; priority: 'HIGH' | 'MEDIUM' | 'LOW'; done: boolean }[] = [
+                      ...pendingTransfers.map((tr: any) => ({
+                        id: `tr-${tr.id}`,
+                        text: `Transfer #${tr.id} — ${tr.from_warehouse_name || tr.from_warehouse || 'Ombor'} → ${tr.to_warehouse_name || tr.to_warehouse || 'Manzil'} (${tr.material_name || ''} ${tr.quantity || ''} kg)`,
+                        priority: 'HIGH' as const,
+                        done: false
+                      })),
+                      ...criticalBatches.slice(0, 3).map((b: any) => ({
+                        id: `cr-${b.id}`,
+                        text: `Kritik zaxira: ${b.material_name || b.material} — ${b.remaining_quantity} kg qoldi, xarid buyurtma bering`,
+                        priority: 'HIGH' as const,
+                        done: false
+                      })),
+                      ...(openAudit ? [{
+                        id: `audit-${openAudit.id}`,
+                        text: `Inventarizatsiya sessiyasi #${openAudit.id} davom etmoqda — tugatish kerak`,
+                        priority: 'MEDIUM' as const,
+                        done: false
+                      }] : []),
+                    ];
+
+                    if (realTasks.length === 0) {
+                      return (
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-[32px] p-12 text-center">
+                          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                          <h4 className="font-black text-emerald-800 uppercase tracking-widest text-sm">Barcha ishlar bajarilgan</h4>
+                          <p className="text-xs text-emerald-600 mt-1">Kutilayotgan transfer, kritik zaxira yoki inventarizatsiya topilmadi.</p>
                         </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shift Duty</span>
+                      );
+                    }
+
+                    return (
+                      <div className="bg-slate-50 rounded-[36px] border border-slate-100 p-8 space-y-4">
+                        {realTasks.map((task) => (
+                          <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200/50 flex items-center justify-between group hover:shadow-md transition-all">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center text-transparent group-hover:border-emerald-500 group-hover:text-emerald-500 transition-colors">
+                                <CheckCircle2 className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-800">{task.text}</p>
+                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded mt-1.5 inline-block ${
+                                  task.priority === 'HIGH' ? 'bg-rose-50 text-rose-600' :
+                                  task.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                                }`}>{task.priority}</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
                 </div>
               )}
 
