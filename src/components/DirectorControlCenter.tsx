@@ -207,12 +207,12 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
 
   // KPI cards
   const kpiCards = [
-    { icon: Factory, label: "Bugun ishlab chiqarildi", value: todayBlocks, unit: 'blok', color: 'bg-blue-50 text-blue-800', iconBg: 'bg-blue-100' },
-    { icon: CheckCircle2, label: "Tayyor (omborda)", value: readyBlocks, unit: 'blok', color: 'bg-emerald-50 text-emerald-800', iconBg: 'bg-emerald-100' },
-    { icon: Scissors, label: "CNC da faol", value: activeCNC, unit: 'ish', color: 'bg-indigo-50 text-indigo-800', iconBg: 'bg-indigo-100' },
-    { icon: Truck, label: "Yetkazishda", value: activeDeliveries, unit: 'yetkazma', color: 'bg-sky-50 text-sky-800', iconBg: 'bg-sky-100' },
+    { icon: Factory, label: "Bugun ishlab chiqarildi", value: todayBlocks, unit: t('blok'), color: 'bg-blue-50 text-blue-800', iconBg: 'bg-blue-100' },
+    { icon: CheckCircle2, label: "Tayyor (omborda)", value: readyBlocks, unit: t('blok'), color: 'bg-emerald-50 text-emerald-800', iconBg: 'bg-emerald-100' },
+    { icon: Scissors, label: "CNC da faol", value: activeCNC, unit: t('ish'), color: 'bg-indigo-50 text-indigo-800', iconBg: 'bg-indigo-100' },
+    { icon: Truck, label: "Yetkazishda", value: activeDeliveries, unit: t('yetkazma'), color: 'bg-sky-50 text-sky-800', iconBg: 'bg-sky-100' },
     { icon: AlertTriangle, label: "Brak darajasi", value: brakPct, unit: '%', color: brakPct > 5 ? 'bg-rose-50 text-rose-800' : 'bg-slate-50 text-slate-700', iconBg: brakPct > 5 ? 'bg-rose-100' : 'bg-slate-100' },
-    { icon: TrendingUp, label: "Bugungi daromad", value: todayRevenue ? Math.round(todayRevenue / 1000000) : '—', unit: todayRevenue ? 'M UZS' : '', color: 'bg-amber-50 text-amber-800', iconBg: 'bg-amber-100' },
+    { icon: TrendingUp, label: "Bugungi daromad", value: todayRevenue ? Math.round(todayRevenue / 1000000) : '—', unit: todayRevenue ? t('M UZS') : '', color: 'bg-amber-50 text-amber-800', iconBg: 'bg-amber-100' },
   ];
 
   const ALERT_STYLES = {
@@ -367,7 +367,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               {t('Ogohlantirishlar')}
             </h3>
-            <span className="text-[10px] font-black text-slate-400">{visibleAlerts.length} ta</span>
+            <span className="text-[10px] font-black text-slate-400">{visibleAlerts.length} {t('ta')}</span>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[440px]">
             <AnimatePresence>
@@ -425,7 +425,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
                 <div key={stage.id}>
                   <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
                     <span className="truncate">{stage.name}</span>
-                    <span className="shrink-0 ml-2">{total} ta</span>
+                    <span className="shrink-0 ml-2">{total} {t('ta')}</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
@@ -455,7 +455,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
                 <div key={label}>
                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
                     <span>{label}</span>
-                    <span className="font-black">{value} ta ({pct}%)</span>
+                    <span className="font-black">{value} {t('ta')} ({pct}%)</span>
                   </div>
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full ${color} rounded-full`} style={{ width: `${Math.max(pct, 2)}%` }} />

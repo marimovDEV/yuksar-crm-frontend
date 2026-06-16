@@ -2956,8 +2956,8 @@ const EXACT_RU_TRANSLATIONS: Record<string, string> = {
   "Faoliyat holati": "Статус активности",
   "Uskuna statusi": "Статус оборудования",
   "OEE samaradorligi": "Эффективность OEE",
-  "ISHCHI HOLATDA": "В РАБОЧЕМ РЕЖИМЕ"
-
+  "ISHCHI HOLATDA": "В РАБОЧЕМ РЕЖИМЕ",
+  
   "Kutish": "Ожидание",
   "Bosqich yuklanishi": "Загрузка этапа",
   "QC kutmoqda": "Ожидает QC",

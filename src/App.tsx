@@ -292,7 +292,7 @@ export default function App() {
       title: null,
       items: [
         { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'accounting', 'logistics', 'technologist', 'maintenance', 'waste', 'director'] },
-        { id: 'performance', name: t('Mening KPI'), icon: Target, roles: ['sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'logistics', 'technologist', 'maintenance', 'waste', 'accounting'] },
+        { id: 'my-performance', name: t('Mening KPI'), icon: Target, roles: ['sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'logistics', 'technologist', 'maintenance', 'waste', 'accounting'] },
       ]
     }
   ];
@@ -610,6 +610,7 @@ export default function App() {
       case 'super-admin':
         return isPrivilegedUser ? <SuperAdminCenter user={user!} /> : null;
       case 'performance':
+      case 'my-performance':
         return isPrivilegedUser
           ? <EmployeePerformanceCenter user={user!} />
           : <EmployeePerformanceCenter user={user!} />; // everyone sees own KPI
