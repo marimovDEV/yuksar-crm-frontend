@@ -54,8 +54,9 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
   const [stocks, setStocks] = useState<any[]>([]);
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString('uz-UZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+  const locale = language === 'ru' ? 'ru-RU' : 'uz-UZ';
+  const dateStr = now.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   const isDay = now.getHours() >= 8 && now.getHours() < 20;
 
   const fetchAll = useCallback(async (silent = false) => {
@@ -181,16 +182,16 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
   // ── Live Alerts (from real alerts API + derived critical events) ──
   const derivedAlerts: LiveAlert[] = [];
   if (criticalStocks.length > 0) {
-    derivedAlerts.push({ id: 'crit-stock', level: 'critical', text: t(`${criticalStocks.length} ta xomashyo kritik darajada kam (< 500 kg)`), target: 'warehouse-workspace' });
+    derivedAlerts.push({ id: 'crit-stock', level: 'critical', text: `${criticalStocks.length} ${t('ta xomashyo kritik darajada kam (< 500 kg)')}`, target: 'warehouse-workspace' });
   }
   if (problemCNC > 0) {
-    derivedAlerts.push({ id: 'cnc-problem', level: 'warning', text: t(`CNC: ${problemCNC} ta stanok to'xtagan yoki xatolik`), target: 'cnc-workspace' });
+    derivedAlerts.push({ id: 'cnc-problem', level: 'warning', text: `CNC: ${problemCNC} ${t("ta stanok to'xtagan yoki xatolik")}`, target: 'cnc-workspace' });
   }
   if (qcFailed > 0) {
-    derivedAlerts.push({ id: 'qc-failed', level: 'warning', text: t(`${qcFailed} ta blok QC dan o'tmadi — tekshirish kerak`), target: 'qc-workspace' });
+    derivedAlerts.push({ id: 'qc-failed', level: 'warning', text: `${qcFailed} ${t("ta blok QC dan o'tmadi — tekshirish kerak")}`, target: 'qc-workspace' });
   }
   if (brakPct > 5) {
-    derivedAlerts.push({ id: 'brak-high', level: 'critical', text: t(`Brak darajasi yuqori: ${brakPct}% (limit 5%)`), target: 'qc-workspace' });
+    derivedAlerts.push({ id: 'brak-high', level: 'critical', text: `${t('Brak darajasi yuqori:')} ${brakPct}% (${t('limit 5%')})`, target: 'qc-workspace' });
   }
 
   // Real alerts from API
