@@ -121,7 +121,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
 
   const allFB = finishedBlocks;
   const qcPending = allFB.filter(b => b.status === 'QC_PENDING').length;
-  const qcFailed = allFB.filter(b => b.status === 'QC_FAILED').length;
+  const qcFailed = allFB.filter(b => b.status === 'RECYCLE').length;
 
   const activeCNC = cncJobs.filter(j => j.status === 'IN_PROGRESS' || j.status === 'RUNNING').length;
   const waitingCNC = cncJobs.filter(j => j.status === 'PENDING' || j.status === 'QUEUED').length;
@@ -147,7 +147,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
 
   // Brak %
   const totalAll = allFB.length;
-  const brakCount = allFB.filter(b => b.status === 'QC_FAILED' || b.status === 'REJECTED').length;
+  const brakCount = allFB.filter(b => b.status === 'RECYCLE' || b.status === 'REJECTED').length;
   const brakPct = totalAll > 0 ? parseFloat(((brakCount / totalAll) * 100).toFixed(1)) : 0;
 
   // Finance
@@ -166,31 +166,31 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
 
   // ── Factory Flow stages ──
   const factoryFlow: FlowStage[] = [
-    { id: 'raw_material', name: 'Xom Ashyo (Ombor)', active: stocks.length, waiting: criticalStocks.length, problem: criticalStocks.length > 0 ? 1 : 0, icon: Warehouse, color: 'bg-slate-50 border-slate-200 text-slate-700', navTarget: 'warehouse-workspace' },
-    { id: 'zames', name: 'Predvspenivatel (Zamas)', active: activeZames, waiting: waitingZames, problem: 0, icon: Thermometer, color: 'bg-amber-50 border-amber-200 text-amber-800', navTarget: 'operator-workspace' },
-    { id: 'bunker', name: 'Bunker (Matuiratsiya)', active: activeBunkers, waiting: waitingBunkers, problem: 0, icon: Database, color: 'bg-orange-50 border-orange-200 text-orange-800', navTarget: 'operator-workspace' },
-    { id: 'formovka', name: 'Formovka (Blok hosil)', active: activeBlocks, waiting: waitingBlocks, problem: 0, icon: Box, color: 'bg-yellow-50 border-yellow-200 text-yellow-800', navTarget: 'operator-workspace' },
-    { id: 'drying', name: 'Quritish', active: activeDrying, waiting: waitingDrying, problem: 0, icon: Flame, color: 'bg-red-50 border-red-200 text-red-800', navTarget: 'operator-workspace' },
-    { id: 'qc', name: 'Sifat Nazorati (QC)', active: qcPending, waiting: 0, problem: qcFailed, icon: ShieldCheck, color: 'bg-emerald-50 border-emerald-200 text-emerald-800', navTarget: 'qc-workspace' },
-    { id: 'cnc', name: 'CNC Kesish', active: activeCNC, waiting: waitingCNC, problem: problemCNC, icon: Scissors, color: 'bg-indigo-50 border-indigo-200 text-indigo-800', navTarget: 'cnc-workspace' },
-    { id: 'finishing', name: 'Pardozlash', active: activeFinishing, waiting: waitingFinishing, problem: 0, icon: Brush, color: 'bg-violet-50 border-violet-200 text-violet-800', navTarget: 'finishing' },
-    { id: 'warehouse_out', name: 'Tayyor Mahsulot Ombor', active: readyBlocks, waiting: 0, problem: 0, icon: Package, color: 'bg-teal-50 border-teal-200 text-teal-800', navTarget: 'warehouse-workspace' },
-    { id: 'delivery', name: 'Yetkazib berish', active: activeDeliveries, waiting: waitingDeliveries, problem: 0, icon: Truck, color: 'bg-sky-50 border-sky-200 text-sky-800', navTarget: 'logistics-workspace' },
+    { id: 'raw_material', name: t('Xom Ashyo (Ombor)'), active: stocks.length, waiting: criticalStocks.length, problem: criticalStocks.length > 0 ? 1 : 0, icon: Warehouse, color: 'bg-slate-50 border-slate-200 text-slate-700', navTarget: 'warehouse-workspace' },
+    { id: 'zames', name: t('Predvspenivatel (Zamas)'), active: activeZames, waiting: waitingZames, problem: 0, icon: Thermometer, color: 'bg-amber-50 border-amber-200 text-amber-800', navTarget: 'operator-workspace' },
+    { id: 'bunker', name: t('Bunker (Matuiratsiya)'), active: activeBunkers, waiting: waitingBunkers, problem: 0, icon: Database, color: 'bg-orange-50 border-orange-200 text-orange-800', navTarget: 'operator-workspace' },
+    { id: 'formovka', name: t('Formovka (Blok hosil)'), active: activeBlocks, waiting: waitingBlocks, problem: 0, icon: Box, color: 'bg-yellow-50 border-yellow-200 text-yellow-800', navTarget: 'operator-workspace' },
+    { id: 'drying', name: t('Quritish'), active: activeDrying, waiting: waitingDrying, problem: 0, icon: Flame, color: 'bg-red-50 border-red-200 text-red-800', navTarget: 'operator-workspace' },
+    { id: 'qc', name: t('Sifat Nazorati (QC)'), active: qcPending, waiting: 0, problem: qcFailed, icon: ShieldCheck, color: 'bg-emerald-50 border-emerald-200 text-emerald-800', navTarget: 'qc-workspace' },
+    { id: 'cnc', name: t('CNC Kesish'), active: activeCNC, waiting: waitingCNC, problem: problemCNC, icon: Scissors, color: 'bg-indigo-50 border-indigo-200 text-indigo-800', navTarget: 'cnc-workspace' },
+    { id: 'finishing', name: t('Pardozlash'), active: activeFinishing, waiting: waitingFinishing, problem: 0, icon: Brush, color: 'bg-violet-50 border-violet-200 text-violet-800', navTarget: 'finishing' },
+    { id: 'warehouse_out', name: t('Tayyor Mahsulot Ombor'), active: readyBlocks, waiting: 0, problem: 0, icon: Package, color: 'bg-teal-50 border-teal-200 text-teal-800', navTarget: 'warehouse-workspace' },
+    { id: 'delivery', name: t('Yetkazib berish'), active: activeDeliveries, waiting: waitingDeliveries, problem: 0, icon: Truck, color: 'bg-sky-50 border-sky-200 text-sky-800', navTarget: 'logistics-workspace' },
   ];
 
   // ── Live Alerts (from real alerts API + derived critical events) ──
   const derivedAlerts: LiveAlert[] = [];
   if (criticalStocks.length > 0) {
-    derivedAlerts.push({ id: 'crit-stock', level: 'critical', text: `${criticalStocks.length} ta xomashyo kritik darajada kam (< 500 kg)`, target: 'warehouse-workspace' });
+    derivedAlerts.push({ id: 'crit-stock', level: 'critical', text: t(`${criticalStocks.length} ta xomashyo kritik darajada kam (< 500 kg)`), target: 'warehouse-workspace' });
   }
   if (problemCNC > 0) {
-    derivedAlerts.push({ id: 'cnc-problem', level: 'warning', text: `CNC: ${problemCNC} ta stanok to'xtagan yoki xatolik`, target: 'cnc-workspace' });
+    derivedAlerts.push({ id: 'cnc-problem', level: 'warning', text: t(`CNC: ${problemCNC} ta stanok to'xtagan yoki xatolik`), target: 'cnc-workspace' });
   }
   if (qcFailed > 0) {
-    derivedAlerts.push({ id: 'qc-failed', level: 'warning', text: `${qcFailed} ta blok QC dan o'tmadi — tekshirish kerak`, target: 'qc-workspace' });
+    derivedAlerts.push({ id: 'qc-failed', level: 'warning', text: t(`${qcFailed} ta blok QC dan o'tmadi — tekshirish kerak`), target: 'qc-workspace' });
   }
   if (brakPct > 5) {
-    derivedAlerts.push({ id: 'brak-high', level: 'critical', text: `Brak darajasi yuqori: ${brakPct}% (limit 5%)`, target: 'qc-workspace' });
+    derivedAlerts.push({ id: 'brak-high', level: 'critical', text: t(`Brak darajasi yuqori: ${brakPct}% (limit 5%)`), target: 'qc-workspace' });
   }
 
   // Real alerts from API
@@ -261,7 +261,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
           )}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Jonli</span>
+            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{t('Jonli')}</span>
           </div>
           <span className="text-sm font-black text-slate-400 tabular-nums">{timeStr}</span>
           <button onClick={() => fetchAll(true)} disabled={refreshing}
@@ -298,12 +298,12 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-500" />
-              {t('Ishlab Chiqarish Zanjiri')} — {factoryFlow.length} bosqich
+              {t('Ishlab Chiqarish Zanjiri')} — {factoryFlow.length} {t('bosqich')}
             </h3>
             <div className="flex items-center gap-3 text-[10px] font-bold">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />Faol: {factoryFlow.reduce((s,f) => s+f.active, 0)}</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full inline-block" />Kutmoqda: {factoryFlow.reduce((s,f) => s+f.waiting, 0)}</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500 rounded-full inline-block" />Muammo: {factoryFlow.reduce((s,f) => s+f.problem, 0)}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />{t('Faol')}: {factoryFlow.reduce((s,f) => s+f.active, 0)}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-amber-400 rounded-full inline-block" />{t('Kutmoqda')}: {factoryFlow.reduce((s,f) => s+f.waiting, 0)}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500 rounded-full inline-block" />{t('Muammo')}: {factoryFlow.reduce((s,f) => s+f.problem, 0)}</span>
             </div>
           </div>
           <div className="p-5 space-y-3">
@@ -329,15 +329,15 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
                           </div>
                           <div className="grid grid-cols-3 gap-1 text-center">
                             <div>
-                              <p className="text-[8px] font-bold text-emerald-600 uppercase">Faol</p>
+                              <p className="text-[8px] font-bold text-emerald-600 uppercase">{t('Faol')}</p>
                               <p className="text-base font-black text-emerald-700">{stage.active}</p>
                             </div>
                             <div>
-                              <p className="text-[8px] font-bold text-amber-600 uppercase">Kutish</p>
+                              <p className="text-[8px] font-bold text-amber-600 uppercase">{t('Kutish')}</p>
                               <p className="text-base font-black text-amber-700">{stage.waiting}</p>
                             </div>
                             <div>
-                              <p className="text-[8px] font-bold text-rose-600 uppercase">Muammo</p>
+                              <p className="text-[8px] font-bold text-rose-600 uppercase">{t('Muammo')}</p>
                               <p className={`text-base font-black text-rose-700 ${stage.problem > 0 ? 'animate-pulse' : ''}`}>{stage.problem}</p>
                             </div>
                           </div>
@@ -374,7 +374,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
               {visibleAlerts.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                   <ShieldCheck className="w-8 h-8 mb-2 text-emerald-400" />
-                  <span className="text-xs font-bold">Hamma narsa joyida!</span>
+                  <span className="text-xs font-bold">{t('Hamma narsa joyida!')}</span>
                 </div>
               )}
               {visibleAlerts.map((alert) => {
@@ -415,7 +415,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         {/* Production bottleneck analysis */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-blue-500" /> Bosqich yuklanishi
+            <BarChart3 className="w-4 h-4 text-blue-500" /> {t('Bosqich yuklanishi')}
           </h3>
           <div className="space-y-3">
             {factoryFlow.map(stage => {
@@ -442,13 +442,13 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         {/* QC & Quality snapshot */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2 mb-4">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Sifat Ko'rsatkichlari
+            <ShieldCheck className="w-4 h-4 text-emerald-500" /> {t("Sifat Ko'rsatkichlari")}
           </h3>
           <div className="space-y-4">
             {[
-              { label: 'Tayyor bloklar', value: readyBlocks, total: totalAll, color: 'bg-emerald-500' },
-              { label: 'QC kutmoqda', value: qcPending, total: totalAll, color: 'bg-amber-400' },
-              { label: 'QC rad etilgan', value: qcFailed + brakCount, total: totalAll, color: 'bg-rose-500' },
+              { label: t('Tayyor bloklar'), value: readyBlocks, total: totalAll, color: 'bg-emerald-500' },
+              { label: t('QC kutmoqda'), value: qcPending, total: totalAll, color: 'bg-amber-400' },
+              { label: t('QC rad etilgan'), value: qcFailed + brakCount, total: totalAll, color: 'bg-rose-500' },
             ].map(({ label, value, total: tot, color }) => {
               const pct = tot > 0 ? Math.round((value / tot) * 100) : 0;
               return (
@@ -465,7 +465,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
             })}
             <div className="pt-2 border-t border-slate-100">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500">Umumiy brak %</span>
+                <span className="text-xs font-bold text-slate-500">{t('Umumiy brak %')}</span>
                 <span className={`text-lg font-black ${brakPct > 5 ? 'text-rose-600' : 'text-emerald-600'}`}>{brakPct}%</span>
               </div>
             </div>
@@ -475,35 +475,35 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         {/* Finance snapshot */}
         <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-sm p-5">
           <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2 mb-4">
-            <TrendingUp className="w-4 h-4 text-emerald-400" /> Moliyaviy Ko'rsatkich
+            <TrendingUp className="w-4 h-4 text-emerald-400" /> {t("Moliyaviy Ko'rsatkich")}
           </h3>
           <div className="space-y-4">
             <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Bugungi daromad</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('Bugungi daromad')}</p>
               <p className="text-2xl font-black text-emerald-400">
                 {todayRevenue ? `${Math.round(todayRevenue / 1000000).toLocaleString()} M` : '—'} <span className="text-sm text-slate-400">UZS</span>
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Oylik daromad</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('Oylik daromad')}</p>
               <p className="text-xl font-black text-slate-200">
                 {monthRevenue ? `${Math.round(monthRevenue / 1000000).toLocaleString()} M` : '—'} <span className="text-sm text-slate-400">UZS</span>
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Yetkazishlar</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">{t('Yetkazishlar')}</p>
                 <p className="text-lg font-black text-sky-400">{activeDeliveries}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Kritik stok</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">{t('Kritik stok')}</p>
                 <p className={`text-lg font-black ${criticalStocks.length > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>{criticalStocks.length}</p>
               </div>
             </div>
           </div>
           <button onClick={() => onAction('profit-analytics')}
             className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5">
-            To'liq moliyaviy hisobot <ChevronRight className="w-3.5 h-3.5" />
+            {t("To'liq moliyaviy hisobot")} <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

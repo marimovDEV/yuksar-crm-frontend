@@ -2957,7 +2957,25 @@ const EXACT_RU_TRANSLATIONS: Record<string, string> = {
   "Uskuna statusi": "Статус оборудования",
   "OEE samaradorligi": "Эффективность OEE",
   "ISHCHI HOLATDA": "В РАБОЧЕМ РЕЖИМЕ"
-};
+
+  "Kutish": "Ожидание",
+  "Bosqich yuklanishi": "Загрузка этапа",
+  "QC kutmoqda": "Ожидает QC",
+  "QC rad etilgan": "Отклонено QC",
+  "Umumiy brak %": "Общий процент брака",
+  "Moliyaviy Ko'rsatkich": "Финансовый показатель",
+  "Bugungi daromad": "Доход за сегодня",
+  "Oylik daromad": "Доход за месяц",
+  "Yetkazishlar": "Доставки",
+  "Kritik stok": "Критичный запас",
+  "To'liq moliyaviy hisobot": "Полный финансовый отчет",
+  "Xom Ashyo (Ombor)": "Сырье (Склад)",
+  "Predvspenivatel (Zamas)": "Предвспениватель (Замес)",
+  "Bunker (Matuiratsiya)": "Бункер (Матурация)",
+  "Formovka (Blok hosil)": "Формовка (Создание блока)",
+  "Tayyor Mahsulot Ombor": "Склад готовой продукции",
+  "Jonli": "В эфире",
+  "Ogohlantirishlar": "Предупреждения",};
 
 const EXACT_MAP_RU = new Map(
   Object.entries(EXACT_RU_TRANSLATIONS).map(([key, value]) => [canonicalize(key), value]),

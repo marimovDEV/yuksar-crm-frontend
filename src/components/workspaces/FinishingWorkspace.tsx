@@ -37,7 +37,7 @@ export default function FinishingWorkspace({ user }: FinishingWorkspaceProps) {
       setLoading(true);
       const [jobsRes, qcRes] = await Promise.all([
         api.get('finishing/jobs/').catch(() => ({ data: [] })),
-        api.get('production/finished-blocks/?status=QC_FAILED').catch(() => ({ data: [] })),
+        api.get('production/finished-blocks/?status=RECYCLE').catch(() => ({ data: [] })),
       ]);
       setJobs(jobsRes.data?.results || jobsRes.data || []);
       setQcReturns(qcRes.data?.results || qcRes.data || []);

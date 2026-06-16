@@ -393,8 +393,8 @@ function OverviewTab({ onSelectEmployee }: { onSelectEmployee: (id: number) => v
 
   useEffect(() => {
     Promise.all([
-      api.get('users/performance_ranking/'),
-      api.get('users/most_improving/').catch(() => ({ data: [] })),
+      api.get('users/performance-ranking/'),
+      api.get('users/most-improving/').catch(() => ({ data: [] })),
     ]).then(([r, i]) => {
       setRanking(r.data ?? []);
       setImproving(i.data ?? []);
@@ -535,7 +535,7 @@ function RankingTab({ onSelect }: { onSelect: (id: number) => void }) {
   const [filterGrade, setFilterGrade] = useState('');
 
   useEffect(() => {
-    api.get('users/performance_ranking/').then(r => setRanking(r.data ?? [])).catch(() => {}).finally(() => setLoading(false));
+    api.get('users/performance-ranking/').then(r => setRanking(r.data ?? [])).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const roles = [...new Set(ranking.map(e => e.role_obj?.name || e.role).filter(Boolean))];

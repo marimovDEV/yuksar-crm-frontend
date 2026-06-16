@@ -83,7 +83,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
   // Derived QC stats
   const totalBlocks = finishedBlocks.length;
   const passedBlocks = finishedBlocks.filter((b: any) => b.status === 'READY' || b.status === 'APPROVED').length;
-  const failedBlocks = finishedBlocks.filter((b: any) => b.status === 'QC_FAILED' || b.status === 'REJECTED').length;
+  const failedBlocks = finishedBlocks.filter((b: any) => b.status === 'RECYCLE' || b.status === 'REJECTED').length;
   const brakPercent = totalBlocks > 0 ? ((failedBlocks / totalBlocks) * 100).toFixed(1) : '0.0';
 
   // Density calculator result
@@ -355,7 +355,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
           <div className="bg-white rounded-[32px] border border-slate-100 p-6">
             <h3 className="font-black text-slate-900 mb-4 text-sm uppercase tracking-widest">Tayyor bloklar — holat bo'yicha</h3>
             <div className="space-y-2">
-              {(['READY', 'QC_FAILED', 'APPROVED', 'REJECTED', 'IN_PROGRESS', 'DRYING', 'PENDING'] as string[]).map(status => {
+              {(['READY', 'RECYCLE', 'APPROVED', 'REJECTED', 'IN_PROGRESS', 'DRYING', 'PENDING'] as string[]).map(status => {
                 const count = finishedBlocks.filter((b: any) => b.status === status).length;
                 if (count === 0) return null;
                 const pct = totalBlocks > 0 ? Math.round((count / totalBlocks) * 100) : 0;
@@ -366,7 +366,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
                       <div
                         className={`h-full rounded-full ${
                           status === 'READY' || status === 'APPROVED' ? 'bg-emerald-500' :
-                          status === 'QC_FAILED' || status === 'REJECTED' ? 'bg-rose-500' :
+                          status === 'RECYCLE' || status === 'REJECTED' ? 'bg-rose-500' :
                           'bg-blue-400'
                         }`}
                         style={{ width: `${pct}%` }}
@@ -387,7 +387,7 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
                 <TrendingDown className="w-4 h-4" /> Rad etilgan bloklar
               </h3>
               <div className="space-y-2">
-                {finishedBlocks.filter((b: any) => b.status === 'QC_FAILED' || b.status === 'REJECTED').slice(0, 10).map((b: any) => (
+                {finishedBlocks.filter((b: any) => b.status === 'RECYCLE' || b.status === 'REJECTED').slice(0, 10).map((b: any) => (
                   <div key={b.id} className="flex items-center justify-between p-3 bg-rose-50 rounded-xl border border-rose-100">
                     <div>
                       <p className="font-black text-slate-900 text-sm">Blok #{b.id} {b.lot_number ? `· ${b.lot_number}` : ''}</p>

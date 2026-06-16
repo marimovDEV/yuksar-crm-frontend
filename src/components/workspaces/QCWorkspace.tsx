@@ -59,7 +59,7 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
       const [pendingRes, approvedRes, rejectedRes, batchesRes, warehousesRes] = await Promise.all([
         api.get('production/finished-blocks/?status=QC_PENDING').catch(() => ({ data: [] })),
         api.get('production/finished-blocks/?status=READY').catch(() => ({ data: [] })),
-        api.get('production/finished-blocks/?status=QC_FAILED').catch(() => ({ data: [] })),
+        api.get('production/finished-blocks/?status=RECYCLE').catch(() => ({ data: [] })),
         api.get('batches/?status=INSPECTION').catch(() => ({ data: [] })),
         api.get('warehouses/').catch(() => ({ data: [] })),
       ]);
@@ -116,7 +116,11 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
     if (!selectedBlock) return;
     setSubmitting(true);
     try {
-      await api.post(`production/finished-blocks/${selectedBlock.id}/qc-check/`, qaForm);
+      const submitData = {
+        ...qaForm,
+        status: qaForm.classification === 'REJECT' ? 'RECYCLE' : 'READY'
+      };
+      await api.post(`production/finished-blocks/${selectedBlock.id}/perform-qc/`, submitData);
       uiStore.showNotification(t('Sifat nazorati muvaffaqiyatli yakunlandi'), 'success');
       setSelectedBlock(null);
       fetchAll(true);
@@ -643,7 +647,7 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
               <div className="space-y-3">
                 {[
                   { label: 'READY (Tayyor)', count: approvedBlocks.length, color: 'bg-emerald-500' },
-                  { label: 'QC_FAILED (Rad etilgan)', count: rejectedBlocks.length, color: 'bg-rose-500' },
+                  { label: 'RECYCLE (Rad etilgan)', count: rejectedBlocks.length, color: 'bg-rose-500' },
                   { label: 'QC_PENDING (Kutmoqda)', count: pendingBlocks.length, color: 'bg-amber-400' },
                 ].map(({ label, count, color }) => {
                   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
