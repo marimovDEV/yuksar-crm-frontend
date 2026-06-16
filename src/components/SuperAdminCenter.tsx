@@ -140,7 +140,12 @@ function UsersTab({ currentUser }: { currentUser: User }) {
       setMsg(`Foydalanuvchi ${action} muvaffaqiyatli`);
       load();
     } catch (e: any) {
-      setMsg('Xatolik: ' + (e?.response?.data?.error || e.message));
+      const err = e?.response?.data;
+      let errMsg = String(err?.error || err || e.message);
+      if (typeof err === 'object' && err !== null && !err.error) {
+        errMsg = Object.entries(err).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ');
+      }
+      setMsg('Xatolik: ' + errMsg);
     }
   }
 
@@ -166,7 +171,11 @@ function UsersTab({ currentUser }: { currentUser: User }) {
       load();
     } catch (e: any) {
       const err = e?.response?.data;
-      setMsg('Xatolik: ' + (typeof err === 'object' ? JSON.stringify(err) : String(err)));
+      let errMsg = String(err?.error || err || e.message);
+      if (typeof err === 'object' && err !== null && !err.error) {
+        errMsg = Object.entries(err).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ');
+      }
+      setMsg('Xatolik: ' + errMsg);
     }
     setSaving(false);
   }
@@ -181,7 +190,12 @@ function UsersTab({ currentUser }: { currentUser: User }) {
       setMsg('Parol yangilandi');
       setModal(null);
     } catch (e: any) {
-      setMsg('Xatolik: ' + (e?.response?.data?.error || e.message));
+      const err = e?.response?.data;
+      let errMsg = String(err?.error || err || e.message);
+      if (typeof err === 'object' && err !== null && !err.error) {
+        errMsg = Object.entries(err).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`).join(' | ');
+      }
+      setMsg('Xatolik: ' + errMsg);
     }
     setSaving(false);
   }
@@ -301,7 +315,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
 
       {(modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'create' ? 'Yangi foydalanuvchi' : 'Foydalanuvchini tahrirlash'} onClose={() => setModal(null)}>
-          <div className="space-y-3">
+          <form onSubmit={e => { e.preventDefault(); handleSave(); }} className="space-y-3">
             {[
               { label: 'To\'liq ism', key: 'full_name', type: 'text' },
               { label: 'Username', key: 'username', type: 'text' },
@@ -325,7 +339,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
               </select>
             </div>
             <div className="flex gap-2 pt-2">
-              <button onClick={handleSave} disabled={saving}
+              <button type="submit" disabled={saving}
                 className="flex-1 bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {saving ? 'Saqlanmoqda...' : 'Saqlash'}
               </button>
@@ -333,7 +347,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
                 Bekor qilish
               </button>
             </div>
-          </div>
+          </form>
         </Modal>
       )}
 
