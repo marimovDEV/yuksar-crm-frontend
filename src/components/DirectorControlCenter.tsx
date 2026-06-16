@@ -74,7 +74,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         api.get('finishing/jobs/').catch(() => ({ data: [] })),
         api.get('production/finished-blocks/').catch(() => ({ data: [] })),
         api.get('sales/deliveries/').catch(() => ({ data: [] })),
-        api.get('alerts/?is_read=false&page_size=20').catch(() => ({ data: [] })),
+        api.get('alerts/alerts/?is_read=false&page_size=20').catch(() => ({ data: [] })),
         api.get('telemetry/tags/live/').catch(() => ({ data: [] })),
         api.get('finance/analytics/').catch(() => ({ data: null })),
         api.get('stocks/').catch(() => ({ data: [] })),

@@ -94,7 +94,7 @@ export default function MaintenanceWorkspace({ user }: MaintenanceWorkspaceProps
     try {
       const [telemetryRes, alarmsRes, ticketsRes] = await Promise.all([
         api.get('telemetry/tags/live/').catch(() => ({ data: {} })),
-        api.get('alerts/').catch(() => ({ data: [] })),
+        api.get('alerts/alerts/').catch(() => ({ data: [] })),
         api.get('support-tickets/').catch(() => ({ data: [] }))
       ]);
 
