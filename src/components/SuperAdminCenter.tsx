@@ -153,7 +153,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
         phone: form.phone,
         email: form.email,
       };
-      if (form.role_obj) payload.role_obj = Number(form.role_obj);
+      if (form.role_obj) payload.role_id = Number(form.role_obj);
       if (modal === 'create') {
         payload.password = form.password;
         await api.post('users/', payload);
