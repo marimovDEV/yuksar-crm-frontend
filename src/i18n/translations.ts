@@ -2984,7 +2984,13 @@ const EXACT_RU_TRANSLATIONS: Record<string, string> = {
   "Formovka (Blok hosil)": "Формовка (Создание блока)",
   "Tayyor Mahsulot Ombor": "Склад готовой продукции",
   "Jonli": "В эфире",
-  "Ogohlantirishlar": "Предупреждения",};
+  "Ogohlantirishlar": "Предупреждения",
+  "Bugun ishlab chiqarildi": "Произведено сегодня",
+  "Tayyor (omborda)": "Готово (на складе)",
+  "CNC da faol": "Активно на ЧПУ",
+  "Yetkazishda": "В доставке",
+  "Brak darajasi": "Уровень брака"
+};
 
 const EXACT_MAP_RU = new Map(
   Object.entries(EXACT_RU_TRANSLATIONS).map(([key, value]) => [canonicalize(key), value]),
