@@ -33,9 +33,52 @@ export default function SCADADashboard({ user }: SCADADashboardProps) {
   };
 
   useEffect(() => {
+    // Initial fetch to populate data immediately
     fetchLiveTelemetry();
-    const interval = setInterval(fetchLiveTelemetry, 5000);
-    return () => clearInterval(interval);
+    
+    // Connect to WebSocket for real-time SCADA updates
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Use environment variable or default to same host
+    const wsHost = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}`;
+    const wsUrl = `${wsHost}/ws/scada/`;
+    
+    let ws: WebSocket;
+    
+    const connectWs = () => {
+      ws = new WebSocket(wsUrl);
+      
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'scada_update') {
+            // Merge incoming updates into liveData state
+            setLiveData(prev => {
+              const updated = { ...prev };
+              for (const [key, value] of Object.entries(payload.data)) {
+                updated[key] = { ...updated[key], value };
+              }
+              return updated;
+            });
+          }
+        } catch (e) {
+          console.error("WS parse error", e);
+        }
+      };
+
+      ws.onclose = () => {
+        // Reconnect after 3 seconds
+        setTimeout(connectWs, 3000);
+      };
+    };
+
+    connectWs();
+
+    return () => {
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+    };
   }, []);
 
   const fetchHistorian = async (tagKey: string) => {
