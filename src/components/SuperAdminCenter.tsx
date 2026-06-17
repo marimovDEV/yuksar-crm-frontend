@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
+import { useI18n } from '../i18n';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -875,13 +876,14 @@ type TabId = 'users' | 'roles' | 'audit' | 'security' | 'system';
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'users', label: 'Foydalanuvchilar', icon: '👤' },
-  { id: 'roles', label: t('Rollar'), icon: '🔐' },
-  { id: 'audit', label: t('Audit log'), icon: '📋' },
-  { id: 'security', label: t('Xavfsizlik'), icon: '🛡' },
+  { id: 'roles', label: 'Rollar', icon: '🔐' },
+  { id: 'audit', label: 'Audit log', icon: '📋' },
+  { id: 'security', label: 'Xavfsizlik', icon: '🛡' },
   { id: 'system', label: 'Tizim', icon: '⚙️' },
 ];
 
 export default function SuperAdminCenter({ user }: Props) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>('users');
 
   return (
@@ -900,15 +902,15 @@ export default function SuperAdminCenter({ user }: Props) {
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200 px-6">
         <div className="flex gap-1">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
+          {TABS.map(t_item => (
+            <button key={t_item.id} onClick={() => setActiveTab(t_item.id)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === t.id
+                activeTab === t_item.id
                   ? 'border-purple-600 text-purple-700'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}>
-              <span>{t.icon}</span>
-              <span>{t.label}</span>
+              <span>{t_item.icon}</span>
+              <span>{t(t_item.label)}</span>
             </button>
           ))}
         </div>

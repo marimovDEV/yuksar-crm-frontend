@@ -5,6 +5,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../lib/api';
+import { useI18n } from '../i18n';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,10 +63,10 @@ const GRADE: Record<string, { bg: string; text: string; border: string; bar: str
 };
 
 const KPI_COMPONENTS = [
-  { key: 'volume',     label: t('Ish hajmi'),    weight: 40, color: 'bg-blue-500',    icon: '📦' },
-  { key: 'quality',    label: t('Sifat'),        weight: 30, color: 'bg-emerald-500', icon: '✅' },
-  { key: 'discipline', label: t('Intizom'),      weight: 15, color: 'bg-purple-500',  icon: '⏰' },
-  { key: 'efficiency', label: t('Tejamkorlik'),  weight: 15, color: 'bg-amber-500',   icon: '⚡' },
+  { key: 'volume',     label: 'Ish hajmi',    weight: 40, color: 'bg-blue-500',    icon: '📦' },
+  { key: 'quality',    label: 'Sifat',        weight: 30, color: 'bg-emerald-500', icon: '✅' },
+  { key: 'discipline', label: 'Intizom',      weight: 15, color: 'bg-purple-500',  icon: '⏰' },
+  { key: 'efficiency', label: 'Tejamkorlik',  weight: 15, color: 'bg-amber-500',   icon: '⚡' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -161,6 +162,7 @@ function ActivityHeatmap({ userId }: { userId: number }) {
 // ─── KPI Radar (4 komponent progress bars) ───────────────────────────────────
 
 function KpiRadar({ components }: { components: KpiComponents }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-3">
       {KPI_COMPONENTS.map(c => {
@@ -170,7 +172,7 @@ function KpiRadar({ components }: { components: KpiComponents }) {
           <div key={c.key}>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-gray-600">
-                {c.icon} {c.label} <span className="text-gray-400">({c.weight}%)</span>
+                {c.icon} {t(c.label)} <span className="text-gray-400">({c.weight}%)</span>
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-gray-800">{val}/100</span>
@@ -528,6 +530,7 @@ function OverviewTab({ onSelectEmployee }: { onSelectEmployee: (id: number) => v
 // ─── Ranking Tab ──────────────────────────────────────────────────────────────
 
 function RankingTab({ onSelect }: { onSelect: (id: number) => void }) {
+  const { t } = useI18n();
   const [ranking, setRanking] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState('');
@@ -611,7 +614,7 @@ function RankingTab({ onSelect }: { onSelect: (id: number) => void }) {
                       {/* Compact 4-component mini bars */}
                       <div className="flex gap-0.5 items-end h-6">
                         {KPI_COMPONENTS.map(c => (
-                          <div key={c.key} title={`${c.label}`}
+                          <div key={c.key} title={t(c.label)}
                             className={`flex-1 rounded-sm ${c.color}`}
                             style={{ height: `${Math.max(4, ((emp as any)[c.key] ?? 50))}%` }} />
                         ))}
@@ -713,6 +716,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 ];
 
 export default function EmployeePerformanceCenter({ user }: { user: User }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<TabId>('OVERVIEW');
   const [detailId, setDetailId] = useState<number | null>(null);
 
