@@ -93,6 +93,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 // ─── Tab: Users ───────────────────────────────────────────────────────────────
 
 function UsersTab({ currentUser }: { currentUser: User }) {
+  const { t } = useI18n();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -386,6 +387,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
 // ─── Tab: Roles ───────────────────────────────────────────────────────────────
 
 function RolesTab() {
+  const { t } = useI18n();
   const [roles, setRoles] = useState<Role[]>([]);
   const [perms, setPerms] = useState<{ id: number; name: string; codename: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -514,6 +516,7 @@ function RolesTab() {
 // ─── Tab: Audit Log ───────────────────────────────────────────────────────────
 
 function AuditTab() {
+  const { t } = useI18n();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -639,8 +642,9 @@ function AuditTab() {
 // ─── Tab: Security ────────────────────────────────────────────────────────────
 
 function SecurityTab() {
+  const { t } = useI18n();
   const [users, setUsers] = useState<User[]>([]);
-  const [activeData, setActiveData] = useState<ActiveUsersData | null>(null);
+  const [activeUsers, setActiveUsers] = useState<ActiveUsersData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorLogs, setErrorLogs] = useState<AuditLog[]>([]);
 
@@ -653,7 +657,7 @@ function SecurityTab() {
         api.get('audit-logs/', { params: { status: 'ERROR', page_size: 10 } }),
       ]);
       setUsers(uRes.data?.results ?? uRes.data ?? []);
-      setActiveData(aRes.data);
+      setActiveUsers(aRes.data);
       setErrorLogs(errRes.data?.results ?? errRes.data ?? []);
     } catch { /* noop */ }
     setLoading(false);
@@ -681,7 +685,7 @@ function SecurityTab() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Faol sessiyalar', value: activeData?.active_users ?? '—', color: 'text-green-600', bg: 'bg-green-50' },
+          { label: 'Faol sessiyalar', value: activeUsers?.active_users ?? '—', color: 'text-green-600', bg: 'bg-green-50' },
           { label: 'Bloklangan foydalanuvchilar', value: blockedUsers.length, color: 'text-red-600', bg: 'bg-red-50' },
           { label: 'Xatoliklar (oxirgi)', value: errorLogs.length, color: 'text-orange-600', bg: 'bg-orange-50' },
           { label: 'Jami foydalanuvchilar', value: users.length, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -776,6 +780,7 @@ function SecurityTab() {
 // ─── Tab: System ──────────────────────────────────────────────────────────────
 
 function SystemTab() {
+  const { t } = useI18n();
   const [health, setHealth] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
 
