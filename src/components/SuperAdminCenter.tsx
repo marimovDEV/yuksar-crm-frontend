@@ -236,18 +236,18 @@ function UsersTab({ currentUser }: { currentUser: User }) {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Ism, username yoki telefon bo'yicha qidirish..."
+          placeholder={t("Ism, username yoki telefon bo'yicha qidirish...")}
           className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
         />
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-          <option value="">Barcha statuslar</option>
+          <option value="">{t("Barcha statuslar")}</option>
           <option value="ACTIVE">Faol</option>
           <option value="BLOCKED">Bloklangan</option>
         </select>
         <button onClick={openCreate}
           className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
-          + Yangi foydalanuvchi
+          {t("+ Yangi foydalanuvchi")}
         </button>
       </div>
 
@@ -263,7 +263,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
                 <th className="text-left px-3 py-2 font-medium">Telefon</th>
                 <th className="text-left px-3 py-2 font-medium">Rol</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
-                <th className="text-left px-3 py-2 font-medium">So'nggi kirish</th>
+                <th className="text-left px-3 py-2 font-medium">{t("So'nggi kirish")}</th>
                 <th className="text-left px-3 py-2 font-medium">IP</th>
                 <th className="text-right px-3 py-2 font-medium">Amallar</th>
               </tr>
@@ -288,7 +288,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
                   <td className="px-3 py-2.5">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => openEdit(u)}
-                        className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Tahrir</button>
+                        className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">{t("Tahrir")}</button>
                       <button onClick={() => openPassword(u)}
                         className="text-xs px-2 py-1 text-orange-600 hover:bg-orange-50 rounded">Parol</button>
                       {u.id !== currentUser.id && (
@@ -298,7 +298,7 @@ function UsersTab({ currentUser }: { currentUser: User }) {
                             {u.status === 'ACTIVE' ? 'Blok' : 'Faollashtir'}
                           </button>
                           <button onClick={() => handleImpersonate(u)}
-                            className="text-xs px-2 py-1 text-purple-600 hover:bg-purple-50 rounded">Kirish</button>
+                            className="text-xs px-2 py-1 text-purple-600 hover:bg-purple-50 rounded">{t("Kirish")}</button>
                         </>
                       )}
                     </div>
@@ -462,7 +462,7 @@ function RolesTab() {
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => { setSelected(r); setForm({ name: r.name, description: r.description || '' }); setModal(true); }}
-                    className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Tahrir</button>
+                    className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">{t("Tahrir")}</button>
                   <button onClick={() => handleDelete(r)}
                     className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">O'chir</button>
                 </div>
@@ -875,9 +875,9 @@ type TabId = 'users' | 'roles' | 'audit' | 'security' | 'system';
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'users', label: 'Foydalanuvchilar', icon: '👤' },
-  { id: 'roles', label: 'Rollar', icon: '🔐' },
-  { id: 'audit', label: 'Audit log', icon: '📋' },
-  { id: 'security', label: 'Xavfsizlik', icon: '🛡' },
+  { id: 'roles', label: t('Rollar'), icon: '🔐' },
+  { id: 'audit', label: t('Audit log'), icon: '📋' },
+  { id: 'security', label: t('Xavfsizlik'), icon: '🛡' },
   { id: 'system', label: 'Tizim', icon: '⚙️' },
 ];
 

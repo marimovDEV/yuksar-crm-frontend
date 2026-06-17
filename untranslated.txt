@@ -1,0 +1,478 @@
+Tizimga kirish muvaffaqiyatli amalga oshirildi
+Reys Yaratish
+Kassa cheki PDF
+Parol nusxalandi
+formula
+Kutilayotgan Marja (%)
+Nominal zichlik
+Ushbu narx joriy xomashyo narxi, energiya sarflari va ishchi kuchi hisobiga dinamik ravishda shakllantirildi.
+Batch # & QR
+Kimyo ulushi
+Uskunalar diagnostikasi, telemetriya va avariyalar jurnali
+Destination
+Barcha boshqa seanslarni tugatish
+Biriktirilgan Ulov
+Hisobot yuklash
+Tranzaksiyalar mavjud emas
+Omborlararo Resurs Boshqaruvi
+Risk toifasi
+Ogohlantirish
+Kredit yozuvlari
+Status muvaffaqiyatli yangilandi
+Client Mode
+Sotish narxi (35% target)
+Hozirgi holat
+Yangi Xarid Buyurtmasi
+Narx (1 dona)
+Yuklarni yetkazib berish monitoringi
+Aktiv Shartnomalar
+Jami summa
+Avvalgi bosqich yakunlanmagan!
+Predvspenivatel Harorati
+Preview ON
+Sifat talablariga javob bermagan mahsulotlar arxivi
+Rad etish
+bf12_steam_pressure
+Sex operatori
+Ushbu xodimning rollar merosi va maxsus override huquqlari.
+Energiya
+Faol PLC & Datchik Avariyalari
+Jami Tannarx (COGS)
+Material tanlang...
+Kecha, 18:24
+Diler
+Ruxsatlar bazasi topilmadi
+TA KUTILMOQDA
+Hujjat yuklash tizimi ishga tushirilmoqda
+Hali hech qanday harakat qayd etilmagan
+YAKUNLANGAN ISHLAR
+WebSocket Signal
+Yuk xati tafsilotlari
+Menajer
+2FA Xavfsizlik
+Yuqori (Tezkor)
+buyurtma
+Narx Dinamikasi (Oxirgi 6 oy)
+Tranzaksiyalar jurnali va kassalar monitoringi
+Mavjud Zaxira
+PIN kod (4-6 raqam)
+Zavod Sifat Nazorati va Tasniflash Tizimi
+Kritik qoldiqlar
+Katalog Mode
+Mijoz Imzosi (Elektron Tasdiq)
+PLC Uskuna OEE
+Xronologik harakatlar jurnali (Timeline)
+Oylik Maosh
+pozitsiya
+Bosqich yangilandi
+Gaz tarifi
+ISO limitlaridan sezilarli past
+Qarorni Saqlash
+Akkaunt boshqaruvi
+Brak Mahsulot
+Retsept nomi
+Orderlar
+Optimal termodinamik hududni aniqlash tizimi
+Sifat Tasnifi Taqsimoti
+Direktor Boshqaruv Paneli
+Xom-ashyo Sifat Nazorati
+Ushbu foydalanuvchining login sessiyalari monitoringi va xavfsizlik nazorati.
+uz-UZ
+sifatli
+SHOSHILINCH
+Hali ish yakunlanmadi
+Ishlab chiqarish tannarxi va tavsiya etilgan sotish narxi simulyatori
+Nosozlik Muammosi Tavsifi
+Energiya va Resurs Balansi
+Qabul qilish uchun ombor
+Block ID & Passport
+Kirim (Income)
+YETKAZIB BERILDI
+uchun yakuniy miqdor
+Tahlil Markazi
+Email
+Statistika nuqtasi ustiga sichqonchani olib boring
+Lavozim va Sharoitlar
+Reyting
+Naryad yaratishda xatolik
+RBAC Huquqlar Matritsasi
+Batch
+Brak miqdori
+Xarajatlar tarkibi
+Hozirgi smenada faol nosozliklar aniqlanmadi
+Ichki transfers
+INN
+Elektr Energiyasi
+Bugungi Qabullar
+Kategoriyalar
+Yuklash va yetkazib berish
+Manzil (Xaridor)
+Kechikkan qarzdorlik
+Savdo va CRM Analitikasi
+Chiqindi (brak) miqdori (kg):
+Topilmadi
+Hali buyurtmalar mavjud emas
+Omborlararo
+Mehnat vaqti
+Yetkazib berish jarayoni boshlandi
+ID, Material yoki Batch...
+Server latency
+Transport topilmadi
+Retsepturalar mavjud emas
+Operator SCADA Dashboard
+Elektr tarifi
+MIQDOR
+Diqqat! Ishdan bo‘shagan yoki Bloklangan xodimlar tizimga kira olmaydilar va ularning faol seanslari bekor qilinadi.
+Reject Gallery
+Barcha boshqa faol sessiyalar muvaffaqiyatli yakunlandi
+Tizimdagi Oxirgi Amallar
+Muvaffaqiyatli yetkazildi va yopildi
+Muvaffaqiyatli energiya tejash rejimi
+Faol Oyna
+pv1_raw_load
+Hisoblangan Tannarx (COGS)
+Miqdor va summani kiriting
+Xodimning real-vaqtdagi tizim faolligi va WebSocket diagnostikasi.
+Imzo maydoni
+avariya
+Yoqilgan
+Yetkazilgan Buyurtmalar Jurnali
+Shartnoma Namunasi
+Buyurtma berish
+Tozalash
+Xom-ashyo rad etildi
+Ombor & Stok
+Qabul Ombori (To)
+Real-vaqtdagi pul oqimi va moliya nazorati
+bf12_chamber_temp
+Telefon kiritilmagan
+Foydalanuvchi tomonidan amalga oshirilgan barcha tizim tranzaksiyalari.
+Parol reset qilingan
+Quick Operations & PDF Export
+Ishga kirgan sana
+Block ID yoki Retsept...
+Profilaktika bajarildi
+Ombor xizmati
+Materiallar va tayyor mahsulot
+Filtrlar menyusi ochilmoqda...
+Hujjat yaratildi
+Faol Retsepturalar
+List Mode
+natijalari
+Nusxalash
+BOM konstruktor
+Muvaffaqiyatli yakunlangan
+YUQORI
+Mukofot (Bonus)
+Topshiriq statusi yangilandi
+Xaridlar topilmadi
+MODBUS TCP
+Tugatildi
+klient
+Eksport qilishda xatolik
+pv1_chamber_temp
+QC History (Tarix)
+O‘chirilgan
+Nomalum
+Jami Brak
+PLC datchiklardan hech qanday avariya signali mavjud emas.
+Logistika & Savdo
+Kompressor Bosimi
+BOM Xom-ashyo Ratios (100kg batch)
+Zichlik barqarorligi
+Tasdiqlash va Yuborish
+Leadlar & Aktivlar
+Yuqori xavf
+Retseptni tasdiqlash
+Sifat Progressi
+Hisoblar Rejasi
+Qarzdorlik tahlili (Aging)
+Sexga chiqim jarayoni
+Steam bosimi
+Energiya xarajatining xom-ashyoga nisbati (SCADA OEE)
+Eslatish
+SCADA MODBUS PLC Tarmoq Xaritasi
+EPS partiyalari yuklandi
+Faol seanslar va Qurilmalar
+Tizim tomonidan qayd etildi
+Ombor Terminal Dashboard
+Chek chiqarish
+Barcha Tizimlar Barqaror
+Jami Xarajatlar
+Saqlanmoqda...
+Qarz (UZS)
+Formulani saqlashda xatolik yuz berdi
+Texnik muhandis
+Tranzaksiya turi
+Jami: 289,000,000 UZS
+Material Turi
+bosqichi uchun
+Jami Amaliy Tannarx
+Amalni bajarishda xatolik yuz berdi
+Mahsulot & Batch
+tugun faol
+Tugallash & Acknowledged
+P&L Tannarx Markazi
+Topshiriq statusi yangilandi (Lokal rejim)
+ixtiyoriy
+Hisobot tayyorlanmoqda...
+Hozir faol
+Steam Bosimi va Zichlik Sweet-Spot Grafigi
+Katalog
+Prognoz
+Qarzdorlik (Nasiya) Aging Monitoringi
+Noma’lum
+Kassa kitobi
+Tizimda harakatlar aniqlanmadi
+Kichik xavf
+Kunlik QC Hajmi
+Muddat (Kechikish)
+Steam Bosimi
+Profilaktika (PM) Jurnali
+EPS Granulalar nominal zichlikdan past
+Chiqim (Expense)
+Buyurtmani Yaratish
+Reject & Defect Gallery
+SCADA kompressor sexlari
+Foyda (Margin)
+PDF yuklandi
+Jami Nasiya
+Retsept Simulyatori
+Faol holatda
+Live Telemetry
+Sarflangan vaqt
+Yozib olingmoqda...
+Joriy oylik nisbat
+Navbatchilik ochiq
+Likvidlik holati
+Mahsulot tanlash
+Nopoklik (%)
+Muhim Bildirishnomalar
+Bajarish kerak
+WebSocket sessiyasi muddati
+Kritik xavf
+Joriy ochiq sahifa
+Eksport muvaffaqiyatli
+Mahsulotlar yuklanmoqda
+Vaqtinchalik parol generatsiya qilindi!
+Sinf A, B granulalar
+Xom-ashyo (Materials)
+Hammasini Chiqarish
+Sikl davomiyligi
+Zavod mahsulotlarining 85% qismi
+Smena holati
+Avariya holati tasdiqlandi
+Marshrut, Material va Batch-ni aniqlang
+Excel debet hisob
+Tranzaksiya Yaratish
+Kimyo narxi
+bf12_vacuum_pressure
+Xom-ashyo (EPS)
+Server & Uskunalar Tarmoqlari
+xodim
+Tejamkorlik tavsiyasi faol
+Haqiqiy va kutilayotgan tushum (30 kun)
+Lead holatini yangilashda xatolik
+Iltimos, mijoz imzosini oling!
+2 soat oldin
+Lidlarni drag-and-drop orqali boshqarish
+Sikl (soniya)
+Servis Muhandisi Dashboard
+Faol Yetkazish Marshruti
+Ishchi kuchi
+Yakuniy Qaror
+Vazifa №
+Harakatlar Monitoringi
+Yangi Lids
+Naryad yoki mahsulot nomi...
+Analytics (Tahlil)
+pv1_steam_pressure
+Oxirgi Tranzaksiyalar
+BOSQUICH
+Workflow
+Maksimal limit
+Tizimga kirishda xatolik yuz berdi
+Buyurtma yaratildi
+Lead Conversion Funnel
+Online (Faol)
+finance.ledger
+Ombor tanlanishi shart
+Hozirgi aktiv liniyalar
+Yangi formula muvaffaqiyatli saqlandi
+Quality Control Center
+Real vaqtdagi Termodinamik Parametrlar
+Ushbu parolni xodimga yetkazing. Tizimga birinchi kirishda parol o‘zgarishi majburiydir.
+Kuryer Terminali
+Recepturalar, laboratoriya va jarayon nazorati
+CRM va Buyurtmalar Voronkasi
+Ishchi stavkasi
+Moliyaviy Dinamika
+Bajarilmoqda...
+QR Kodni Skanlash
+Kassani tanlang
+QC Queue (Navbat)
+Muvaffaqiyatli Yetkazish
+Ushbu xodimning ishchi qurilmasi bilan real vaqtda Modbus TCP datchiklari va WebSocket signali muvaffaqiyatli sinxronizatsiya qilingan. Barcha tranzaksiyalar shifrlangan TLS quvurida uzatilmoqda.
+finance.profitability
+Optimal: < 25%
+Buxgalteriya Terminali
+Operatorlar topilmadi
+Sotuvlar (Bugun)
+Bajarilgan Rejalar
+Kanban Mode
+Servis Muhandisi Terminali
+Eksport (PDF)
+Tavsiya etilgan sotish narxi
+Qayta ishlash jarayoni haqida...
+Jonli Faoliyat Diagnostikasi
+Prioritet
+Ishlab Chiqarish Boshqaruvi
+Granula narxi
+Alarm faol
+Xarid tafsilotlari tez kunda
+Dinamik Narx Hisoblagich
+Jonli Seans Monitoringi (Live Sessions)
+kg qayta ishlandi
+REJECTED
+Muhandis
+Likvidlik tugunlari (Kassalar)
+Buyurtma #
+Laboratoriya tasniflari
+Ulanish Davomiyligi
+2d
+Jarayonni Boshlash
+Debet yozuvlari
+YUKNI QABUL QILIB YURISH
+Bunkery rest time monitor
+Laboratoriya jarayoni
+CNC Yangi Vazifa
+Kesilgan chiqindi (m³)
+Bu funksiya tez kunda ishga tushadi
+Chiqindi Deklaratsiyasi (Sklad-1)
+Live MES Control Center
+Saqlash muddati
+Sifat belgisini urish
+Mashina ishga tushirildi. Tsikl boshlandi...
+Kritik Avariya aniqlandi
+Topshirish & Sklad-1 ga Yuborish
+Yangi CNC vazifa yaratildi
+Smena davomida ishlab chiqarilgan tayyor mahsulotlar va sarfiyotlar hisoboti
+Vaqt sarfi
+6. Qadoqlash (Packing)
+Zavodning umumiy hajmidan 100%
+Kritik Avariya Ogohlantirishlari (PLC Alarms)
+Zichlik rejasi
+Uskuna Boshqaruv Terminali
+Yuqori premium plitalar darajasi
+Aktiv Jarayon
+Hisoblangan zichlik
+Blokni tanlang
+Mashinalar va texnik holat yuzasidan bildirishnomalar
+Vazifa ID
+Tekshirilgan bloklar (oy)
+Tsikl Taymeri
+Vazifalar Navbati
+Smena yopildi va hisobot yaratildi
+Zames Silo Dam Olish Vaqti
+Sim Harorati
+Burchak sinishi
+Brak ulushi (Defect rate)
+Kamera Namligi
+OEE Shift Target
+Zames partiyasi
+Quritish Jarayoni
+Passport
+Avariyani bartaraf etish
+Texnologik Uskunalar Terminali
+Termodinamik Datchiklar
+Bloklar quritish kamerasida 24 soat davomida saqlanadi va namlik darajasi nazorat qilinadi.
+Tayyorlangan Bloklar
+Texnologik Oqim Sxemasi (ASU-SCADA)
+CNC va Dekor sexidan chiqqan tayyor plita va dekorlarni shrinksell qadoqlash, sifat belgisi va yorliq yopishtirish jarayoni.
+Qolgan vaqt
+Tizim Online
+Qadoqlash muvaffaqiyatli yakunlandi va SK-2 tayyor mahsulot omboriga joylandi
+Tekshirishni boshlash uchun chap tarafdan blokni tanlang
+Avariya qabul qilindi. Muhandis xabardor etildi
+Kutish Vaqti
+Predvspenivatel va Blok-Formovka faol datchiklari
+Tizim Ulanishi
+Navbatdagi Bloklar
+Sifat Grade
+Bugungi OEE
+Faol qoliplash vaqti
+Dinamik Bosim & Vakuum Datchiklari
+Oylik limit targeti: < 3.0%
+5. Dekor (Pardoz)
+Laboratoriya
+Ish jarayonidagi texnik izohlar
+Nuqsonlarni aniqlash
+Упаковка (Tayyor Mahsulotlarni Qadoqlash Doki)
+Ishga tushirish
+QC Sertifikatlanganlar Arxivi
+Tungi Smena
+Yoriqlar
+Tasdiqlash (Acknowledge)
+Avariyalar aniqlanmadi
+A-Class ulushi
+3. Quritish (Сушка)
+Qadoqlar Rejasi
+Availability (Ish vaqti)
+Tekshiruvni yakunlashda xatolik
+2. Blok Quyish
+Kamera Harorati
+Qadoqlash Kutayotgan Partiyalar Navbati
+Oxirgi yakunlanganlar
+Quality (Sifat)
+Dam olmoqda (<4s)
+Historian data empty
+Real-vaqtda ishlab chiqarish jarayonlari va uskunalar nazorati
+Uzatish Tezligi
+Vazifa yaratishda xatolik
+Sifat nazorati muvaffaqiyatli yakunlandi va tasdiqlandi
+Smena Hisoboti (MES Registry)
+Joriy Smena
+Камера сушки (Bloklarni Quritish Kamerasi)
+Mashinani ishga tushirish uchun quyidagi navbatdan biror buyurtmani tanlang yoki yangisini kiriting.
+Kesish Sikli Taymeri
+Predvspenivatel, bunkery va block-formovka live quvur liniyalari
+Chiqindi Sklad-1 ga qaytarildi
+Sinf (Class)
+Harakatlar
+Yuklama
+Smena hisoboti yakuniy qayd etildi va navbatchi muhandisga yuborildi
+Uskunaga ulanilmoqda...
+kutmoqda
+Tsikl Boshqaruvchi
+Hisobotni tasdiqlash va topshirish
+Blok
+Bugun Qadoqlandi
+Ishlab chiqarilgan bloklar (dona)
+Kompyuterlashtirilgan kesish operatori paneli
+4. Kesish (ЧПУ)
+Reja soni (dona)
+Kunlik Smena
+Mahsulotlar laboratoriyasi va sertifikatlash
+Xomashyo blok tanlang
+Ishlovchi mashina
+START
+Chiquvchi mahsulot
+Performance (Tezlik)
+Smenani Yakunlash
+YUKSAR SCADA-WMS
+Yuksar ERP
+CRM
+Excel
+Количество продаж
+PDF
+PENAPLAS ERP
+Yuksar
+EXCEL
+ID
+IP
+QR
+Akfa Group
+OK
+VIP
+Yuksar Industrial ERP v2.4
+KPI

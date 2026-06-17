@@ -215,7 +215,7 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
           </div>
           <div className="w-px h-10 bg-slate-700" />
           <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">O'tish %</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t("O'tish %")}</p>
             <p className="text-2xl font-black text-emerald-400">{passRate}%</p>
           </div>
           <div className="w-px h-10 bg-slate-700" />
@@ -495,7 +495,7 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
                 <div className="space-y-5">
                   <div className="border-b border-slate-800 pb-4 flex justify-between items-center">
                     <div>
-                      <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Kiruvchi QC</span>
+                      <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{t("Kiruvchi QC")}</span>
                       <h3 className="text-xl font-black mt-1">{selectedBatch.batch_number}</h3>
                       <p className="text-xs text-slate-400">{selectedBatch.material_name} · {selectedBatch.quantity_kg} kg</p>
                     </div>

@@ -199,7 +199,7 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
     id: a.id,
     level: (a.severity === 'CRITICAL' || a.level === 'critical') ? 'critical' as const :
            (a.severity === 'WARNING' || a.level === 'warning') ? 'warning' as const : 'info' as const,
-    text: a.message || a.title || a.text_uz || a.description || 'Ogohlantirish',
+    text: t(a.message || a.title || a.text_uz || a.description || 'Ogohlantirish'),
     target: a.target_module || undefined,
   }));
 

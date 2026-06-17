@@ -62,10 +62,10 @@ const GRADE: Record<string, { bg: string; text: string; border: string; bar: str
 };
 
 const KPI_COMPONENTS = [
-  { key: 'volume',     label: 'Ish hajmi',    weight: 40, color: 'bg-blue-500',    icon: '📦' },
-  { key: 'quality',    label: 'Sifat',        weight: 30, color: 'bg-emerald-500', icon: '✅' },
-  { key: 'discipline', label: 'Intizom',      weight: 15, color: 'bg-purple-500',  icon: '⏰' },
-  { key: 'efficiency', label: 'Tejamkorlik',  weight: 15, color: 'bg-amber-500',   icon: '⚡' },
+  { key: 'volume',     label: t('Ish hajmi'),    weight: 40, color: 'bg-blue-500',    icon: '📦' },
+  { key: 'quality',    label: t('Sifat'),        weight: 30, color: 'bg-emerald-500', icon: '✅' },
+  { key: 'discipline', label: t('Intizom'),      weight: 15, color: 'bg-purple-500',  icon: '⏰' },
+  { key: 'efficiency', label: t('Tejamkorlik'),  weight: 15, color: 'bg-amber-500',   icon: '⚡' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -723,9 +723,9 @@ export default function EmployeePerformanceCenter({ user }: { user: User }) {
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center text-lg">🏅</div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Xodimlar Performans Markazi</h1>
+            <h1 className="text-lg font-bold text-gray-900">{t("Xodimlar Performans Markazi")}</h1>
             <p className="text-xs text-gray-400">
-              4-komponentli KPI · Ish hajmi 40% · Sifat 30% · Intizom 15% · Tejamkorlik 15%
+              {t("4-komponentli KPI · Ish hajmi 40% · Sifat 30% · Intizom 15% · Tejamkorlik 15%")}
             </p>
           </div>
         </div>
