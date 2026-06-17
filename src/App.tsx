@@ -224,7 +224,7 @@ export default function App() {
     },
     {
       id: 'procurement',
-      title: t("3. Ta'minot t('3. Ta\'minot & Xarid') Xarid"),
+      title: t("3. Ta'minot & Xarid"),
       icon: ShoppingCart,
       items: [
         { id: 'suppliers', name: t('Ta\'minotchilar'), icon: UserIcon, roles: ['admin', 'warehouse'] },

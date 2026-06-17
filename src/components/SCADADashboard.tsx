@@ -110,11 +110,19 @@ export default function SCADADashboard({ user }: SCADADashboardProps) {
 
   // Helper to render pure SVG premium time-series charts
   const renderSVGChart = (data: any[]) => {
-    if (data.length < 2) return <p className="text-slate-400 text-xs py-10 text-center">{t('Yetarli ma’lumotlar mavjud emas')}</p>;
+    if (!data || !Array.isArray(data) || data.length < 2) {
+      return <p className="text-slate-400 text-xs py-10 text-center">{t('Yetarli ma’lumotlar mavjud emas')}</p>;
+    }
     
+    // Filter out invalid values
+    const validData = data.filter(d => typeof d.value === 'number' || !isNaN(Number(d.value)));
+    if (validData.length < 2) {
+      return <p className="text-slate-400 text-xs py-10 text-center">{t('Yetarli ma’lumotlar mavjud emas')}</p>;
+    }
+
     // Sort chronological (oldest first)
-    const sorted = [...data].reverse();
-    const values = sorted.map(d => d.value);
+    const sorted = [...validData].reverse();
+    const values = sorted.map(d => Number(d.value));
     const maxVal = Math.max(...values, 1.0);
     const minVal = Math.min(...values, 0.0);
     const range = maxVal - minVal || 1.0;
@@ -125,8 +133,8 @@ export default function SCADADashboard({ user }: SCADADashboardProps) {
 
     const points = sorted.map((d, index) => {
       const x = padding + (index * (width - padding * 2) / (sorted.length - 1));
-      const y = height - padding - ((d.value - minVal) * (height - padding * 2) / range);
-      return { x, y, val: d.value, time: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) };
+      const y = height - padding - ((Number(d.value) - minVal) * (height - padding * 2) / range);
+      return { x, y, val: Number(d.value), time: new Date(d.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) };
     });
 
     const pathD = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
@@ -178,7 +186,7 @@ export default function SCADADashboard({ user }: SCADADashboardProps) {
   };
 
   // Helper variables to fetch current sensor readings
-  const getTagValue = (key: string, fallback: number = 0) => liveData[key]?.value ?? fallback;
+  const getTagValue = (key: string, fallback: number = 0) => Number(liveData[key]?.value ?? fallback);
   const getTagUnit = (key: string, fallback: string = '') => liveData[key]?.unit ?? fallback;
 
   const pv1_press = getTagValue('pv1_steam_pressure');
