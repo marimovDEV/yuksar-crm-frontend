@@ -3067,6 +3067,15 @@ type DynamicRule = {
   "Dekorativ Panel": "Декоративная панель",
   "So'nggi kirish": "Последний вход",
   "Mijozga Ko'rsatish": "ПОКАЗАТЬ КЛИЕНТУ",
+  "Kesish Liniyasi #1": "Линия резки #1",
+  "Press Liniyasi #2": "Линия пресса #2",
+  "EPS Qadoqlash #3": "Упаковка EPS #3",
+  "Qo'shimcha Liniya #4": "Дополнительная линия #4",
+  "Liniya #1 (EPS)": "Линия #1 (EPS)",
+  "Liniya #2 (Press)": "Линия #2 (Пресс)",
+  "Liniya #3 (Kesish)": "Линия #3 (Резка)",
+  "EPS qadoqlash #1": "Упаковка EPS #1",
+  "Liniya #4 (Maxsus)": "Линия #4 (Специальная)",
 };
 
 const RU_DYNAMIC_RULES: DynamicRule[] = [

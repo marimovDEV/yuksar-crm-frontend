@@ -202,7 +202,7 @@ export default function App() {
       icon: Database,
       items: [
         { id: 'warehouse-workspace', name: t('Ombor Boshqaruvi'), icon: Database, roles: ['admin', 'warehouse'] },
-        { id: 'transfers', name: t('Ichki O\'tkazmalar'), icon: Truck, roles: ['admin', 'warehouse'] },
+        { id: 'transfers', name: t("Ichki O'tkazmalar"), icon: Truck, roles: ['admin', 'warehouse'] },
       ]
     },
     {
@@ -224,7 +224,7 @@ export default function App() {
     },
     {
       id: 'procurement',
-      title: t('3. Ta\'minot & Xarid'),
+      title: t("3. Ta'minot t('3. Ta\'minot & Xarid') Xarid"),
       icon: ShoppingCart,
       items: [
         { id: 'suppliers', name: t('Ta\'minotchilar'), icon: UserIcon, roles: ['admin', 'warehouse'] },
@@ -291,7 +291,7 @@ export default function App() {
       id: 'user-guide',
       title: null,
       items: [
-        { id: 'guide', name: t('Foydalanish qo\'llanmasi'), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'accounting', 'logistics', 'technologist', 'maintenance', 'waste', 'director'] },
+        { id: 'guide', name: t("Foydalanish qo'llanmasi"), icon: BookOpen, roles: ['admin', 'sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'accounting', 'logistics', 'technologist', 'maintenance', 'waste', 'director'] },
         { id: 'my-performance', name: t('Mening KPI'), icon: Target, roles: ['sales', 'warehouse', 'operator', 'cnc', 'finishing', 'qc', 'logistics', 'technologist', 'maintenance', 'waste', 'accounting'] },
       ]
     }

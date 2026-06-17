@@ -248,12 +248,12 @@ export default function WarehouseWorkspace({ user }: WarehouseWorkspaceProps) {
 
           <div className="flex flex-col gap-2">
             {[
-              { id: 'STOCK', label: 'Ombor qoldig‘i', icon: Box, color: 'text-emerald-400 bg-emerald-500/10' },
-              { id: 'INTAKE', label: 'Kiruvchi (Intake)', icon: ArrowDownLeft, color: 'text-blue-400 bg-blue-500/10' },
-              { id: 'TRANSFERS', label: 'Transferlar', icon: ArrowRightLeft, color: 'text-sky-400 bg-sky-500/10' },
+              { id: 'STOCK', label: t("Ombor qoldig\'i"), icon: Box, color: 'text-emerald-400 bg-emerald-500/10' },
+              { id: 'INTAKE', label: t("Kiruvchi (Intake)"), icon: ArrowDownLeft, color: 'text-blue-400 bg-blue-500/10' },
+              { id: 'TRANSFERS', label: t("Transferlar"), icon: ArrowRightLeft, color: 'text-sky-400 bg-sky-500/10' },
               { id: 'AUDIT', label: 'Inventarizatsiya', icon: ClipboardList, color: 'text-amber-400 bg-amber-500/10' },
-              { id: 'TASKS', label: 'Bugungi ishlar', icon: Clock, color: 'text-slate-400 bg-slate-500/10' },
-              { id: 'ALERTS', label: 'Alarmlar', icon: Bell, color: 'text-rose-400 bg-rose-500/10', count: criticalItems },
+              { id: 'TASKS', label: t("Bugungi ishlar"), icon: Clock, color: 'text-slate-400 bg-slate-500/10' },
+              { id: 'ALERTS', label: t("Alarmlar"), icon: Bell, color: 'text-rose-400 bg-rose-500/10', count: criticalItems },
             ].map((menu) => {
               const isActive = activeSubTab === menu.id;
               return (

@@ -177,8 +177,8 @@ export default function ExecutiveDashboard({ onAction }: { onAction: (id: string
         >
           <div className="space-y-6">
              {[
-               { id: 1, name: "Kesish Liniyasi #1", batch: "B-221", operator: "Aliyev S.", progress: 82, status: "RUNNING" },
-               { id: 2, name: "Press Liniyasi #2", batch: "B-219", operator: "Rasulov J.", progress: 45, status: "RUNNING" },
+               { id: 1, name: t("Kesish Liniyasi #1"), batch: "B-221", operator: "Aliyev S.", progress: 82, status: "RUNNING" },
+               { id: 2, name: t("Press Liniyasi #2"), batch: "B-219", operator: "Rasulov J.", progress: 45, status: "RUNNING" },
                { id: 3, name: "Ko'pirtirish", batch: "E-104", operator: "Nodirov K.", progress: 100, status: "IDLE" }
              ].map((line) => (
                <div key={line.id} className="space-y-3">
