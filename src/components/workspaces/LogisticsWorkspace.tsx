@@ -55,12 +55,12 @@ export default function LogisticsWorkspace({ user }: LogisticsWorkspaceProps) {
         api.get('sales/deliveries/').catch(() => ({ data: [] })),
         api.get('transport/fuel-logs/').catch(() => ({ data: [] })),
       ]);
-      setTrips(tripsRes.data.results || tripsRes.data || []);
-      setVehicles(vehiclesRes.data.results || vehiclesRes.data || []);
-      setDrivers(driversRes.data.results || driversRes.data || []);
-      setWaybills(waybillsRes.data.results || waybillsRes.data || []);
-      setDeliveries(deliveriesRes.data.results || deliveriesRes.data || []);
-      setFuelLogs(fuelRes.data.results || fuelRes.data || []);
+      setTrips(Array.isArray(tripsRes.data?.results || tripsRes.data) ? tripsRes.data?.results || tripsRes.data : []);
+      setVehicles(Array.isArray(vehiclesRes.data?.results || vehiclesRes.data) ? vehiclesRes.data?.results || vehiclesRes.data : []);
+      setDrivers(Array.isArray(driversRes.data?.results || driversRes.data) ? driversRes.data?.results || driversRes.data : []);
+      setWaybills(Array.isArray(waybillsRes.data?.results || waybillsRes.data) ? waybillsRes.data?.results || waybillsRes.data : []);
+      setDeliveries(Array.isArray(deliveriesRes.data?.results || deliveriesRes.data) ? deliveriesRes.data?.results || deliveriesRes.data : []);
+      setFuelLogs(Array.isArray(fuelRes.data?.results || fuelRes.data) ? fuelRes.data?.results || fuelRes.data : []);
     } catch (err) {
       console.error('LogisticsWorkspace fetch error:', err);
     } finally {

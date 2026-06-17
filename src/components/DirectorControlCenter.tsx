@@ -81,18 +81,18 @@ export default function DirectorControlCenter({ onAction }: { onAction: (id: str
         api.get('stocks/').catch(() => ({ data: [] })),
       ]);
 
-      setZames(zamesRes.data.results || zamesRes.data || []);
-      setBunkers(bunkersRes.data.results || bunkersRes.data || []);
-      setBlocks(blocksRes.data.results || blocksRes.data || []);
-      setDrying(dryingRes.data.results || dryingRes.data || []);
-      setCncJobs(cncRes.data.results || cncRes.data || []);
-      setFinishingJobs(finishingRes.data.results || finishingRes.data || []);
-      setFinishedBlocks(finishedRes.data.results || finishedRes.data || []);
-      setDeliveries(deliveriesRes.data.results || deliveriesRes.data || []);
-      setAlerts(alertsRes.data.results || alertsRes.data || []);
-      setTelemetry(telRes.data.results || telRes.data || []);
+      setZames(Array.isArray(zamesRes.data?.results || zamesRes.data) ? zamesRes.data?.results || zamesRes.data : []);
+      setBunkers(Array.isArray(bunkersRes.data?.results || bunkersRes.data) ? bunkersRes.data?.results || bunkersRes.data : []);
+      setBlocks(Array.isArray(blocksRes.data?.results || blocksRes.data) ? blocksRes.data?.results || blocksRes.data : []);
+      setDrying(Array.isArray(dryingRes.data?.results || dryingRes.data) ? dryingRes.data?.results || dryingRes.data : []);
+      setCncJobs(Array.isArray(cncRes.data?.results || cncRes.data) ? cncRes.data?.results || cncRes.data : []);
+      setFinishingJobs(Array.isArray(finishingRes.data?.results || finishingRes.data) ? finishingRes.data?.results || finishingRes.data : []);
+      setFinishedBlocks(Array.isArray(finishedRes.data?.results || finishedRes.data) ? finishedRes.data?.results || finishedRes.data : []);
+      setDeliveries(Array.isArray(deliveriesRes.data?.results || deliveriesRes.data) ? deliveriesRes.data?.results || deliveriesRes.data : []);
+      setAlerts(Array.isArray(alertsRes.data?.results || alertsRes.data) ? alertsRes.data?.results || alertsRes.data : []);
+      setTelemetry(Array.isArray(telRes.data?.results || telRes.data) ? telRes.data?.results || telRes.data : []);
       setFinance(financeRes.data);
-      setStocks(stocksRes.data.results || stocksRes.data || []);
+      setStocks(Array.isArray(stocksRes.data?.results || stocksRes.data) ? stocksRes.data?.results || stocksRes.data : []);
     } catch (err) {
       console.error('DirectorControlCenter fetch error:', err);
     } finally {

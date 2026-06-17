@@ -14,7 +14,7 @@ export default function ProductionCosting() {
   const fetchBatches = async () => {
     try {
       const res = await api.get('production/batches/');
-      const list = res.data.results || res.data;
+      const list = res.data?.results || res.data;
       setBatches(list);
       if (list.length > 0) setSelectedBatch(list[0]);
     } catch (e) {

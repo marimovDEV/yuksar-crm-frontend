@@ -92,13 +92,13 @@ export default function Finance({ user }: FinanceProps) {
         api.get('finance/analytics/'),
         api.get('sales/customers/')
       ]);
-      setCashboxes(cbRes.data.results || cbRes.data);
-      setTransactions(transRes.data.results || transRes.data);
-      setCategories(catRes.data.results || catRes.data);
-      setTransfers(transferRes.data.results || transferRes.data);
-      setBalances(balanceRes.data.results || balanceRes.data);
+      setCashboxes(Array.isArray(cbRes.data?.results || cbRes.data) ? cbRes.data?.results || cbRes.data : []);
+      setTransactions(Array.isArray(transRes.data?.results || transRes.data) ? transRes.data?.results || transRes.data : []);
+      setCategories(Array.isArray(catRes.data?.results || catRes.data) ? catRes.data?.results || catRes.data : []);
+      setTransfers(Array.isArray(transferRes.data?.results || transferRes.data) ? transferRes.data?.results || transferRes.data : []);
+      setBalances(Array.isArray(balanceRes.data?.results || balanceRes.data) ? balanceRes.data?.results || balanceRes.data : []);
       setAnalytics(analyticsRes.data);
-      setCustomers(customerRes.data.results || customerRes.data);
+      setCustomers(Array.isArray(customerRes.data?.results || customerRes.data) ? customerRes.data?.results || customerRes.data : []);
     } catch (err) {
       console.error("Failed to fetch finance data", err);
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");

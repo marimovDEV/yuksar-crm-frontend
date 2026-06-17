@@ -37,7 +37,7 @@ export default function RawMaterialQCModal({ batch, onClose, onSuccess, t }: Raw
 
   useEffect(() => {
     // Fetch warehouses for receiving the batch
-    api.get('warehouses/').then(res => setWarehouses(res.data.results || res.data));
+    api.get('warehouses/').then(res => setWarehouses(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []));
   }, []);
 
   const handleQC = async () => {

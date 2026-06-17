@@ -27,8 +27,8 @@ export default function CycleCounting() {
         api.get('inventory/audits/'),
         api.get('warehouses/'),
       ]);
-      setAudits(auditsRes.data.results || auditsRes.data);
-      setWarehouses(warehousesRes.data.results || warehousesRes.data);
+      setAudits(Array.isArray(auditsRes.data?.results || auditsRes.data) ? auditsRes.data?.results || auditsRes.data : []);
+      setWarehouses(Array.isArray(warehousesRes.data?.results || warehousesRes.data) ? warehousesRes.data?.results || warehousesRes.data : []);
     } catch (err) {
       uiStore.showNotification("Inventarizatsiya ma'lumotlarini yuklab bo'lmadi", 'error');
     } finally {

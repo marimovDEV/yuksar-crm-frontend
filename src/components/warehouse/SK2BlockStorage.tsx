@@ -17,7 +17,7 @@ export default function SK2BlockStorage() {
         const res = await api.get('production/finished-blocks/', {
           params: { status: 'READY', page_size: 50 }
         });
-        setBlocks(res.data.results ?? res.data ?? []);
+        setBlocks(res.data?.results ?? res.data ?? []);
       } catch {
         setBlocks([]);
       }

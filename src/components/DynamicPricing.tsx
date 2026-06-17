@@ -45,7 +45,7 @@ export default function DynamicPricing() {
     setLoading(true);
     try {
       const res = await api.get('pricing/rules/');
-      setRules(res.data.results || res.data || []);
+      setRules(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), 'error');
     } finally {

@@ -57,7 +57,7 @@ export default function AdminActivity() {
         }
       });
       
-      const mappedActions: UserAction[] = res.data.results ? res.data.results.map((log: any) => ({
+      const mappedActions: UserAction[] = res.data?.results ? res.data?.results.map((log: any) => ({
         id: log.id,
         userId: log.user,
         userName: log.user_name || t('Tizim'),

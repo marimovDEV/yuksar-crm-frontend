@@ -66,12 +66,12 @@ export default function OperatorWorkspace({ user }: OperatorWorkspaceProps) {
         api.get('production/orders/?ordering=-created_at').catch(() => ({ data: [] })),
         api.get('production/recipes/').catch(() => ({ data: [] })),
       ]);
-      setZamesList(zRes.data?.results || zRes.data || []);
-      setBunkers(bRes.data?.results || bRes.data || []);
-      setBlocks(blRes.data?.results || blRes.data || []);
-      setDrying(dRes.data?.results || dRes.data || []);
-      setOrders(oRes.data?.results || oRes.data || []);
-      setRecipes(rRes.data?.results || rRes.data || []);
+      setZamesList(Array.isArray(zRes.data?.results || zRes.data) ? zRes.data?.results || zRes.data : []);
+      setBunkers(Array.isArray(bRes.data?.results || bRes.data) ? bRes.data?.results || bRes.data : []);
+      setBlocks(Array.isArray(blRes.data?.results || blRes.data) ? blRes.data?.results || blRes.data : []);
+      setDrying(Array.isArray(dRes.data?.results || dRes.data) ? dRes.data?.results || dRes.data : []);
+      setOrders(Array.isArray(oRes.data?.results || oRes.data) ? oRes.data?.results || oRes.data : []);
+      setRecipes(Array.isArray(rRes.data?.results || rRes.data) ? rRes.data?.results || rRes.data : []);
     } catch (err) {
       console.error("OperatorWorkspace fetch error:", err);
     } finally {

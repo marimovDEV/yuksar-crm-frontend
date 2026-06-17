@@ -39,8 +39,8 @@ export default function FinishingWorkspace({ user }: FinishingWorkspaceProps) {
         api.get('finishing/jobs/').catch(() => ({ data: [] })),
         api.get('production/finished-blocks/?status=RECYCLE').catch(() => ({ data: [] })),
       ]);
-      setJobs(jobsRes.data?.results || jobsRes.data || []);
-      setQcReturns(qcRes.data?.results || qcRes.data || []);
+      setJobs(Array.isArray(jobsRes.data?.results || jobsRes.data) ? jobsRes.data?.results || jobsRes.data : []);
+      setQcReturns(Array.isArray(qcRes.data?.results || qcRes.data) ? qcRes.data?.results || qcRes.data : []);
     } catch (err) {
       console.error("Finishing fetch error", err);
     } finally {

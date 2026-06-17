@@ -36,7 +36,7 @@ export default function TaxControl() {
   const fetchRates = async () => {
     try {
       const res = await api.get('accounting/tax-rates/');
-      setTaxRates(res.data.results || res.data);
+      setTaxRates(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch (err) {}
   };
 

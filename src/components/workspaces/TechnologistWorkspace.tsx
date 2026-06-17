@@ -51,13 +51,13 @@ export default function TechnologistWorkspace({ user }: TechnologistWorkspacePro
         api.get('production/zames/').catch(() => ({ data: [] })),
         api.get('telemetry/tags/live/').catch(() => ({ data: [] })),
       ]);
-      setRecipes(recipesRes.data.results || recipesRes.data || []);
-      setBunkers(bunkersRes.data.results || bunkersRes.data || []);
-      setFinishedBlocks(blocksRes.data.results || blocksRes.data || []);
-      setZames(zamesRes.data.results || zamesRes.data || []);
+      setRecipes(Array.isArray(recipesRes.data?.results || recipesRes.data) ? recipesRes.data?.results || recipesRes.data : []);
+      setBunkers(Array.isArray(bunkersRes.data?.results || bunkersRes.data) ? bunkersRes.data?.results || bunkersRes.data : []);
+      setFinishedBlocks(Array.isArray(blocksRes.data?.results || blocksRes.data) ? blocksRes.data?.results || blocksRes.data : []);
+      setZames(Array.isArray(zamesRes.data?.results || zamesRes.data) ? zamesRes.data?.results || zamesRes.data : []);
 
       // Map telemetry tags by tag_name
-      const telData = telRes.data.results || telRes.data || [];
+      const telData = telRes.data?.results || telRes.data || [];
       const telMap: Record<string, any> = {};
       if (Array.isArray(telData)) {
         telData.forEach((tag: any) => { telMap[tag.tag_name || tag.name] = tag; });

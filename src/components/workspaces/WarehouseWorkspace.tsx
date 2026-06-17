@@ -71,13 +71,13 @@ export default function WarehouseWorkspace({ user }: WarehouseWorkspaceProps) {
         api.get('inventory/audits/').catch(() => ({ data: [] }))
       ]);
 
-      setMaterials(materialsRes.data.results || materialsRes.data || []);
-      setSuppliers(suppliersRes.data.results || suppliersRes.data || []);
-      setWarehouses(warehousesRes.data.results || warehousesRes.data || []);
-      setBatches(batchesRes.data.results || batchesRes.data || []);
-      setTransfers(transfersRes.data.results || transfersRes.data || []);
+      setMaterials(Array.isArray(materialsRes.data?.results || materialsRes.data) ? materialsRes.data?.results || materialsRes.data : []);
+      setSuppliers(Array.isArray(suppliersRes.data?.results || suppliersRes.data) ? suppliersRes.data?.results || suppliersRes.data : []);
+      setWarehouses(Array.isArray(warehousesRes.data?.results || warehousesRes.data) ? warehousesRes.data?.results || warehousesRes.data : []);
+      setBatches(Array.isArray(batchesRes.data?.results || batchesRes.data) ? batchesRes.data?.results || batchesRes.data : []);
+      setTransfers(Array.isArray(transfersRes.data?.results || transfersRes.data) ? transfersRes.data?.results || transfersRes.data : []);
       
-      const auditList = auditsRes.data.results || auditsRes.data || [];
+      const auditList = auditsRes.data?.results || auditsRes.data || [];
       setAudits(auditList);
       
       const ongoing = auditList.find((a: any) => a.status === 'IN_PROGRESS' || a.status === 'DRAFT');

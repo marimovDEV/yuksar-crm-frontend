@@ -84,7 +84,7 @@ export default function Accounting({ user }: Props) {
           break;
         case 'journal':
           const jeRes = await api.get('accounting/journal-entries/');
-          setEntries(jeRes.data.results || jeRes.data);
+          setEntries(Array.isArray(jeRes.data?.results || jeRes.data) ? jeRes.data?.results || jeRes.data : []);
           break;
         case 'trial-balance':
           const tbRes = await api.get(`accounting/trial-balance/?start_date=${startDate}&end_date=${endDate}`);
@@ -104,7 +104,7 @@ export default function Accounting({ user }: Props) {
           break;
         case 'tax':
           const txRes = await api.get('accounting/tax-rates/');
-          setTaxRates(txRes.data.results || txRes.data);
+          setTaxRates(Array.isArray(txRes.data?.results || txRes.data) ? txRes.data?.results || txRes.data : []);
           break;
       }
     } catch (err) {

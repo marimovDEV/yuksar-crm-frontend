@@ -59,7 +59,7 @@ export default function POS({ user }: { user: User }) {
       ]);
       
       // Map real product fields - no fake data
-      const enhancedProducts = (productsRes.data.results || productsRes.data).map((p: any) => ({
+      const enhancedProducts = (productsRes.data?.results || productsRes.data).map((p: any) => ({
         ...p,
         images: [
            `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`,
@@ -76,7 +76,7 @@ export default function POS({ user }: { user: User }) {
       })) as Product[];
 
       setProducts(enhancedProducts);
-      setClients(clientsRes.data.results || clientsRes.data);
+      setClients(Array.isArray(clientsRes.data?.results || clientsRes.data) ? clientsRes.data?.results || clientsRes.data : []);
     } catch (err) {
       console.error("Failed to fetch POS data", err);
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");

@@ -40,7 +40,7 @@ export default function PurchaseOrders() {
     setLoading(true);
     try {
       const res = await api.get('procurement/orders/');
-      setOrders(res.data.results || res.data);
+      setOrders(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch (err) {
       uiStore.showNotification("Ma'mulotlarni yuklashda xatolik", "error");
     } finally {
@@ -265,8 +265,8 @@ function PurchaseOrderModal({ onClose, onSuccess, t }: { onClose: () => void, on
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    api.get('suppliers/').then(res => setSuppliers(res.data.results || res.data));
-    api.get('materials/').then(res => setMaterials(res.data.results || res.data));
+    api.get('suppliers/').then(res => setSuppliers(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []));
+    api.get('materials/').then(res => setMaterials(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []));
   }, []);
 
   const addItem = () => {

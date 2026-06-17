@@ -57,8 +57,8 @@ export default function WasteWarehouse() {
         api.get('waste/categories/'),
         api.get('waste/tasks/stats/'),
       ]);
-      setTasks(tasksRes.data.results || tasksRes.data);
-      setCategories(categoriesRes.data.results || categoriesRes.data);
+      setTasks(Array.isArray(tasksRes.data?.results || tasksRes.data) ? tasksRes.data?.results || tasksRes.data : []);
+      setCategories(Array.isArray(categoriesRes.data?.results || categoriesRes.data) ? categoriesRes.data?.results || categoriesRes.data : []);
       setStats(statsRes.data);
     } catch (err) {
       uiStore.showNotification("Chiqindi ombori ma'lumotlarini yuklab bo'lmadi", 'error');

@@ -31,8 +31,8 @@ export default function BudgetManager() {
         api.get('budgets/cost-centers/'),
         api.get('accounting/fiscal-periods/')
       ]);
-      setCostCenters(ccRes.data.results || ccRes.data);
-      const fetchedPeriods = fpRes.data.results || fpRes.data;
+      setCostCenters(Array.isArray(ccRes.data?.results || ccRes.data) ? ccRes.data?.results || ccRes.data : []);
+      const fetchedPeriods = fpRes.data?.results || fpRes.data;
       setPeriods(fetchedPeriods);
       
       if (fetchedPeriods.length > 0 && !selectedPeriod) {
@@ -55,7 +55,7 @@ export default function BudgetManager() {
       if (params.toString()) url += `?${params.toString()}`;
       
       const res = await api.get(url);
-      setBudgets(res.data.results || res.data);
+      setBudgets(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch (err) {
       console.error(err);
     } finally {

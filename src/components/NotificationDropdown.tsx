@@ -31,7 +31,7 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
     setLoading(true);
     try {
       const response = await api.get('notifications/');
-      const data = response.data.results || response.data;
+      const data = response.data?.results || response.data;
       setNotifications(data);
       const unreadCount = data.filter((n: any) => !n.is_read).length;
       onUnreadChange?.(unreadCount);
@@ -56,7 +56,7 @@ export default function NotificationDropdown({ isOpen, onClose, onUnreadChange }
 
       try {
         const response = await api.get('notifications/');
-        const data = response.data.results || response.data;
+        const data = response.data?.results || response.data;
         const unreadCount = data.filter((n: any) => !n.is_read).length;
         onUnreadChange?.(unreadCount);
       } catch (err) {}

@@ -78,7 +78,7 @@ export default function Documents({ user }: { user: User }) {
           created_at__lte: filters.dateTo,
         }
       });
-      setDocs(response.data.results || response.data);
+      setDocs(Array.isArray(response.data?.results || response.data) ? response.data?.results || response.data : []);
     } catch (err) {
       console.error("Failed to fetch documents", err);
       uiStore.showNotification("Hujjatlarni yuklab bo'lmadi", "error");

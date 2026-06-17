@@ -56,7 +56,7 @@ export default function DealerManagement({ user }: DealerManagementProps) {
     setLoading(true);
     try {
       const res = await api.get('dealers/');
-      setDealers(res.data.results || res.data || []);
+      setDealers(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), 'error');
     } finally {
@@ -70,7 +70,7 @@ export default function DealerManagement({ user }: DealerManagementProps) {
     setSelectedDealer(dealer);
     try {
       const res = await api.get(`dealers/${dealer.id}/payments/`);
-      setDealerPayments(res.data.results || res.data || []);
+      setDealerPayments(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch {
       setDealerPayments([]);
     }

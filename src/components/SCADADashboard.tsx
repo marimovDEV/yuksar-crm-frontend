@@ -87,7 +87,7 @@ export default function SCADADashboard({ user }: SCADADashboardProps) {
       const response = await api.get('telemetry/history/', {
         params: { tag_key: tagKey, limit: 12 }
       });
-      setHistorianData(response.data.results || response.data || []);
+      setHistorianData(Array.isArray(response.data?.results || response.data) ? response.data?.results || response.data : []);
     } catch (err) {
       console.error("Failed to fetch telemetry history:", err);
     } finally {

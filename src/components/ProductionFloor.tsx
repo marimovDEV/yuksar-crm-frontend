@@ -124,12 +124,12 @@ export default function ProductionFloor({ user }: { user: User }) {
         api.get('production/finished-blocks/')
       ]);
       const [zamesRes, recipesRes, batchesRes, materialsRes, bunkersRes, ordersRes, blockRes, finishedBlockRes] = results;
-      setZamesy(zamesRes.data.results || zamesRes.data);
-      setRecipes(recipesRes.data.results || recipesRes.data);
-      setBatches(batchesRes.data.results || batchesRes.data);
-      setMaterials(materialsRes.data.results || materialsRes.data);
-      setBunkers(bunkersRes.data.results || bunkersRes.data);
-      const cleanOrders = ((ordersRes.data.results || ordersRes.data) || []).filter((o: any) => {
+      setZamesy(Array.isArray(zamesRes.data?.results || zamesRes.data) ? zamesRes.data?.results || zamesRes.data : []);
+      setRecipes(Array.isArray(recipesRes.data?.results || recipesRes.data) ? recipesRes.data?.results || recipesRes.data : []);
+      setBatches(Array.isArray(batchesRes.data?.results || batchesRes.data) ? batchesRes.data?.results || batchesRes.data : []);
+      setMaterials(Array.isArray(materialsRes.data?.results || materialsRes.data) ? materialsRes.data?.results || materialsRes.data : []);
+      setBunkers(Array.isArray(bunkersRes.data?.results || bunkersRes.data) ? bunkersRes.data?.results || bunkersRes.data : []);
+      const cleanOrders = ((ordersRes.data?.results || ordersRes.data) || []).filter((o: any) => {
         return !(
           o.product_name?.toUpperCase().includes('TEST-') ||
           o.order_number?.toUpperCase().includes('TEST-') ||
@@ -138,8 +138,8 @@ export default function ProductionFloor({ user }: { user: User }) {
         );
       });
       setProductionOrders(cleanOrders);
-      setBlockProductions(blockRes.data.results || blockRes.data);
-      setFinishedBlocks(finishedBlockRes.data.results || finishedBlockRes.data);
+      setBlockProductions(Array.isArray(blockRes.data?.results || blockRes.data) ? blockRes.data?.results || blockRes.data : []);
+      setFinishedBlocks(Array.isArray(finishedBlockRes.data?.results || finishedBlockRes.data) ? finishedBlockRes.data?.results || finishedBlockRes.data : []);
     } catch (err) {
       console.error("Failed to fetch production data", err);
     } finally {

@@ -72,8 +72,8 @@ export default function TransactionDrawer({
             api.get('sales/invoices/'),
             api.get('procurement/orders/')
           ]);
-          setOrders(ordersRes.data.results || ordersRes.data);
-          setPurchases(purchasesRes.data.results || purchasesRes.data);
+          setOrders(Array.isArray(ordersRes.data?.results || ordersRes.data) ? ordersRes.data?.results || ordersRes.data : []);
+          setPurchases(Array.isArray(purchasesRes.data?.results || purchasesRes.data) ? purchasesRes.data?.results || purchasesRes.data : []);
         } catch (err) {
           console.error("Failed to fetch sources", err);
         }

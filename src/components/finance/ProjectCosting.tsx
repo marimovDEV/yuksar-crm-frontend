@@ -28,7 +28,7 @@ export default function ProjectCosting() {
       try {
         // This would ideally be a specialized analytics endpoint
         const res = await api.get('sales/invoices/');
-        setOrders(res.data.results || res.data);
+        setOrders(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
       } catch (err) {
         console.error("Failed to fetch costing data", err);
       } finally {

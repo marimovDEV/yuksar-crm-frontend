@@ -50,8 +50,8 @@ export default function QualityControl({ user }: { user: UserType }) {
         api.get('production/finished-blocks/'),
         api.get('batches/')
       ]);
-      setBlocks(blocksRes.data.results || blocksRes.data);
-      setBatches(batchesRes.data.results || batchesRes.data);
+      setBlocks(Array.isArray(blocksRes.data?.results || blocksRes.data) ? blocksRes.data?.results || blocksRes.data : []);
+      setBatches(Array.isArray(batchesRes.data?.results || batchesRes.data) ? batchesRes.data?.results || batchesRes.data : []);
     } catch (err) {
       uiStore.showNotification(t("Ma'lumotlarni yuklashda xatolik"), "error");
     } finally {

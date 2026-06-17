@@ -55,7 +55,7 @@ export default function CustomerProfile({ customerId, onBack }: Props) {
         api.get(`sales/invoices/?customer=${customerId}`)
       ]);
       setCustomer(cusRes.data);
-      setOrders(ordRes.data.results || ordRes.data);
+      setOrders(Array.isArray(ordRes.data?.results || ordRes.data) ? ordRes.data?.results || ordRes.data : []);
     } catch (e) {
       console.error(e);
     } finally {

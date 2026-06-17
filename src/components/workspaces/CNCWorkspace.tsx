@@ -70,9 +70,9 @@ export default function CNCWorkspace({ user }: CNCWorkspaceProps) {
         api.get('production/finished-blocks/?status=READY').catch(() => ({ data: [] })),
         api.get('materials/').catch(() => ({ data: [] }))
       ]);
-      setJobs(jobsRes.data?.results || jobsRes.data || []);
-      setBlocks(blocksRes.data?.results || blocksRes.data || []);
-      setProducts(prodRes.data?.results || prodRes.data || []);
+      setJobs(Array.isArray(jobsRes.data?.results || jobsRes.data) ? jobsRes.data?.results || jobsRes.data : []);
+      setBlocks(Array.isArray(blocksRes.data?.results || blocksRes.data) ? blocksRes.data?.results || blocksRes.data : []);
+      setProducts(Array.isArray(prodRes.data?.results || prodRes.data) ? prodRes.data?.results || prodRes.data : []);
     } catch (err) {
       console.error("CNC fetch error", err);
     } finally {

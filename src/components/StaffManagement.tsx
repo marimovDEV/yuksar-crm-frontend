@@ -78,12 +78,12 @@ export default function StaffManagement({ user }: StaffManagementProps) {
         api.get('compliance/attendance/'),
         api.get('permissions/')
       ]);
-      setStaff(staffRes.data.results || staffRes.data);
-      setAvailableWarehouses(whRes.data.results || whRes.data);
-      setRoles(rolesRes.data.results || rolesRes.data);
-      setDepartments(deptRes.data.results || deptRes.data);
-      setAttendance(attendanceRes.data.results || attendanceRes.data);
-      setPermissions(permRes.data.results || permRes.data);
+      setStaff(Array.isArray(staffRes.data?.results || staffRes.data) ? staffRes.data?.results || staffRes.data : []);
+      setAvailableWarehouses(Array.isArray(whRes.data?.results || whRes.data) ? whRes.data?.results || whRes.data : []);
+      setRoles(Array.isArray(rolesRes.data?.results || rolesRes.data) ? rolesRes.data?.results || rolesRes.data : []);
+      setDepartments(Array.isArray(deptRes.data?.results || deptRes.data) ? deptRes.data?.results || deptRes.data : []);
+      setAttendance(Array.isArray(attendanceRes.data?.results || attendanceRes.data) ? attendanceRes.data?.results || attendanceRes.data : []);
+      setPermissions(Array.isArray(permRes.data?.results || permRes.data) ? permRes.data?.results || permRes.data : []);
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
@@ -193,7 +193,7 @@ export default function StaffManagement({ user }: StaffManagementProps) {
     setViewLogsUser(u);
     try {
       const res = await api.get(`audit-logs/?user=${u.id}`);
-      const mappedActions: UserAction[] = res.data.results ? res.data.results.map((log: any) => ({
+      const mappedActions: UserAction[] = res.data?.results ? res.data?.results.map((log: any) => ({
         id: log.id,
         userId: log.user,
         userName: log.user_name || u.name,

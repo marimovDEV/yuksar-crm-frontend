@@ -3076,6 +3076,18 @@ type DynamicRule = {
   "Liniya #3 (Kesish)": "Линия #3 (Резка)",
   "EPS qadoqlash #1": "Упаковка EPS #1",
   "Liniya #4 (Maxsus)": "Линия #4 (Специальная)",
+  "3. TA'MINOT & XARID": "3. СНАБЖЕНИЕ И ЗАКУПКИ",
+  "Rollar": "Роли",
+  "Audit log": "Журнал аудита",
+  "Xavfsizlik": "Безопасность",
+  "Tahrir": "Редактировать",
+  "So'nggi kirish": "Последний вход",
+  "Ish hajmi": "Объем работы",
+  "Sifat": "Качество",
+  "Intizom": "Дисциплина",
+  "Tejamkorlik": "Экономия",
+  "Ajoyib": "Отлично",
+  "Yaxshi": "Хорошо",
 };
 
 const RU_DYNAMIC_RULES: DynamicRule[] = [

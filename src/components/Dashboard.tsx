@@ -80,8 +80,8 @@ export default function Dashboard({ user, onAction }: DashboardProps) {
           api.get('products/').catch(() => ({ data: [] }))
         ]);
         
-        const invList = invRes.data.results || invRes.data || [];
-        const prodList = productsRes.data.results || productsRes.data || [];
+        const invList = invRes.data?.results || invRes.data || [];
+        const prodList = productsRes.data?.results || productsRes.data || [];
         
         // Enhance ready stock catalog — real quantities only
         setReadyStock(prodList.slice(0, 5).map((p: any) => ({

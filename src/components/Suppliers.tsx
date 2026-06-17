@@ -66,7 +66,7 @@ export default function Suppliers() {
     setLoading(true);
     try {
       const res = await api.get('suppliers/');
-      setSuppliers(res.data.results || res.data);
+      setSuppliers(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
     } catch (err) {
       uiStore.showNotification("Ta'minotchilarni yuklashda xatolik", "error");
     } finally {
@@ -418,7 +418,7 @@ function SupplierDetailDrawer({ supplier, onClose, t, locale }: { supplier: Supp
 
   useEffect(() => {
     // Fetch orders for this supplier
-    api.get(`procurement/orders/?supplier=${supplier.id}`).then(res => setOrders(res.data.results || res.data));
+    api.get(`procurement/orders/?supplier=${supplier.id}`).then(res => setOrders(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []));
   }, [supplier.id]);
 
   const mockChartData = [

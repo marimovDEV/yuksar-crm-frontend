@@ -63,15 +63,15 @@ export default function QCWorkspace({ user }: QCWorkspaceProps) {
         api.get('batches/?status=INSPECTION').catch(() => ({ data: [] })),
         api.get('warehouses/').catch(() => ({ data: [] })),
       ]);
-      const pending = pendingRes.data.results || pendingRes.data || [];
-      const approved = approvedRes.data.results || approvedRes.data || [];
-      const rejected = rejectedRes.data.results || rejectedRes.data || [];
+      const pending = pendingRes.data?.results || pendingRes.data || [];
+      const approved = approvedRes.data?.results || approvedRes.data || [];
+      const rejected = rejectedRes.data?.results || rejectedRes.data || [];
       setPendingBlocks(pending);
       setApprovedBlocks(approved);
       setRejectedBlocks(rejected);
       setAllBlocks([...pending, ...approved, ...rejected]);
-      setIncomingBatches(batchesRes.data.results || batchesRes.data || []);
-      setWarehouses(warehousesRes.data.results || warehousesRes.data || []);
+      setIncomingBatches(Array.isArray(batchesRes.data?.results || batchesRes.data) ? batchesRes.data?.results || batchesRes.data : []);
+      setWarehouses(Array.isArray(warehousesRes.data?.results || warehousesRes.data) ? warehousesRes.data?.results || warehousesRes.data : []);
     } catch (err) {
       console.error('QCWorkspace fetch error:', err);
     } finally {

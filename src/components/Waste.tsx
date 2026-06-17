@@ -54,7 +54,7 @@ export default function Waste({ user }: { user: User }) {
         api.get('waste/categories/'),
         api.get('waste/tasks/stats/')
       ]);
-      setTasks(tasksRes.data.results || tasksRes.data);
+      setTasks(Array.isArray(tasksRes.data?.results || tasksRes.data) ? tasksRes.data?.results || tasksRes.data : []);
       setCategories(catRes.data);
       setStats(statsRes.data);
     } catch (err) {

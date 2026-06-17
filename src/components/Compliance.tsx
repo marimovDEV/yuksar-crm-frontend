@@ -21,13 +21,13 @@ export default function Compliance() {
     try {
       if (tab === 'rules') {
         const res = await api.get('compliance/rules/');
-        setRules(res.data.results || res.data);
+        setRules(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
       } else if (tab === 'violations') {
         const res = await api.get('compliance/violations/?is_resolved=false');
-        setViolations(res.data.results || res.data);
+        setViolations(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
       } else {
         const res = await api.get('compliance/documents/');
-        setDocuments(res.data.results || res.data);
+        setDocuments(Array.isArray(res.data?.results || res.data) ? res.data?.results || res.data : []);
       }
     } catch (err) {
       console.error(err);

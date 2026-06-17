@@ -80,11 +80,11 @@ export default function Sales({ user }: { user: User }) {
         api.get('clients/'),
         api.get('products/'),
       ]);
-      setInvoices(invRes.data.results || invRes.data);
-      setClients(clientsRes.data.results || clientsRes.data);
+      setInvoices(Array.isArray(invRes.data?.results || invRes.data) ? invRes.data?.results || invRes.data : []);
+      setClients(Array.isArray(clientsRes.data?.results || clientsRes.data) ? clientsRes.data?.results || clientsRes.data : []);
       
       // Map real product fields - no fake data
-      const enhancedProducts = (productsRes.data.results || productsRes.data).map((p: any) => ({
+      const enhancedProducts = (productsRes.data?.results || productsRes.data).map((p: any) => ({
         ...p,
         images: [
            `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`,
@@ -102,7 +102,7 @@ export default function Sales({ user }: { user: User }) {
       // Warehouse fetch is optional — may 403 for non-admin roles
       try {
         const whRes = await api.get('warehouses/');
-        setWarehouses(whRes.data.results || whRes.data);
+        setWarehouses(Array.isArray(whRes.data?.results || whRes.data) ? whRes.data?.results || whRes.data : []);
       } catch (e) {
         console.warn("Warehouses not accessible for this role");
       }

@@ -53,18 +53,18 @@ export default function EmployeeProfile({ employeeId, currentUser, onBack }: Emp
         api.get('permissions/').catch(() => ({ data: { results: [] } })),
       ]);
 
-      const users = usersRes.data.results || usersRes.data || [];
+      const users = usersRes.data?.results || usersRes.data || [];
       const emp = users.find((u: any) => u.id === employeeId);
       setEmployee(emp || null);
 
-      const logs = logsRes.data.results || logsRes.data || [];
+      const logs = logsRes.data?.results || logsRes.data || [];
       setAuditLogs(logs.slice(0, 10));
 
-      const allPayroll = payrollRes.data.results || payrollRes.data || [];
+      const allPayroll = payrollRes.data?.results || payrollRes.data || [];
       setPayrollData(allPayroll.filter((p: any) => p.user_id === employeeId));
 
       setKpiData(kpiRes.data);
-      setAllPermissions(permRes.data.results || permRes.data || []);
+      setAllPermissions(Array.isArray(permRes.data?.results || permRes.data) ? permRes.data?.results || permRes.data : []);
     } catch (e) {
       console.error(e);
     } finally {

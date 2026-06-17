@@ -100,7 +100,7 @@ export default function MaintenanceWorkspace({ user }: MaintenanceWorkspaceProps
 
       setLiveTelemetry(telemetryRes.data || {});
       setAlarms(Array.isArray(alarmsRes.data) ? alarmsRes.data : []);
-      setTickets(Array.isArray(ticketsRes.data.results) ? ticketsRes.data.results : (Array.isArray(ticketsRes.data) ? ticketsRes.data : []));
+      setTickets(Array.isArray(ticketsRes.data?.results) ? ticketsRes.data?.results : (Array.isArray(ticketsRes.data) ? ticketsRes.data : []));
     } catch (err) {
       console.error("Maintenance Workspace fetch failure:", err);
     } finally {

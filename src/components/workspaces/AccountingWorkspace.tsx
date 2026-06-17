@@ -45,10 +45,10 @@ export default function AccountingWorkspace({ user }: AccountingWorkspaceProps) 
         api.get('users/').catch(() => ({ data: [] }))
       ]);
 
-      setCashboxes(cashboxesRes.data.results || cashboxesRes.data || []);
-      setTransactions(transactionsRes.data.results || transactionsRes.data || []);
-      setPayroll(payrollRes.data.results || payrollRes.data || []);
-      setStaff(staffRes.data.results || staffRes.data || []);
+      setCashboxes(Array.isArray(cashboxesRes.data?.results || cashboxesRes.data) ? cashboxesRes.data?.results || cashboxesRes.data : []);
+      setTransactions(Array.isArray(transactionsRes.data?.results || transactionsRes.data) ? transactionsRes.data?.results || transactionsRes.data : []);
+      setPayroll(Array.isArray(payrollRes.data?.results || payrollRes.data) ? payrollRes.data?.results || payrollRes.data : []);
+      setStaff(Array.isArray(staffRes.data?.results || staffRes.data) ? staffRes.data?.results || staffRes.data : []);
     } catch (e) {
       console.error("Accounting Workspace fetch failure:", e);
     } finally {

@@ -80,10 +80,10 @@ export default function SalesWorkspace({ user }: SalesWorkspaceProps) {
         api.get('clients/').catch(() => ({ data: [] })),
         api.get('products/').catch(() => ({ data: [] })),
       ]);
-      setInvoices(invRes.data.results || invRes.data || []);
-      setClients(clientsRes.data.results || clientsRes.data || []);
+      setInvoices(Array.isArray(invRes.data?.results || invRes.data) ? invRes.data?.results || invRes.data : []);
+      setClients(Array.isArray(clientsRes.data?.results || clientsRes.data) ? clientsRes.data?.results || clientsRes.data : []);
       
-      const enhancedProducts = (productsRes.data.results || productsRes.data || []).map((p: any) => ({
+      const enhancedProducts = (productsRes.data?.results || productsRes.data || []).map((p: any) => ({
         ...p,
         images: [
            `https://images.unsplash.com/photo-1582035661448-9366487d559c?w=800&q=80`

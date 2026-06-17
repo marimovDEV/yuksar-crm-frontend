@@ -63,11 +63,11 @@ export default function InternalTransfers() {
         api.get('batches/'),
         api.get('production/finished-blocks/'),
       ]);
-      setTransfers(transRes.data.results || transRes.data);
-      setWarehouses(whRes.data.results || whRes.data);
-      setMaterials(matRes.data.results || matRes.data);
-      setBatches(batchRes.data.results || batchRes.data);
-      setBlocks(blockRes.data.results || blockRes.data);
+      setTransfers(Array.isArray(transRes.data?.results || transRes.data) ? transRes.data?.results || transRes.data : []);
+      setWarehouses(Array.isArray(whRes.data?.results || whRes.data) ? whRes.data?.results || whRes.data : []);
+      setMaterials(Array.isArray(matRes.data?.results || matRes.data) ? matRes.data?.results || matRes.data : []);
+      setBatches(Array.isArray(batchRes.data?.results || batchRes.data) ? batchRes.data?.results || batchRes.data : []);
+      setBlocks(Array.isArray(blockRes.data?.results || blockRes.data) ? blockRes.data?.results || blockRes.data : []);
     } catch (err) {
       uiStore.showNotification(t("Ma'lumot yuklashda xatolik"), 'error');
     } finally {
